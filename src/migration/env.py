@@ -5,14 +5,14 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from migration.models.person_crop_images import PersonCropImages
+from migration import models
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = PersonCropImages.metadata
+target_metadata = models.__all__
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
