@@ -11,8 +11,10 @@ class PresentationIdentifyPerson:
     def setup(fastapi_app: FastAPI):
         fastapi_app.add_api_route(
             "/identify_person", PresentationIdentifyPerson.endpoint, methods=["POST"])
-        fastapi_app.add_event_handler("startup", PresentationIdentifyPerson.startup)
-        fastapi_app.add_event_handler("shutdown", PresentationIdentifyPerson.shutdown)
+        fastapi_app.add_event_handler(
+            "startup", PresentationIdentifyPerson.startup)
+        fastapi_app.add_event_handler(
+            "shutdown", PresentationIdentifyPerson.shutdown)
 
     @staticmethod
     async def endpoint(
@@ -27,8 +29,8 @@ class PresentationIdentifyPerson:
 
     @staticmethod
     async def startup():
-        ApplicationIdentifyPersonBackgroundProcess.start()
+        await ApplicationIdentifyPersonBackgroundProcess.start()
 
     @staticmethod
     async def shutdown():
-        ApplicationIdentifyPersonBackgroundProcess.stop()
+        await ApplicationIdentifyPersonBackgroundProcess.stop()

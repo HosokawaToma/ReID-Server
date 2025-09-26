@@ -10,7 +10,9 @@ from service.identify_person.clip_reid.datasets.make_dataloader_clipreid import 
 from service.identify_person.clip_reid.model.make_model_clipreid import \
     make_model as make_clip_model
 
-CONFIG_FILE_PATH = "service/identify_person/clip_reid/configs/person/vit_clipreid.yml"
+# 絶対パスに修正
+CONFIG_FILE_PATH = os.path.join(os.path.dirname(
+    __file__), "clip_reid/configs/person/vit_clipreid.yml")
 OPTIONS = [
     "MODEL.SIE_CAMERA",
     "True",
@@ -25,6 +27,7 @@ OPTIONS = [
     "TEST.WEIGHT",
     "resources/models/Market1501_clipreid_12x12sie_ViT-B-16_60.pth"
 ]
+
 
 class ServiceIdentifyPersonClipReIDModel:
     def __init__(self):

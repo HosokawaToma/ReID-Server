@@ -4,7 +4,7 @@ import torch
 class ServiceIdentifyPersonAssignId:
     def __init__(self):
         self.person_ids = []
-        self.features = torch.Tensor([])
+        self.features = torch.Tensor([]).to(torch.device("cuda"))
         self.next_person_id = 1
         self.similarity_threshold = 0.891
 

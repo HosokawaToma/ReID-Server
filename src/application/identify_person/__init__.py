@@ -10,4 +10,5 @@ class ApplicationIdentifyPerson:
     @staticmethod
     async def process(person_crop_images: list[EntityPersonCropImage]) -> None:
         for person_crop_image in person_crop_images:
-            asyncio.to_thread(ApplicationIdentifyPersonBackgroundProcess.add_task(person_crop_image))
+            # awaitを追加して正しく非同期処理を実行
+            await ApplicationIdentifyPersonBackgroundProcess.add_task(person_crop_image)
