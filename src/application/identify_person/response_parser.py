@@ -1,12 +1,13 @@
 import io
 from datetime import datetime
 
-from entities.person_crop_image import EntityPersonCropImage
-from fastapi import UploadFile
 from PIL import Image
+from fastapi import UploadFile
+
+from entities.person_crop_image import EntityPersonCropImage
 
 
-class PresentationIdentifyPersonParse:
+class ApplicationIdentifyPersonResponseParser:
     @staticmethod
     async def parse(
         images: list[UploadFile],

@@ -1,10 +1,18 @@
-from service.database.clients import ServiceDatabaseClients
-from service.authentication import ServiceAuthentication
+from fastapi import FastAPI
+
 from entities.client import Client
+from service.authentication import ServiceAuthentication
+from service.database.clients import ServiceDatabaseClients
+
 
 class ApplicationLogin:
     @staticmethod
-    def process(client_id: str, password: str):
+    def setup(fastapi_app: FastAPI):
+        fastapi_app.add_api_route(
+            "/login", ApplicationLogin.endpoint, methods=["POST"])
+
+    @staticmethod
+    def endpoint(client_id: str, password: str):
         client = Client(client_id, password)
         client_model = ServiceDatabaseClients.get_client_by_id(client.id)
         if (client_model is None or client_model.hashed_password != client.hashed_password):
