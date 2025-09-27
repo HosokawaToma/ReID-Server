@@ -2,12 +2,13 @@ import fastapi
 import uvicorn
 
 from presentation.identify_person import PresentationIdentifyPerson
-
+from presentation.login import PresentationLogin
 
 class ServerApp:
     def __init__(self):
         self.fastapi_app = fastapi.FastAPI()
         PresentationIdentifyPerson.setup(self.fastapi_app)
+        PresentationLogin.setup(self.fastapi_app)
 
     def run(self):
         uvicorn.run(self.fastapi_app, host="0.0.0.0", port=8888)

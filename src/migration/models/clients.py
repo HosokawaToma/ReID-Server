@@ -7,7 +7,7 @@ class Clients(Base):
     __tablename__ = "clients"
 
     id = Column(String, primary_key=True)
-    password = Column(String)
+    hashed_password = Column(String)
 
     def __repr__(self):
-        return "<Clients(id={}, password={})>".format(self.id, self.password)
+        return "<Clients(id={}, hashed_password={})>".format(self.id, self.hashed_password)
