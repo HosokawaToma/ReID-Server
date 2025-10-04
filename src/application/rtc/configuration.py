@@ -1,4 +1,4 @@
-from webrtc_recorder import RTCIceServer, RTCConfiguration
+from aiortc import RTCIceServer, RTCConfiguration
 
 class ApplicationRtcConfiguration:
     def __init__(self, server_ip: str, turn_username: str, turn_password: str):

@@ -13,5 +13,8 @@ class ModuleDatabase:
     def commit(self):
         self._session.commit()
 
+    def get_session(self):
+        return self._session
+
     def __del__(self):
         self._session.close()

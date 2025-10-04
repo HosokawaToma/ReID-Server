@@ -1,6 +1,7 @@
 from modules.database import ModuleDatabase
 from entities.identify_person.image import EntityIdentifyPersonImage
 from migration.models.person_crop_images import PersonCropImages
+from migration.models.cameras import Cameras
 
 class ApplicationIdentifyPersonBackgroundProcessDatabase(ModuleDatabase):
     def __init__(self):
@@ -17,3 +18,6 @@ class ApplicationIdentifyPersonBackgroundProcessDatabase(ModuleDatabase):
         )
         self.add(person_crop_image_model)
         self.commit()
+
+    def get_camera(self, client_id: str) -> Cameras:
+        return self.get_session().query(Cameras).filter(Cameras.client_id == client_id).first()

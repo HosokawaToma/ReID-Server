@@ -20,6 +20,8 @@ class PresentationIdentifyPerson:
 
     def setup(self, app: fastapi.FastAPI):
         app.add_api_route("/identify_person", self.identify_person, methods=["POST"])
+        app.add_event_handler("shutdown", self.application_identify_person.shutdown)
+        app.add_event_handler("startup", self.application_identify_person.startup)
 
     async def identify_person(
         self,

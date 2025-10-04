@@ -39,20 +39,17 @@ class ApplicationIdentifyPersonBackgroundProcess:
                 break
 
     async def process(self, identify_person_image: EntityIdentifyPersonImage):
-        try:
-            database = ApplicationIdentifyPersonBackgroundProcessDatabase()
-            client_id = identify_person_image.client_id
-            camera_model = database.get_camera(client_id)
-            if camera_model is None:
-                raise Exception("Camera not found")
-            camera_id = camera_model.camera_id
-            view_id = camera_model.view_id
-            image = identify_person_image.image
-            person_id = self.clip_reid.identify(image, camera_id, view_id)
-            identify_person_image.camera_id = camera_id
-            identify_person_image.view_id = view_id
-            identify_person_image.person_id = person_id
-            identify_person_image.filepath = self.storage.save(identify_person_image)
-            await database.insert_identify_person_image(identify_person_image)
-        except Exception as e:
-            print(f"process処理でエラーが発生: {e}")
+        database = ApplicationIdentifyPersonBackgroundProcessDatabase()
+        client_id = identify_person_image.client_id
+        camera_model = database.get_camera(client_id)
+        if camera_model is None:
+            raise Exception("Camera not found")
+        camera_id = camera_model.camera_id
+        view_id = camera_model.view_id
+        image = identify_person_image.image
+        person_id = self.clip_reid.identify(image, camera_id, view_id)
+        identify_person_image.camera_id = camera_id
+        identify_person_image.view_id = view_id
+        identify_person_image.person_id = person_id
+        identify_person_image.filepath = self.storage.save(identify_person_image)
+        database.insert_identify_person_image(identify_person_image)
