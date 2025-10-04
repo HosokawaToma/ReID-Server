@@ -4,13 +4,12 @@ import torch
 from PIL import Image
 from torchvision import transforms
 
-from service.identify_person.clip_reid.config import cfg
-from service.identify_person.clip_reid.datasets.make_dataloader_clipreid import \
+from application.identify_person.background_process.clip_reid.clip_reid.config import cfg
+from application.identify_person.background_process.clip_reid.clip_reid.datasets.make_dataloader_clipreid import \
     make_dataloader as make_clip_dataloader
-from service.identify_person.clip_reid.model.make_model_clipreid import \
+from application.identify_person.background_process.clip_reid.clip_reid.model.make_model_clipreid import \
     make_model as make_clip_model
 
-# 絶対パスに修正
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(
     __file__), "clip_reid/configs/person/vit_clipreid.yml")
 OPTIONS = [
@@ -29,7 +28,7 @@ OPTIONS = [
 ]
 
 
-class ServiceIdentifyPersonClipReIDModel:
+class ApplicationIdentifyPersonBackgroundProcessClipReIDModel:
     def __init__(self):
         cfg.merge_from_file(CONFIG_FILE_PATH)
         cfg.merge_from_list(OPTIONS)
@@ -55,7 +54,7 @@ class ServiceIdentifyPersonClipReIDModel:
             )
         ])
 
-    def extract_feature(self, image: Image, camera_id: int = 0, view_id: int = 0) -> torch.Tensor:
+    def extract_feature(self, image: Image, camera_id: int, view_id: int) -> torch.Tensor:
         image_tensor = self.transform(image).unsqueeze(
             0).to(self.config.MODEL.DEVICE)
         camera_id_tensor = None

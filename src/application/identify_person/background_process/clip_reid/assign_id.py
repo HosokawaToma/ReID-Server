@@ -1,7 +1,7 @@
 import torch
 
 
-class ServiceIdentifyPersonAssignId:
+class ApplicationIdentifyPersonBackgroundProcessAssignId:
     def __init__(self):
         self.person_ids = []
         self.features = torch.Tensor([]).to(torch.device("cuda"))
