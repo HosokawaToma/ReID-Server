@@ -1,27 +1,40 @@
 import fastapi
 import uvicorn
 
-from presentation.rtc import PresentationRtc
+from presentation import Presentation
 from application.environment import ApplicationEnvironment
-from presentation.login import PresentationLogin
-from presentation.identify_person import PresentationIdentifyPerson
-
+from application.login import ApplicationLogin
+from application.identify_person import ApplicationIdentifyPerson
+from application.rtc import ApplicationRtc
+from application import Application
 
 class ServerApp:
-    def __init__(self):
-        self.application_environment = ApplicationEnvironment()
-        self.fastapi_app = fastapi.FastAPI()
-        self.presentation_login = PresentationLogin()
-        self.presentation_rtc = PresentationRtc()
-        self.application_identify_person = PresentationIdentifyPerson()
-        self.presentation_login.setup(self.fastapi_app)
-        self.presentation_rtc.setup(self.fastapi_app)
-        self.application_identify_person.setup(self.fastapi_app)
+    def __init__(
+        self,
+        fastapi_app: fastapi.FastAPI,
+        presentation: Presentation
+        ):
+        self.fastapi_app = fastapi_app
+        self.presentation = presentation
 
     def run(self):
+        self.presentation.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host="0.0.0.0", port=8888)
 
-
 if __name__ == "__main__":
-    app = ServerApp()
-    app.run()
+    environment = ApplicationEnvironment()
+    login = ApplicationLogin(
+        environment.get_jwt_secret_key(),
+        environment.get_jwt_algorithm()
+    )
+    identify_person = ApplicationIdentifyPerson()
+    rtc = ApplicationRtc(
+        environment.get_server_ip(),
+        environment.get_turn_username(),
+        environment.get_turn_password()
+    )
+    application = Application(login, identify_person, rtc)
+    presentation = Presentation(application)
+    fastapi_app = fastapi.FastAPI()
+    server_app = ServerApp(fastapi_app, presentation)
+    server_app.run()
