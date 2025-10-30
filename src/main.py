@@ -1,40 +1,77 @@
 import fastapi
 import uvicorn
 
-from presentation import Presentation
-from application.environment import ApplicationEnvironment
-from application.login import ApplicationLogin
-from application.identify_person import ApplicationIdentifyPerson
-from application.rtc import ApplicationRtc
-from application import Application
+
+from presentation.identify_person import PresentationIdentifyPerson
+from applications.identify_person import ApplicationIdentifyPerson
+from presentation.login import PresentationLogin
+from applications.login import ApplicationLogin
+from presentation.rtc import PresentationRtc
+from applications.rtc import ApplicationRtc
+from environment import Environment
 
 class ServerApp:
     def __init__(
         self,
+        host: str,
+        port: str,
         fastapi_app: fastapi.FastAPI,
-        presentation: Presentation
-        ):
+        login: PresentationLogin,
+        identify_person: PresentationIdentifyPerson,
+        rtc: PresentationRtc,
+    ):
+        self.host = host
+        self.port = port
         self.fastapi_app = fastapi_app
-        self.presentation = presentation
+        self.login = login
+        self.identify_person = identify_person
+        self.rtc = rtc
+
+    @classmethod
+    def create(
+        cls,
+        environment: Environment,
+    ) -> "ServerApp":
+        return cls(
+            host=environment.host(),
+            port=environment.port(),
+            fastapi_app=fastapi.FastAPI(),
+            login=PresentationLogin(
+                application=ApplicationLogin.create(
+                    jwt_secret_key=environment.jwt_secret_key(),
+                    jwt_algorithm=environment.jwt_algorithm(),
+                    mysql_engine_url=environment.mysql_engine_url(),
+                )
+            ),
+            identify_person=PresentationIdentifyPerson(
+                application=ApplicationIdentifyPerson.create(
+                    jwt_secret_key=environment.jwt_secret_key(),
+                    jwt_algorithm=environment.jwt_algorithm(),
+                    mysql_engine_url=environment.mysql_engine_url(),
+                    storage_path=environment.storage_path(),
+                    chroma_host=environment.chroma_host(),
+                    chroma_port=environment.chroma_port(),
+                    chroma_secret_token=environment.chroma_secret_token(),
+                )
+            ),
+            rtc=PresentationRtc(
+                application=ApplicationRtc.create(
+                    jwt_secret_key=environment.jwt_secret_key(),
+                    jwt_algorithm=environment.jwt_algorithm(),
+                    host=environment.rtc_host(),
+                    port=environment.rtc_port(),
+                    username=environment.rtc_username(),
+                    password=environment.rtc_password(),
+                )
+            ),
+        )
 
     def run(self):
-        self.presentation.setup(self.fastapi_app)
-        uvicorn.run(self.fastapi_app, host="0.0.0.0", port=8888)
+        self.login.setup(self.fastapi_app)
+        self.identify_person.setup(self.fastapi_app)
+        self.rtc.setup(self.fastapi_app)
+        uvicorn.run(self.fastapi_app, host=self.host, port=self.port)
 
 if __name__ == "__main__":
-    environment = ApplicationEnvironment()
-    login = ApplicationLogin(
-        environment.get_jwt_secret_key(),
-        environment.get_jwt_algorithm()
-    )
-    identify_person = ApplicationIdentifyPerson()
-    rtc = ApplicationRtc(
-        environment.get_server_ip(),
-        environment.get_turn_username(),
-        environment.get_turn_password()
-    )
-    application = Application(login, identify_person, rtc)
-    presentation = Presentation(application)
-    fastapi_app = fastapi.FastAPI()
-    server_app = ServerApp(fastapi_app, presentation)
+    server_app = ServerApp.create(environment=Environment())
     server_app.run()

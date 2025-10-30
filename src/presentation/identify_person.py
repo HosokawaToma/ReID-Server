@@ -1,26 +1,19 @@
 import fastapi
-from fastapi import UploadFile, Form, Header
-from application.identify_person import ApplicationIdentifyPerson
-from application.login import ApplicationLogin
 from typing import Annotated
-from datetime import datetime
-from PIL import Image
-import io
-from entities.identify_person.image import EntityIdentifyPersonImage
+from fastapi import UploadFile, Form, Header
+from applications.identify_person import ApplicationIdentifyPerson
+from entities.image import EntityImage
+from fastapi.responses import JSONResponse
 
 class PresentationIdentifyPerson:
     def __init__(
         self,
-        login: ApplicationLogin,
-        identify_person: ApplicationIdentifyPerson
+        application: ApplicationIdentifyPerson
         ):
-        self.login = login
-        self.identify_person = identify_person
+        self.application = application
 
     def setup(self, app: fastapi.FastAPI):
         app.add_api_route("/identify_person", self.endpoint, methods=["POST"])
-        app.add_event_handler("shutdown", self.identify_person.shutdown)
-        app.add_event_handler("startup", self.identify_person.startup)
 
     async def endpoint(
         self,
@@ -28,16 +21,25 @@ class PresentationIdentifyPerson:
         images: list[UploadFile],
         timestamp: str = Form(...),
     ):
-        client_id = self.login.authenticate_token(authorization)
-        if client_id is None:
-            return {"message": "Invalid token"}
-        timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
+        try:
+            client = self.application.authenticate(authorization)
+        except Exception as e:
+            return JSONResponse(content={"message": str(e)}, status_code=401)
+        try:
+            camera_id, view_id = self.application.get_camera_and_view_id(client.id)
+        except Exception as e:
+            return JSONResponse(content={"message": str(e)}, status_code=400)
+        try:
+            timestamp_datetime = self.application.from_iso_format(timestamp)
+        except Exception as e:
+            return JSONResponse(content={"message": str(e)}, status_code=400)
         for image in images:
-            image_bytes = await image.read()
-            image_pil = Image.open(io.BytesIO(image_bytes))
-            if image_pil.mode != "RGB":
-                image_pil = image_pil.convert("RGB")
-            identify_person_image = EntityIdentifyPersonImage(
-                client_id, image_pil, timestamp)
-            await self.identify_person.identify_person(identify_person_image)
-
+            try:
+                image = self.application.decode_image(await image.read())
+            except Exception as e:
+                return JSONResponse(content={"message": str(e)}, status_code=400)
+            try:
+                self.application.identify(EntityImage(image, camera_id, view_id, timestamp_datetime))
+            except Exception as e:
+                return JSONResponse(content={"message": str(e)}, status_code=400)
+        return JSONResponse(content={"message": "Person identified successfully"}, status_code=200)

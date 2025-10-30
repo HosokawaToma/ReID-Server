@@ -2,9 +2,93 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
-    ports:
-      - 8888:8888
+      dockerfile: dockerfile
+    expose:
+      - ${PORT}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - app_network
+    env_file:
+      - .env
 
-include:
-  - milvus-standalone-docker-compose.yml
+  mysql:
+    image: mysql:8.0
+    ports:
+      - ${MYSQL_PORT}:${MYSQL_PORT}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - ./volumes/mysql:/var/lib/mysql
+    networks:
+      - app_network
+
+  chroma:
+    image: chromadb/chroma:1.2.2
+    ports:
+      - ${CHROMA_PORT}:${CHROMA_PORT}
+    environment:
+      - CHROMA_SERVER_AUTH_PROVIDER=chromadb.auth.basic.BasicAuthServerProvider
+      - CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER=chromadb.auth.providers.HtpasswdFileServerAuthCredentialsProvider
+      - CHROMA_SERVER_AUTH_CREDENTIALS=${CHROMA_SECRET_TOKEN}
+      - CHROMA_SERVER_AUTH_TOKEN_TRANSPORT_HEADER=X-Chroma-Token
+    volumes:
+      - ./volumes/chroma:/chroma/chroma
+    networks:
+      - app_network
+
+  coturn:
+    image: coturn/coturn:4.7
+    ports:
+      - ${COTURN_MIN_PORT}-${COTURN_MAX_PORT}:${COTURN_MIN_PORT}-${COTURN_MAX_PORT}/udp
+      - ${COTURN_MIN_PORT}-${COTURN_MAX_PORT}:${COTURN_MIN_PORT}-${COTURN_MAX_PORT}/tcp
+      - ${COTURN_SECURE_PORT}:${COTURN_SECURE_PORT}/tcp
+    volumes:
+      - ${CERTS_PATH}/${CERT_FILE}:/etc/coturn/certs/fullchain.pem:ro
+      - ${CERTS_PATH}/${PKEY_FILE}:/etc/coturn/certs/privkey.pem:ro
+    command:
+      - "-n"
+      - "--log-file=stdout"
+      - "--listening-ip=0.0.0.0"
+      - "--external-ip=${PUBLIC_IP}"
+      - "--relay-ip=${PUBLIC_IP}"
+      - "--realm=${DOMAIN}"
+      - "--use-auth-secret"
+      - "--static-auth-secret=${COTURN_SECRET_TOKEN}"
+      - "--lt-cred-mech"
+      - "--user=${COTURN_USERNAME}:${COTURN_PASSWORD}"
+      - "--min-port=${COTURN_MIN_PORT}"
+      - "--max-port=${COTURN_MAX_PORT}"
+      - "--tls-listening-port=${COTURN_SECURE_PORT}"
+      - "--cert=/etc/coturn/certs/fullchain.pem"
+      - "--pkey=/etc/coturn/certs/privkey.pem"
+    networks:
+      - app_network
+
+  nginx:
+    image: nginx:1.29
+    ports:
+      - "${NGINX_HTTP_PORT}:${NGINX_HTTP_PORT}"
+      - "${NGINX_HTTPS_PORT}:${NGINX_HTTPS_PORT}"
+    environment:
+      - NGINX_HTTP_PORT=${NGINX_HTTP_PORT}
+      - NGINX_HTTPS_PORT=${NGINX_HTTPS_PORT}
+      - NGINX_DOMAIN=${DOMAIN}
+      - PORT=${PORT}
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./resources/certs:/etc/nginx/certs:ro
+    networks:
+      - app_network
+    restart: unless-stopped
+
+networks:
+  app_network:

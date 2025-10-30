@@ -4,3 +4,5 @@ resources/
 results/
 .db
 .env
+volumes/
+docker-compose.override.yaml
