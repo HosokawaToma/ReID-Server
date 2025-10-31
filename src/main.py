@@ -4,8 +4,8 @@ import uvicorn
 
 from presentation.identify_person import PresentationIdentifyPerson
 from applications.identify_person import ApplicationIdentifyPerson
-from presentation.login import PresentationLogin
-from applications.login import ApplicationLogin
+from presentation.login.camera_client import PresentationLoginCameraClient
+from applications.login.camera_client import ApplicationLoginCameraClient
 from presentation.rtc import PresentationRtc
 from applications.rtc import ApplicationRtc
 from environment import Environment
@@ -16,14 +16,14 @@ class ServerApp:
         host: str,
         port: str,
         fastapi_app: fastapi.FastAPI,
-        login: PresentationLogin,
+        login_camera_client: PresentationLoginCameraClient,
         identify_person: PresentationIdentifyPerson,
         rtc: PresentationRtc,
     ):
         self.host = host
         self.port = port
         self.fastapi_app = fastapi_app
-        self.login = login
+        self.login_camera_client = login_camera_client
         self.identify_person = identify_person
         self.rtc = rtc
 
@@ -36,8 +36,8 @@ class ServerApp:
             host=environment.host(),
             port=environment.port(),
             fastapi_app=fastapi.FastAPI(),
-            login=PresentationLogin(
-                application=ApplicationLogin.create(
+            login_camera_client=PresentationLoginCameraClient(
+                application=ApplicationLoginCameraClient.create(
                     jwt_secret_key=environment.jwt_secret_key(),
                     jwt_algorithm=environment.jwt_algorithm(),
                     mysql_engine_url=environment.mysql_engine_url(),
@@ -67,7 +67,7 @@ class ServerApp:
         )
 
     def run(self):
-        self.login.setup(self.fastapi_app)
+        self.login_camera_client.setup(self.fastapi_app)
         self.identify_person.setup(self.fastapi_app)
         self.rtc.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.host, port=self.port)

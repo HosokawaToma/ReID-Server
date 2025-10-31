@@ -31,7 +31,7 @@ class ModuleAuthenticatorCameraClient:
             raise Exception("Invalid authorization token")
         return EntityCameraClient(payload[self.CLIENT_ID_KEY_OF_PAYLOAD])
 
-    def generate_token_for_camera_client(self, camera_client: EntityCameraClient) -> str:
+    def generate_token(self, camera_client: EntityCameraClient) -> str:
         expire_time = datetime.now(timezone.utc) + timedelta(weeks=1)
         payload = {
             "client_id": camera_client.id,
