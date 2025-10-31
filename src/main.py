@@ -3,7 +3,9 @@ import uvicorn
 
 from presentation.identify_person import PresentationIdentifyPerson
 from applications.identify_person import ApplicationIdentifyPerson
+from presentation.login.client import PresentationLoginClient
 from presentation.login.camera_client import PresentationLoginCameraClient
+from applications.login.client import ApplicationLoginClient
 from applications.login.camera_client import ApplicationLoginCameraClient
 from presentation.rtc import PresentationRtc
 from applications.rtc import ApplicationRtc
@@ -21,6 +23,7 @@ class ServerApp:
         host: str,
         port: str,
         fastapi_app: fastapi.FastAPI,
+        login_client: PresentationLoginClient,
         login_camera_client: PresentationLoginCameraClient,
         identify_person: PresentationIdentifyPerson,
         rtc: PresentationRtc,
@@ -28,6 +31,7 @@ class ServerApp:
         self.host = host
         self.port = port
         self.fastapi_app = fastapi_app
+        self.login_client = login_client
         self.login_camera_client = login_camera_client
         self.identify_person = identify_person
         self.rtc = rtc
@@ -40,6 +44,7 @@ class ServerApp:
         environment_jwt = EntityEnvironmentJwt(
             secret_key=environment.jwt_secret_key(),
             algorithm=environment.jwt_algorithm(),
+            expire_days=environment.jwt_expire_days(),
         )
         environment_mysql = EntityEnvironmentMysql(
             host=environment.mysql_host(),
@@ -66,6 +71,12 @@ class ServerApp:
             host=environment.host(),
             port=environment.port(),
             fastapi_app=fastapi.FastAPI(),
+            login_client=PresentationLoginClient(
+                application=ApplicationLoginClient.create(
+                    environment_jwt=environment_jwt,
+                    environment_mysql=environment_mysql,
+                )
+            ),
             login_camera_client=PresentationLoginCameraClient(
                 application=ApplicationLoginCameraClient.create(
                     environment_jwt=environment_jwt,
@@ -89,6 +100,7 @@ class ServerApp:
         )
 
     def run(self):
+        self.login_client.setup(self.fastapi_app)
         self.login_camera_client.setup(self.fastapi_app)
         self.identify_person.setup(self.fastapi_app)
         self.rtc.setup(self.fastapi_app)

@@ -4,3 +4,5 @@ from dataclasses import dataclass
 class EntityEnvironmentJwt:
     secret_key: str
     algorithm: str
+    expire_days: int
+
