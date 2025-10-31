@@ -5,6 +5,8 @@ from presentation.identify_person import PresentationIdentifyPerson
 from applications.identify_person import ApplicationIdentifyPerson
 from presentation.login.client import PresentationLoginClient
 from presentation.login.camera_client import PresentationLoginCameraClient
+from presentation.camera_clients.create import PresentationCameraClientsCreate
+from applications.camera_clients.create import ApplicationCameraClientsCreate
 from applications.login.client import ApplicationLoginClient
 from applications.login.camera_client import ApplicationLoginCameraClient
 from presentation.rtc import PresentationRtc
@@ -24,6 +26,7 @@ class ServerApp:
         port: str,
         fastapi_app: fastapi.FastAPI,
         login_client: PresentationLoginClient,
+        camera_clients_create: PresentationCameraClientsCreate,
         login_camera_client: PresentationLoginCameraClient,
         identify_person: PresentationIdentifyPerson,
         rtc: PresentationRtc,
@@ -32,6 +35,7 @@ class ServerApp:
         self.port = port
         self.fastapi_app = fastapi_app
         self.login_client = login_client
+        self.camera_clients_create = camera_clients_create
         self.login_camera_client = login_camera_client
         self.identify_person = identify_person
         self.rtc = rtc
@@ -83,6 +87,12 @@ class ServerApp:
                     environment_mysql=environment_mysql,
                 )
             ),
+            camera_clients_create=PresentationCameraClientsCreate(
+                application=ApplicationCameraClientsCreate.create(
+                    environment_jwt=environment_jwt,
+                    environment_mysql=environment_mysql,
+                )
+            ),
             identify_person=PresentationIdentifyPerson(
                 application=ApplicationIdentifyPerson.create(
                     environment_jwt=environment_jwt,
@@ -102,6 +112,7 @@ class ServerApp:
     def run(self):
         self.login_client.setup(self.fastapi_app)
         self.login_camera_client.setup(self.fastapi_app)
+        self.camera_clients_create.setup(self.fastapi_app)
         self.identify_person.setup(self.fastapi_app)
         self.rtc.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.host, port=self.port)
