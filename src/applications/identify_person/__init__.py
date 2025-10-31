@@ -12,6 +12,10 @@ from modules.storage.image import ModuleStorageImage
 from modules.database.chroma.person_feature import ModuleDatabaseChromaPersonFeature
 from database.chroma import DatabaseChroma
 from database.mysql import DatabaseMySQL
+from entities.environment.jwt import EntityEnvironmentJwt
+from entities.environment.mysql import EntityEnvironmentMysql
+from entities.environment.chroma import EntityEnvironmentChroma
+from entities.environment.storage import EntityEnvironmentStorage
 
 class ApplicationIdentifyPerson:
     def __init__(
@@ -31,24 +35,34 @@ class ApplicationIdentifyPerson:
     @classmethod
     def create(
         cls,
-        jwt_secret_key: str,
-        jwt_algorithm: str,
-        mysql_engine_url: str,
-        storage_path: str,
-        chroma_host: str,
-        chroma_port: str
+        environment_jwt: EntityEnvironmentJwt,
+        environment_mysql: EntityEnvironmentMysql,
+        environment_chroma: EntityEnvironmentChroma,
+        environment_storage: EntityEnvironmentStorage,
         ) -> "ApplicationIdentifyPerson":
         return cls(
-            authenticator_camera_client=ModuleAuthenticatorCameraClient(jwt_secret_key=jwt_secret_key, jwt_algorithm=jwt_algorithm),
-            database_camera_clients=ModuleDatabaseMySQLCameraClients(DatabaseMySQL(engine_url=mysql_engine_url)),
+            authenticator_camera_client=ModuleAuthenticatorCameraClient(
+                jwt_secret_key=environment_jwt.secret_key,
+                jwt_algorithm=environment_jwt.algorithm,
+            ),
+            database_camera_clients=ModuleDatabaseMySQLCameraClients(DatabaseMySQL(
+                host=environment_mysql.host,
+                port=environment_mysql.port,
+                user=environment_mysql.user,
+                password=environment_mysql.password,
+                database=environment_mysql.database,
+            )),
             datetime_module=ModuleDatetime(),
             image_module=ModuleImage(),
             background_process=ApplicationIdentifyPersonBackgroundProcess(
                 reid_model=ModuleReIDModel(),
-                storage_image=ModuleStorageImage(storage_path=storage_path),
-                database_person_feature=ModuleDatabaseChromaPersonFeature(DatabaseChroma(host=chroma_host, port=chroma_port)
-                )
-            )
+                storage_image=ModuleStorageImage(storage_path=environment_storage.path),
+                database_person_feature=ModuleDatabaseChromaPersonFeature(DatabaseChroma(
+                    host=environment_chroma.host,
+                    port=environment_chroma.port,
+                    secret_token=environment_chroma.secret_token,
+                )),
+            ),
         )
 
     def authenticate(self, authorization: str) -> EntityCameraClient:

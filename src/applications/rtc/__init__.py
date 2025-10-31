@@ -1,14 +1,16 @@
 from applications.rtc.peer_connection import ApplicationRtcPeerConnection
 from applications.rtc.configuration import ApplicationRtcConfiguration
-from modules.authenticator import ModuleAuthenticator
-from entities.client import EntityClient
+from modules.authenticator.camera_client import ModuleAuthenticatorCameraClient
+from entities.camera_client import EntityCameraClient
+from entities.environment.jwt import EntityEnvironmentJwt
+from entities.environment.coturn import EntityEnvironmentCoturn
 
 
 class ApplicationRtc:
     def __init__(
         self,
         configuration: ApplicationRtcConfiguration,
-        authenticator: ModuleAuthenticator
+        authenticator: ModuleAuthenticatorCameraClient
         ):
         self.peer_connections: list[ApplicationRtcPeerConnection] = []
         self.configuration = configuration
@@ -17,19 +19,23 @@ class ApplicationRtc:
     @classmethod
     def create(
         cls,
-        jwt_secret_key: str,
-        jwt_algorithm: str,
-        host: str,
-        port: str,
-        username: str,
-        password: str,
+        environment_jwt: EntityEnvironmentJwt,
+        environment_coturn: EntityEnvironmentCoturn,
         ) -> "ApplicationRtc":
         return cls(
-            configuration=ApplicationRtcConfiguration(host=host, port=port, username=username, password=password),
-            authenticator=ModuleAuthenticator(jwt_secret_key=jwt_secret_key, jwt_algorithm=jwt_algorithm)
+            configuration=ApplicationRtcConfiguration(
+                host=environment_coturn.host,
+                port=environment_coturn.secure_port,
+                username=environment_coturn.username,
+                password=environment_coturn.password,
+            ),
+            authenticator=ModuleAuthenticatorCameraClient(
+                jwt_secret_key=environment_jwt.secret_key,
+                jwt_algorithm=environment_jwt.algorithm,
+            ),
         )
 
-    def authenticate(self, authorization: str) -> EntityClient:
+    def authenticate(self, authorization: str) -> EntityCameraClient:
         return self.authenticator.authenticate(authorization)
 
     async def offer(self, client_id: int, sdp: str, sdp_type: str):

@@ -2,6 +2,8 @@ from entities.camera_client import EntityCameraClient
 from modules.database.mysql.camera_clients import ModuleDatabaseMySQLCameraClients
 from modules.authenticator.camera_client import ModuleAuthenticatorCameraClient
 from database.mysql import DatabaseMySQL
+from entities.environment.jwt import EntityEnvironmentJwt
+from entities.environment.mysql import EntityEnvironmentMysql
 
 class ApplicationLoginCameraClient:
     def __init__(
@@ -13,10 +15,23 @@ class ApplicationLoginCameraClient:
         self.authenticator_camera_client = authenticator_camera_client
 
     @classmethod
-    def create(cls, jwt_secret_key: str, jwt_algorithm: str, mysql_engine_url: str) -> "ApplicationLoginCameraClient":
+    def create(
+        cls,
+        environment_jwt: EntityEnvironmentJwt,
+        environment_mysql: EntityEnvironmentMysql,
+    ) -> "ApplicationLoginCameraClient":
         return cls(
-            database_camera_clients=ModuleDatabaseMySQLCameraClients(DatabaseMySQL(engine_url=mysql_engine_url)),
-            authenticator_camera_client=ModuleAuthenticatorCameraClient(jwt_secret_key=jwt_secret_key, jwt_algorithm=jwt_algorithm)
+            database_camera_clients=ModuleDatabaseMySQLCameraClients(DatabaseMySQL(
+                host=environment_mysql.host,
+                port=environment_mysql.port,
+                user=environment_mysql.user,
+                password=environment_mysql.password,
+                database=environment_mysql.database,
+            )),
+            authenticator_camera_client=ModuleAuthenticatorCameraClient(
+                jwt_secret_key=environment_jwt.secret_key,
+                jwt_algorithm=environment_jwt.algorithm,
+            ),
         )
 
     def login(self, camera_client_id: str, password: str):

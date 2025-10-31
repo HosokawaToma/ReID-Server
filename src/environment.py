@@ -14,6 +14,12 @@ class Environment:
             raise ValueError("PORT is not set")
         return value
 
+    def public_ip(self) -> str:
+        value = os.getenv("PUBLIC_IP")
+        if value is None:
+            raise ValueError("PUBLIC_IP is not set")
+        return value
+
     def jwt_secret_key(self) -> str:
         value = os.getenv("JWT_SECRET_KEY")
         if value is None:
@@ -26,16 +32,16 @@ class Environment:
             raise ValueError("JWT_ALGORITHM is not set")
         return value
 
-    def mysql_port(self) -> str:
-        value = os.getenv("MYSQL_PORT")
-        if value is None:
-            raise ValueError("MYSQL_PORT is not set")
-        return value
-
     def mysql_host(self) -> str:
         value = os.getenv("MYSQL_HOST")
         if value is None:
             raise ValueError("MYSQL_HOST is not set")
+        return value
+
+    def mysql_port(self) -> str:
+        value = os.getenv("MYSQL_PORT")
+        if value is None:
+            raise ValueError("MYSQL_PORT is not set")
         return value
 
     def mysql_database(self) -> str:
