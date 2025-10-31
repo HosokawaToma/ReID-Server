@@ -22,13 +22,9 @@ class PresentationIdentifyPerson:
         timestamp: str = Form(...),
     ):
         try:
-            client = self.application.authenticate(authorization)
+            camera_client = self.application.authenticate(authorization)
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=401)
-        try:
-            camera_id, view_id = self.application.get_camera_and_view_id(client.id)
-        except Exception as e:
-            return JSONResponse(content={"message": str(e)}, status_code=400)
         try:
             timestamp_datetime = self.application.from_iso_format(timestamp)
         except Exception as e:
@@ -39,7 +35,7 @@ class PresentationIdentifyPerson:
             except Exception as e:
                 return JSONResponse(content={"message": str(e)}, status_code=400)
             try:
-                self.application.identify(EntityImage(image, camera_id, view_id, timestamp_datetime))
+                self.application.identify(EntityImage(image, camera_client.camera_id, camera_client.view_id, timestamp_datetime))
             except Exception as e:
                 return JSONResponse(content={"message": str(e)}, status_code=400)
         return JSONResponse(content={"message": "Person identified successfully"}, status_code=200)

@@ -1,7 +1,5 @@
-from .client import DatabaseMySQLModelClient
-from .client_camera import DatabaseMySQLModelClientCamera
+from .camera_client import DatabaseMySQLModelCameraClient
 
 ALEMBIC_MODELS = [
-    DatabaseMySQLModelClient.metadata,
-    DatabaseMySQLModelClientCamera.metadata,
+    DatabaseMySQLModelCameraClient.metadata,
 ]

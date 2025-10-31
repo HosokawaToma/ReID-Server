@@ -1,12 +1,12 @@
 from PIL import Image
-from entities.client import EntityClient
+from entities.camera_client import EntityCameraClient
 from entities.image import EntityImage
 from datetime import datetime
 from applications.identify_person.background import ApplicationIdentifyPersonBackgroundProcess
-from modules.authenticator import ModuleAuthenticator
+from modules.authenticator.camera_client import ModuleAuthenticatorCameraClient
 from modules.datetime import ModuleDatetime
 from modules.image import ModuleImage
-from modules.database.mysql.clients_camera import ModuleDatabaseMySQLClientsCamera
+from modules.database.mysql.camera_clients import ModuleDatabaseMySQLCameraClients
 from modules.reid.model import ModuleReIDModel
 from modules.storage.image import ModuleStorageImage
 from modules.database.chroma.person_feature import ModuleDatabaseChromaPersonFeature
@@ -16,14 +16,14 @@ from database.mysql import DatabaseMySQL
 class ApplicationIdentifyPerson:
     def __init__(
         self,
-        authenticator: ModuleAuthenticator,
-        database_clients_camera: ModuleDatabaseMySQLClientsCamera,
+        authenticator_camera_client: ModuleAuthenticatorCameraClient,
+        database_camera_clients: ModuleDatabaseMySQLCameraClients,
         datetime_module: ModuleDatetime,
         image_module: ModuleImage,
         background_process: ApplicationIdentifyPersonBackgroundProcess
         ):
-        self.authenticator = authenticator
-        self.database_clients_camera = database_clients_camera
+        self.authenticator_camera_client = authenticator_camera_client
+        self.database_camera_clients = database_camera_clients
         self.datetime_module = datetime_module
         self.image_module = image_module
         self.background_process = background_process
@@ -39,8 +39,8 @@ class ApplicationIdentifyPerson:
         chroma_port: str
         ) -> "ApplicationIdentifyPerson":
         return cls(
-            authenticator=ModuleAuthenticator(jwt_secret_key=jwt_secret_key, jwt_algorithm=jwt_algorithm),
-            database_clients_camera=ModuleDatabaseMySQLClientsCamera(DatabaseMySQL(engine_url=mysql_engine_url)),
+            authenticator_camera_client=ModuleAuthenticatorCameraClient(jwt_secret_key=jwt_secret_key, jwt_algorithm=jwt_algorithm),
+            database_camera_clients=ModuleDatabaseMySQLCameraClients(DatabaseMySQL(engine_url=mysql_engine_url)),
             datetime_module=ModuleDatetime(),
             image_module=ModuleImage(),
             background_process=ApplicationIdentifyPersonBackgroundProcess(
@@ -51,12 +51,8 @@ class ApplicationIdentifyPerson:
             )
         )
 
-    def authenticate(self, authorization: str) -> EntityClient:
-        return self.authenticator.authenticate(authorization)
-
-    def get_camera_and_view_id(self, client_id: int) -> tuple[int, int]:
-        client_camera = self.database_clients_camera.get_client_camera_by_id(client_id)
-        return client_camera.camera_id, client_camera.viewer_id
+    def authenticate(self, authorization: str) -> EntityCameraClient:
+        return self.authenticator_camera_client.authenticate(authorization)
 
     def from_iso_format(self, iso_timestamp: str) -> datetime:
         return self.datetime_module.from_iso_format(iso_timestamp)

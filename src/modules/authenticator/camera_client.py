@@ -1,9 +1,9 @@
 import jwt
-from entities.client import EntityClient
+from entities.camera_client import EntityCameraClient
 from datetime import datetime, timezone
 from datetime import timedelta
 
-class ModuleAuthenticator:
+class ModuleAuthenticatorCameraClient:
     CLIENT_ID_KEY_OF_PAYLOAD = "client_id"
 
     def __init__(
@@ -14,7 +14,7 @@ class ModuleAuthenticator:
         self.jwt_secret_key = jwt_secret_key
         self.jwt_algorithm = jwt_algorithm
 
-    def authenticate(self, authorization: str) -> EntityClient:
+    def authenticate(self, authorization: str) -> EntityCameraClient:
         header_type, token = authorization.split(" ")
         if header_type != "Bearer":
             raise Exception("Invalid authorization header type")
@@ -22,19 +22,21 @@ class ModuleAuthenticator:
             raise Exception("Invalid authorization token")
         return self.verify(token)
 
-    def verify(self, token: str) -> EntityClient:
+    def verify(self, token: str) -> EntityCameraClient:
         try:
             payload = jwt.decode(token, self.jwt_secret_key, algorithms=[self.jwt_algorithm])
         except jwt.InvalidTokenError:
             raise Exception("Invalid authorization token")
         if (payload[self.CLIENT_ID_KEY_OF_PAYLOAD] is None):
             raise Exception("Invalid authorization token")
-        return EntityClient(payload[self.CLIENT_ID_KEY_OF_PAYLOAD])
+        return EntityCameraClient(payload[self.CLIENT_ID_KEY_OF_PAYLOAD])
 
-    def generate_token_for_client(self, client: EntityClient) -> str:
+    def generate_token_for_camera_client(self, camera_client: EntityCameraClient) -> str:
         expire_time = datetime.now(timezone.utc) + timedelta(weeks=1)
         payload = {
-            "client_id": client.id,
+            "client_id": camera_client.id,
+            "camera_id": camera_client.camera_id,
+            "view_id": camera_client.view_id,
             "exp": expire_time
         }
         token = jwt.encode(payload, self.jwt_secret_key, algorithm=self.jwt_algorithm)
