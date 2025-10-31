@@ -32,6 +32,12 @@ class Environment:
             raise ValueError("JWT_ALGORITHM is not set")
         return value
 
+    def jwt_expire_days(self) -> int:
+        value = os.getenv("JWT_EXPIRE_DAYS")
+        if value is None:
+            raise ValueError("JWT_EXPIRE_DAYS is not set")
+        return int(value)
+
     def mysql_host(self) -> str:
         value = os.getenv("MYSQL_HOST")
         if value is None:

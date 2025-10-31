@@ -31,6 +31,7 @@ class ApplicationLoginCameraClient:
             authenticator_camera_client=ModuleAuthenticatorCameraClient(
                 jwt_secret_key=environment_jwt.secret_key,
                 jwt_algorithm=environment_jwt.algorithm,
+                expire_days=environment_jwt.expire_days,
             ),
         )
 

@@ -2,42 +2,60 @@ import jwt
 from entities.camera_client import EntityCameraClient
 from datetime import datetime, timezone
 from datetime import timedelta
+from src.modules.authenticator.base import ModuleAuthenticatorBase
+from src.entities.jwt.camera_client import EntityJWTCameraClient
+from typing import Any
 
-class ModuleAuthenticatorCameraClient:
-    CLIENT_ID_KEY_OF_PAYLOAD = "client_id"
+class ModuleAuthenticatorCameraClient(ModuleAuthenticatorBase):
+    EXPIRE_TIME_KEY_OF_PAYLOAD = "exp"
+    CAMERA_CLIENT_ID_KEY_OF_PAYLOAD = "camera_client_id"
+    CAMERA_ID_KEY_OF_PAYLOAD = "camera_id"
+    VIEW_ID_KEY_OF_PAYLOAD = "view_id"
 
-    def __init__(
-        self,
-        jwt_secret_key: str,
-        jwt_algorithm: str
-    ):
-        self.jwt_secret_key = jwt_secret_key
-        self.jwt_algorithm = jwt_algorithm
+    def __init__(self, secret_key: str, algorithm: str, expire_days: int):
+        super().__init__(secret_key=secret_key, algorithm=algorithm, expire_days=expire_days)
 
-    def authenticate(self, authorization: str) -> EntityCameraClient:
-        header_type, token = authorization.split(" ")
-        if header_type != "Bearer":
+    def verify(self, authorization: str) -> EntityJWTCameraClient:
+        header_type, token = self._parse_authorization(authorization)
+        if header_type != self.HEADER_TYPE_KEY_OF_AUTHORIZATION:
             raise Exception("Invalid authorization header type")
-        if token is None:
-            raise Exception("Invalid authorization token")
-        return self.verify(token)
+        payload = self._decode_token(token)
+        camera_client_id, camera_id, view_id, expire_time = self._parse_payload(payload)
+        if expire_time < self._get_current_time():
+            raise Exception("Token expired")
+        return EntityJWTCameraClient(camera_client_id, camera_id, view_id)
 
-    def verify(self, token: str) -> EntityCameraClient:
-        try:
-            payload = jwt.decode(token, self.jwt_secret_key, algorithms=[self.jwt_algorithm])
-        except jwt.InvalidTokenError:
+    def _parse_payload(self, payload: Any) -> tuple[str, int, int, int]:
+        if not isinstance(payload, dict):
             raise Exception("Invalid authorization token")
-        if (payload[self.CLIENT_ID_KEY_OF_PAYLOAD] is None):
+        camera_client_id = payload.get(self.CAMERA_CLIENT_ID_KEY_OF_PAYLOAD)
+        camera_id = payload.get(self.CAMERA_ID_KEY_OF_PAYLOAD)
+        view_id = payload.get(self.VIEW_ID_KEY_OF_PAYLOAD)
+        expire_time = payload.get(self.EXPIRE_TIME_KEY_OF_PAYLOAD)
+        if camera_client_id is None:
             raise Exception("Invalid authorization token")
-        return EntityCameraClient(payload[self.CLIENT_ID_KEY_OF_PAYLOAD])
+        if camera_id is None:
+            raise Exception("Invalid authorization token")
+        if view_id is None:
+            raise Exception("Invalid authorization token")
+        if expire_time is None:
+            raise Exception("Invalid authorization token")
+        if not isinstance(camera_client_id, str):
+            raise Exception("Invalid authorization token")
+        if not isinstance(camera_id, int):
+            raise Exception("Invalid authorization token")
+        if not isinstance(view_id, int):
+            raise Exception("Invalid authorization token")
+        if not isinstance(expire_time, int):
+            raise Exception("Invalid authorization token")
+        return camera_client_id, camera_id, view_id, expire_time
 
     def generate_token(self, camera_client: EntityCameraClient) -> str:
-        expire_time = datetime.now(timezone.utc) + timedelta(weeks=1)
         payload = {
-            "client_id": camera_client.id,
-            "camera_id": camera_client.camera_id,
-            "view_id": camera_client.view_id,
-            "exp": expire_time
+            self.CAMERA_CLIENT_ID_KEY_OF_PAYLOAD: camera_client.id,
+            self.CAMERA_ID_KEY_OF_PAYLOAD: camera_client.camera_id,
+            self.VIEW_ID_KEY_OF_PAYLOAD: camera_client.view_id,
+            self.EXPIRE_TIME_KEY_OF_PAYLOAD: self._get_expire_time()
         }
-        token = jwt.encode(payload, self.jwt_secret_key, algorithm=self.jwt_algorithm)
+        token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
         return token
