@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile
+    user: ${UID}:${GID}
     expose:
       - ${PORT}
     deploy:
