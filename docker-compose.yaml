@@ -16,6 +16,8 @@ services:
       - app_network
     env_file:
       - .env
+    volumes:
+      - ./src/database/mysql/versions:/app/src/database/mysql/versions
 
   mysql:
     image: mysql:8.0

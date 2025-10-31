@@ -1,3 +1,4 @@
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -29,6 +30,28 @@ target_metadata = ALEMBIC_MODELS
 # ... etc.
 
 
+def get_database_url() -> str:
+    """環境変数からデータベースURLを動的に構築する"""
+    host = os.getenv("MYSQL_HOST")
+    port = os.getenv("MYSQL_PORT")
+    user = os.getenv("MYSQL_USER")
+    password = os.getenv("MYSQL_PASSWORD")
+    database = os.getenv("MYSQL_DATABASE")
+
+    if not all([host, port, user, password, database]):
+        raise ValueError(
+            "以下の環境変数が設定されていません: "
+            "MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE"
+        )
+
+    # alembic.iniのsqlalchemy.urlが優先されるが、設定されていない場合は環境変数から構築
+    url = config.get_main_option("sqlalchemy.url")
+    if url is None or url == "mysql+pymysql://user:pass@localhost/dbname":
+        url = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
+
+    return url
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -41,7 +64,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = get_database_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -60,6 +83,12 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    # 環境変数から構築したURLを使用
+    url = get_database_url()
+
+    # configオブジェクトにURLを設定
+    config.set_main_option("sqlalchemy.url", url)
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
