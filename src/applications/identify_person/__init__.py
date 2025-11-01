@@ -16,6 +16,10 @@ from entities.environment.jwt import EntityEnvironmentJwt
 from entities.environment.mysql import EntityEnvironmentMysql
 from entities.environment.chroma import EntityEnvironmentChroma
 from entities.environment.storage import EntityEnvironmentStorage
+from modules.yolo.segmentation import ModuleYoloSegmentation
+from modules.yolo.segmentation.verification import ModuleYoloSegmentationVerification
+from modules.yolo.pose import ModuleYoloPose
+from modules.yolo.pose.verification import ModuleYoloPoseVerification
 
 class ApplicationIdentifyPerson:
     def __init__(
@@ -56,6 +60,10 @@ class ApplicationIdentifyPerson:
             image_module=ModuleImage(),
             background_process=ApplicationIdentifyPersonBackgroundProcess(
                 reid_model=ModuleReIDModel(),
+                yolo_segmentation=ModuleYoloSegmentation(),
+                yolo_segmentation_verification=ModuleYoloSegmentationVerification(),
+                yolo_pose=ModuleYoloPose(),
+                yolo_pose_verification=ModuleYoloPoseVerification(),
                 storage_image=ModuleStorageImage(storage_path=environment_storage.path),
                 database_person_feature=ModuleDatabaseChromaPersonFeature(DatabaseChroma(
                     host=environment_chroma.host,
