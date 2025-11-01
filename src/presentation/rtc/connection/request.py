@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
 
-class PresentationRtcOfferRequest(BaseModel):
+class PresentationRtcConnectionRequest(BaseModel):
     sdp: str
     type: str

@@ -1,7 +1,5 @@
 import jwt
 from entities.camera_client import EntityCameraClient
-from datetime import datetime, timezone
-from datetime import timedelta
 from src.modules.authenticator.base import ModuleAuthenticatorBase
 from src.entities.jwt.camera_client import EntityJWTCameraClient
 from typing import Any

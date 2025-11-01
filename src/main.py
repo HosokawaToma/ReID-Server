@@ -6,13 +6,13 @@ from applications.identify_person import ApplicationIdentifyPerson
 from presentation.login.client import PresentationLoginClient
 from presentation.login.camera_client import PresentationLoginCameraClient
 from presentation.camera_clients.create import PresentationCameraClientsCreate
-from presentation.rtc.offer import PresentationRtcOffer
-from presentation.rtc.credentials import PresentationRtcCredentials
+from presentation.rtc.connection import PresentationRtcConnection
+from presentation.rtc.ice_server import PresentationRtcIceServer
 from applications.camera_clients.create import ApplicationCameraClientsCreate
 from applications.login.client import ApplicationLoginClient
 from applications.login.camera_client import ApplicationLoginCameraClient
-from applications.rtc.offer import ApplicationRtcOffer
-from applications.rtc.credentials import ApplicationRtcCredentials
+from applications.rtc.connection import ApplicationRtcConnection
+from applications.rtc.ice_server import ApplicationRtcIceServer
 from environment import Environment
 from entities.environment.jwt import EntityEnvironmentJwt
 from entities.environment.mysql import EntityEnvironmentMysql
@@ -31,8 +31,8 @@ class ServerApp:
         camera_clients_create: PresentationCameraClientsCreate,
         login_camera_client: PresentationLoginCameraClient,
         identify_person: PresentationIdentifyPerson,
-        rtc_offer: PresentationRtcOffer,
-        rtc_credentials: PresentationRtcCredentials,
+        rtc_connection: PresentationRtcConnection,
+        rtc_ice_server: PresentationRtcIceServer,
     ):
         self.host = host
         self.port = port
@@ -41,8 +41,8 @@ class ServerApp:
         self.camera_clients_create = camera_clients_create
         self.login_camera_client = login_camera_client
         self.identify_person = identify_person
-        self.rtc_offer = rtc_offer
-        self.rtc_credentials = rtc_credentials
+        self.rtc_connection = rtc_connection
+        self.rtc_ice_server = rtc_ice_server
 
     @classmethod
     def create(
@@ -107,16 +107,17 @@ class ServerApp:
                     environment_storage=environment_storage,
                 )
             ),
-            rtc_offer=PresentationRtcOffer(
-                application=ApplicationRtcOffer.create(
+            rtc_connection=PresentationRtcConnection(
+                application=ApplicationRtcConnection.create(
                     environment_jwt=environment_jwt,
                     environment_coturn=environment_coturn,
+                    environment_storage=environment_storage,
                 )
             ),
-            rtc_credentials=PresentationRtcCredentials(
-                application=ApplicationRtcCredentials.create(
-                    environment_jwt=environment_jwt,
+            rtc_ice_server=PresentationRtcIceServer(
+                application=ApplicationRtcIceServer.create(
                     environment_coturn=environment_coturn,
+                    environment_jwt=environment_jwt,
                 )
             ),
         )
@@ -126,8 +127,8 @@ class ServerApp:
         self.login_camera_client.setup(self.fastapi_app)
         self.camera_clients_create.setup(self.fastapi_app)
         self.identify_person.setup(self.fastapi_app)
-        self.rtc_offer.setup(self.fastapi_app)
-        self.rtc_credentials.setup(self.fastapi_app)
+        self.rtc_connection.setup(self.fastapi_app)
+        self.rtc_ice_server.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.host, port=self.port)
 
 if __name__ == "__main__":
