@@ -36,7 +36,10 @@ class Environment:
         value = os.getenv("JWT_EXPIRE_DAYS")
         if value is None:
             raise ValueError("JWT_EXPIRE_DAYS is not set")
-        return int(value)
+        try:
+            return int(value)
+        except ValueError:
+            raise ValueError("JWT_EXPIRE_DAYS is not a valid integer")
 
     def mysql_host(self) -> str:
         value = os.getenv("MYSQL_HOST")
@@ -120,4 +123,7 @@ class Environment:
         value = os.getenv("COTURN_TTL")
         if value is None:
             raise ValueError("COTURN_TTL is not set")
-        return int(value)
+        try:
+            return int(value)
+        except ValueError:
+            raise ValueError("COTURN_TTL is not a valid integer")
