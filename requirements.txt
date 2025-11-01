@@ -10,6 +10,7 @@ python-dotenv==1.1.1
 aiortc==1.13.0
 aiohttp==3.12.15
 python-multipart
+ultralytics==8.3.223
 
 # CLIP-ReID
 torch==2.8.0
