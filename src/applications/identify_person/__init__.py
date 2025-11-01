@@ -73,8 +73,14 @@ class ApplicationIdentifyPerson:
             ),
         )
 
+    async def start(self):
+        await self.background_process.start()
+
+    async def stop(self):
+        await self.background_process.stop()
+
     def authenticate(self, authorization: str) -> EntityCameraClient:
-        return self.authenticator_camera_client.authenticate(authorization)
+        return self.authenticator_camera_client.verify(authorization)
 
     def from_iso_format(self, iso_timestamp: str) -> datetime:
         return self.datetime_module.from_iso_format(iso_timestamp)

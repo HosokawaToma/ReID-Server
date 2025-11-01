@@ -58,7 +58,7 @@ class ApplicationIdentifyPersonBackgroundProcess:
         keypoints = self.yolo_pose.extract(image.image)
         if not self.yolo_pose_verification.verify(keypoints):
             return
-        query_feature = self.reid_model.extract_feature(image)
+        query_feature = self.reid_model.extract_feature(image.image, image.camera_id, image.view_id)
         self.database_person_feature.insert(EntityPersonFeature(
             feature=query_feature,
             camera_id=image.camera_id,

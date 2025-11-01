@@ -12,8 +12,10 @@ class PresentationIdentifyPerson:
         ):
         self.application = application
 
-    def setup(self, app: fastapi.FastAPI):
+    async def setup(self, app: fastapi.FastAPI):
         app.add_api_route("/identify_person", self.endpoint, methods=["POST"])
+        app.add_event_handler("startup", self.application.start)
+        app.add_event_handler("shutdown", self.application.stop)
 
     async def endpoint(
         self,
@@ -35,7 +37,15 @@ class PresentationIdentifyPerson:
             except Exception as e:
                 return JSONResponse(content={"message": str(e)}, status_code=400)
             try:
-                self.application.identify(EntityImage(image, camera_client.camera_id, camera_client.view_id, timestamp_datetime))
+                self.application.identify(
+                    EntityImage(
+                        id=None,
+                        image=image,
+                        camera_id=camera_client.camera_id,
+                        view_id=camera_client.view_id,
+                        timestamp=timestamp_datetime,
+                    )
+                )
             except Exception as e:
                 return JSONResponse(content={"message": str(e)}, status_code=400)
         return JSONResponse(content={"message": "Person identified successfully"}, status_code=200)
