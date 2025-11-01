@@ -6,3 +6,5 @@ class EntityEnvironmentCoturn:
     secure_port: str
     username: str
     password: str
+    secret: str
+    ttl: int

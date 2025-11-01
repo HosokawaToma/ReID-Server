@@ -1,6 +1,6 @@
 from aiortc import RTCIceServer, RTCConfiguration
 
-class ApplicationRtcConfiguration:
+class ApplicationRtcOfferConfiguration:
     def __init__(self, host: str, port: str, username: str, password: str):
         self.host = host
         self.port = port

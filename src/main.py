@@ -6,11 +6,13 @@ from applications.identify_person import ApplicationIdentifyPerson
 from presentation.login.client import PresentationLoginClient
 from presentation.login.camera_client import PresentationLoginCameraClient
 from presentation.camera_clients.create import PresentationCameraClientsCreate
+from presentation.rtc.offer import PresentationRtcOffer
+from presentation.rtc.credentials import PresentationRtcCredentials
 from applications.camera_clients.create import ApplicationCameraClientsCreate
 from applications.login.client import ApplicationLoginClient
 from applications.login.camera_client import ApplicationLoginCameraClient
-from presentation.rtc import PresentationRtc
-from applications.rtc import ApplicationRtc
+from applications.rtc.offer import ApplicationRtcOffer
+from applications.rtc.credentials import ApplicationRtcCredentials
 from environment import Environment
 from entities.environment.jwt import EntityEnvironmentJwt
 from entities.environment.mysql import EntityEnvironmentMysql
@@ -29,7 +31,8 @@ class ServerApp:
         camera_clients_create: PresentationCameraClientsCreate,
         login_camera_client: PresentationLoginCameraClient,
         identify_person: PresentationIdentifyPerson,
-        rtc: PresentationRtc,
+        rtc_offer: PresentationRtcOffer,
+        rtc_credentials: PresentationRtcCredentials,
     ):
         self.host = host
         self.port = port
@@ -38,7 +41,8 @@ class ServerApp:
         self.camera_clients_create = camera_clients_create
         self.login_camera_client = login_camera_client
         self.identify_person = identify_person
-        self.rtc = rtc
+        self.rtc_offer = rtc_offer
+        self.rtc_credentials = rtc_credentials
 
     @classmethod
     def create(
@@ -70,6 +74,8 @@ class ServerApp:
             port=environment.coturn_secure_port(),
             username=environment.coturn_username(),
             password=environment.coturn_password(),
+            secret=environment.coturn_secret(),
+            ttl=environment.coturn_ttl(),
         )
         return cls(
             host=environment.host(),
@@ -101,8 +107,14 @@ class ServerApp:
                     environment_storage=environment_storage,
                 )
             ),
-            rtc=PresentationRtc(
-                application=ApplicationRtc.create(
+            rtc_offer=PresentationRtcOffer(
+                application=ApplicationRtcOffer.create(
+                    environment_jwt=environment_jwt,
+                    environment_coturn=environment_coturn,
+                )
+            ),
+            rtc_credentials=PresentationRtcCredentials(
+                application=ApplicationRtcCredentials.create(
                     environment_jwt=environment_jwt,
                     environment_coturn=environment_coturn,
                 )
@@ -114,7 +126,8 @@ class ServerApp:
         self.login_camera_client.setup(self.fastapi_app)
         self.camera_clients_create.setup(self.fastapi_app)
         self.identify_person.setup(self.fastapi_app)
-        self.rtc.setup(self.fastapi_app)
+        self.rtc_offer.setup(self.fastapi_app)
+        self.rtc_credentials.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.host, port=self.port)
 
 if __name__ == "__main__":

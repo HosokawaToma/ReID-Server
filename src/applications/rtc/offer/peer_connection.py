@@ -2,11 +2,11 @@ import asyncio
 from aiortc import RTCPeerConnection, RTCSessionDescription
 from aiortc.contrib.media import MediaRecorder
 from aiortc.rtcrtpreceiver import RemoteStreamTrack
-from applications.rtc.configuration import ApplicationRtcConfiguration
+from applications.rtc.offer.configuration import ApplicationRtcOfferConfiguration
 
 
-class ApplicationRtcPeerConnection:
-    def __init__(self, client_id: int, configuration: ApplicationRtcConfiguration):
+class ApplicationRtcOfferPeerConnection:
+    def __init__(self, client_id: int, configuration: ApplicationRtcOfferConfiguration):
         self.client_id = client_id
         self.configuration = configuration.get_configuration()
         self.peer_connection = RTCPeerConnection(self.configuration)

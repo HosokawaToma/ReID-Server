@@ -2,20 +2,20 @@ import fastapi
 from typing import Annotated
 from fastapi import Header
 from fastapi.responses import JSONResponse
-from applications.rtc import ApplicationRtc
-from presentation.rtc.request import PresentationRtcRequest
+from applications.rtc.offer import ApplicationRtcOffer
+from presentation.rtc.offer.request import PresentationRtcOfferRequest
 
-class PresentationRtc():
+class PresentationRtcOffer:
     def __init__(
         self,
-        application: ApplicationRtc,
+        application: ApplicationRtcOffer,
     ):
         self.application = application
 
     def setup(self, app: fastapi.FastAPI):
         app.add_api_route("/rtc/offer", self.endpoint_offer, methods=["POST"])
 
-    async def endpoint_offer(self, authorization: Annotated[str, Header()], request: PresentationRtcRequest):
+    async def endpoint_offer(self, authorization: Annotated[str, Header()], request: PresentationRtcOfferRequest):
         try:
             client = self.application.authenticate(authorization)
         except Exception as e:

@@ -109,3 +109,15 @@ class Environment:
         if value is None:
             raise ValueError("COTURN_PASSWORD is not set")
         return value
+
+    def coturn_secret(self) -> str:
+        value = os.getenv("COTURN_SECRET")
+        if value is None:
+            raise ValueError("COTURN_SECRET is not set")
+        return value
+
+    def coturn_ttl(self) -> int:
+        value = os.getenv("COTURN_TTL")
+        if value is None:
+            raise ValueError("COTURN_TTL is not set")
+        return int(value)

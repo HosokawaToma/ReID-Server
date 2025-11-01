@@ -1,18 +1,18 @@
-from applications.rtc.peer_connection import ApplicationRtcPeerConnection
-from applications.rtc.configuration import ApplicationRtcConfiguration
+from applications.rtc.offer.peer_connection import ApplicationRtcOfferPeerConnection
+from applications.rtc.offer.configuration import ApplicationRtcOfferConfiguration
 from modules.authenticator.camera_client import ModuleAuthenticatorCameraClient
 from entities.camera_client import EntityCameraClient
 from entities.environment.jwt import EntityEnvironmentJwt
 from entities.environment.coturn import EntityEnvironmentCoturn
 
 
-class ApplicationRtc:
+class ApplicationRtcOffer:
     def __init__(
         self,
-        configuration: ApplicationRtcConfiguration,
+        configuration: ApplicationRtcOfferConfiguration,
         authenticator: ModuleAuthenticatorCameraClient
         ):
-        self.peer_connections: list[ApplicationRtcPeerConnection] = []
+        self.peer_connections: list[ApplicationRtcOfferPeerConnection] = []
         self.configuration = configuration
         self.authenticator = authenticator
 
@@ -21,9 +21,9 @@ class ApplicationRtc:
         cls,
         environment_jwt: EntityEnvironmentJwt,
         environment_coturn: EntityEnvironmentCoturn,
-        ) -> "ApplicationRtc":
+        ) -> "ApplicationRtcOffer":
         return cls(
-            configuration=ApplicationRtcConfiguration(
+            configuration=ApplicationRtcOfferConfiguration(
                 host=environment_coturn.host,
                 port=environment_coturn.secure_port,
                 username=environment_coturn.username,
@@ -39,6 +39,6 @@ class ApplicationRtc:
         return self.authenticator.authenticate(authorization)
 
     async def offer(self, client_id: int, sdp: str, sdp_type: str):
-        peer_connection = ApplicationRtcPeerConnection(client_id, self.configuration)
+        peer_connection = ApplicationRtcOfferPeerConnection(client_id, self.configuration)
         self.peer_connections.append(peer_connection)
         return await peer_connection.offer(sdp, sdp_type)
