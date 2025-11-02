@@ -127,3 +127,15 @@ class Environment:
             return int(value)
         except ValueError:
             raise ValueError("COTURN_TTL is not a valid integer")
+
+    def admin_client_id(self) -> str:
+        value = os.getenv("ADMIN_CLIENT_ID")
+        if value is None:
+            raise ValueError("ADMIN_CLIENT_ID is not set")
+        return value
+
+    def admin_client_password(self) -> str:
+        value = os.getenv("ADMIN_CLIENT_PASSWORD")
+        if value is None:
+            raise ValueError("ADMIN_CLIENT_PASSWORD is not set")
+        return value

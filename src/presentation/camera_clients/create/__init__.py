@@ -26,7 +26,7 @@ class PresentationCameraClientsCreate():
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=401)
         try:
-            return self.application.create(
+            self.application.create(
                 EntityCameraClient(
                     id=request.camera_client_id,
                     password=request.password,

@@ -3,13 +3,13 @@ import uvicorn
 
 from presentation.identify_person import PresentationIdentifyPerson
 from applications.identify_person import ApplicationIdentifyPerson
-from presentation.login.client import PresentationLoginClient
+from presentation.login.admin_client import PresentationLoginAdminClient
 from presentation.login.camera_client import PresentationLoginCameraClient
 from presentation.camera_clients.create import PresentationCameraClientsCreate
 from presentation.rtc.connection import PresentationRtcConnection
 from presentation.rtc.ice_server import PresentationRtcIceServer
 from applications.camera_clients.create import ApplicationCameraClientsCreate
-from applications.login.client import ApplicationLoginClient
+from applications.login.admin_client import ApplicationLoginAdminClient
 from applications.login.camera_client import ApplicationLoginCameraClient
 from applications.rtc.connection import ApplicationRtcConnection
 from applications.rtc.ice_server import ApplicationRtcIceServer
@@ -19,6 +19,7 @@ from entities.environment.mysql import EntityEnvironmentMysql
 from entities.environment.chroma import EntityEnvironmentChroma
 from entities.environment.storage import EntityEnvironmentStorage
 from entities.environment.coturn import EntityEnvironmentCoturn
+from entities.environment.admin_client import EntityEnvironmentAdminClient
 
 
 class ServerApp:
@@ -27,7 +28,7 @@ class ServerApp:
         host: str,
         port: str,
         fastapi_app: fastapi.FastAPI,
-        login_client: PresentationLoginClient,
+        login_admin_client: PresentationLoginAdminClient,
         camera_clients_create: PresentationCameraClientsCreate,
         login_camera_client: PresentationLoginCameraClient,
         identify_person: PresentationIdentifyPerson,
@@ -37,7 +38,7 @@ class ServerApp:
         self.host = host
         self.port = port
         self.fastapi_app = fastapi_app
-        self.login_client = login_client
+        self.login_admin_client = login_admin_client
         self.camera_clients_create = camera_clients_create
         self.login_camera_client = login_camera_client
         self.identify_person = identify_person
@@ -77,14 +78,18 @@ class ServerApp:
             secret=environment.coturn_secret(),
             ttl=environment.coturn_ttl(),
         )
+        environment_admin_client = EntityEnvironmentAdminClient(
+            id=environment.admin_client_id(),
+            password=environment.admin_client_password(),
+        )
         return cls(
             host=environment.host(),
             port=environment.port(),
             fastapi_app=fastapi.FastAPI(),
-            login_client=PresentationLoginClient(
-                application=ApplicationLoginClient.create(
+            login_admin_client=PresentationLoginAdminClient(
+                application=ApplicationLoginAdminClient.create(
                     environment_jwt=environment_jwt,
-                    environment_mysql=environment_mysql,
+                    environment_admin_client=environment_admin_client,
                 )
             ),
             login_camera_client=PresentationLoginCameraClient(
@@ -123,7 +128,7 @@ class ServerApp:
         )
 
     async def run(self):
-        self.login_client.setup(self.fastapi_app)
+        self.login_admin_client.setup(self.fastapi_app)
         self.login_camera_client.setup(self.fastapi_app)
         self.camera_clients_create.setup(self.fastapi_app)
         await self.identify_person.setup(self.fastapi_app)

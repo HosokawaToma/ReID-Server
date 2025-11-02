@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
 @dataclass
-class EntityJWTClient:
+class EntityJWTAdminClient:
     client_id: str
 
