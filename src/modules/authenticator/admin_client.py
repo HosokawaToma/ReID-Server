@@ -1,6 +1,6 @@
-from src.entities.admin_client import EntityAdminClient
-from src.entities.jwt.admin_client import EntityJWTAdminClient
-from src.modules.authenticator.base import ModuleAuthenticatorBase
+from entities.admin_client import EntityAdminClient
+from entities.jwt.admin_client import EntityJWTAdminClient
+from modules.authenticator.base import ModuleAuthenticatorBase
 import jwt
 from typing import Any
 

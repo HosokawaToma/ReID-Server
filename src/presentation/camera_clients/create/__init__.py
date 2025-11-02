@@ -4,7 +4,7 @@ from fastapi import Header
 from fastapi.responses import JSONResponse
 from applications.camera_clients.create import ApplicationCameraClientsCreate
 from presentation.camera_clients.create.request import PresentationCameraClientsCreateRequest
-from src.entities.camera_client import EntityCameraClient
+from entities.camera_client import EntityCameraClient
 
 class PresentationCameraClientsCreate():
     def __init__(
