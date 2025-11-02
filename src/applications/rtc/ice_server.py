@@ -11,7 +11,7 @@ import hashlib
 
 
 class ApplicationRtcIceServer:
-    def __init__(self, host: str, port: str, secret: str, ttl: int, authenticator: ModuleAuthenticatorCameraClient):
+    def __init__(self, host: str, port: str, secret: str, ttl: int, authenticator: ModuleAuthenticatorCameraClient) -> None:
         self.host = host
         self.port = port
         self.secret = secret
@@ -22,7 +22,7 @@ class ApplicationRtcIceServer:
     def create(cls, environment_coturn: EntityEnvironmentCoturn, environment_jwt: EntityEnvironmentJwt) -> "ApplicationRtcIceServer":
         return cls(
             host=environment_coturn.host,
-            port=environment_coturn.secure_port,
+            port=environment_coturn.port,
             secret=environment_coturn.secret,
             ttl=environment_coturn.ttl,
             authenticator=ModuleAuthenticatorCameraClient(

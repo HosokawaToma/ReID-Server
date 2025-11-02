@@ -1,7 +1,7 @@
 import jwt
 from entities.camera_client import EntityCameraClient
-from src.modules.authenticator.base import ModuleAuthenticatorBase
-from src.entities.jwt.camera_client import EntityJWTCameraClient
+from modules.authenticator.base import ModuleAuthenticatorBase
+from entities.jwt.camera_client import EntityJWTCameraClient
 from typing import Any
 
 class ModuleAuthenticatorCameraClient(ModuleAuthenticatorBase):

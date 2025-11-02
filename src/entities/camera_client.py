@@ -5,17 +5,18 @@ from dataclasses import dataclass, field, InitVar
 @dataclass
 class EntityCameraClient:
     id: str
-    password: InitVar[str]
-    hashed_password: str = field(init=False)
     camera_id: int
     view_id: int
+    password: InitVar[str | None]
+    hashed_password: str | None
 
-    def __post_init__(self, password: str):
-        self.hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    def __post_init__(self, password: str | None):
+        if self.hashed_password is None:
+            if password is None:
+                raise Exception("Password is required")
+            self.hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
     def to_database_model(self):
-        if not self.password and not self.hashed_password:
-            raise Exception("Password or hashed password is required")
         return DatabaseMySQLModelCameraClient(
             id=self.id,
             hashed_password=self.hashed_password,

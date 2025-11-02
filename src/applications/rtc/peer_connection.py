@@ -4,7 +4,7 @@ from aiortc import RTCPeerConnection, RTCSessionDescription
 from aiortc.contrib.media import MediaRecorder
 from aiortc.rtcrtpreceiver import RemoteStreamTrack
 from aiortc import RTCConfiguration
-from entities.camera_client import EntityCameraClient
+from entities.jwt.camera_client import EntityJWTCameraClient
 from entities.storage import EntityStorage
 from entities.rtc.sdp import EntityRtcSdp
 
@@ -17,7 +17,7 @@ class ApplicationRtcPeerConnection:
 
     def __init__(
         self,
-        camera_client: EntityCameraClient,
+        jwt_camera_client: EntityJWTCameraClient,
         offer_sdp: EntityRtcSdp,
         configuration: RTCConfiguration,
         storage: EntityStorage,
@@ -27,8 +27,8 @@ class ApplicationRtcPeerConnection:
         self.recorder = MediaRecorder(
             self.PATH_OF_RECORDING.format(
                 path=storage.path,
-                camera_id=camera_client.id,
-                view_id=camera_client.view_id,
+                camera_id=jwt_camera_client.camera_id,
+                view_id=jwt_camera_client.view_id,
                 timestamp=datetime.now().isoformat()
             )
         )

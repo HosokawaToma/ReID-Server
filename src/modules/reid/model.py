@@ -8,7 +8,7 @@ from modules.reid.clip_reid.config import cfg
 from modules.reid.clip_reid.model.make_model_clipreid import make_model
 
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(
-    __file__), "configs/person/vit_clipreid.yml")
+    __file__), "clip_reid/configs/person/vit_clipreid.yml")
 OPTIONS = [
     "MODEL.SIE_CAMERA",
     "True",
@@ -32,24 +32,26 @@ class ModuleReIDModel:
         cfg.freeze()
         self.config = cfg
         os.environ['CUDA_VISIBLE_DEVICES'] = cfg.MODEL.DEVICE_ID
-        model = make_model(self.config)
+        model = make_model(self.config, 0, 0, 0)
         model.load_param(self.config.TEST.WEIGHT)
         model.eval()
         model.to(self.config.MODEL.DEVICE)
         self.model = model
 
-        self.transform = transforms.Compose([
-            transforms.Resize(self.config.INPUT.SIZE_TEST),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                mean=self.config.INPUT.PIXEL_MEAN,
-                std=self.config.INPUT.PIXEL_STD
-            )
-        ])
+        self.transform: transforms.Compose = transforms.Compose(
+            [
+                transforms.Resize(self.config.INPUT.SIZE_TEST),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=self.config.INPUT.PIXEL_MEAN,
+                    std=self.config.INPUT.PIXEL_STD
+                )
+            ]
+        )
 
     def extract_feature(self, image: Image.Image, camera_id: int, view_id: int) -> torch.Tensor:
-        image_tensor = self.transform(image).unsqueeze(
-            0).to(self.config.MODEL.DEVICE)
+        image_tensor: torch.Tensor = self.transform(image)  # pyright: ignore[reportAssignmentType]
+        image_tensor = image_tensor.unsqueeze(0).to(self.config.MODEL.DEVICE)
         camera_id_tensor: Optional[torch.Tensor] = None
         view_id_tensor: Optional[torch.Tensor] = None
 

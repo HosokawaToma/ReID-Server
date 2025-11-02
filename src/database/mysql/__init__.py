@@ -4,20 +4,20 @@ from sqlalchemy.exc import SQLAlchemyError
 from typing import Type
 from types import TracebackType
 
+
 class DatabaseMySQL:
     ENGINE_URL_TEMPLATE = "mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
     _engine: Engine | None = None
 
-    def __new__(cls, host: str, port: str, database: str, user: str, password: str):
-        if cls._engine is None:
-            engine_url = cls.ENGINE_URL_TEMPLATE.format(user=user, password=password, host=host, port=port, database=database)
-            cls._engine = create_engine(engine_url)
-        return super().__new__(engine_url)
+    def __init__(self, host: str, port: str, database: str, user: str, password: str):
 
-    def __init__(self):
-        if self._engine is None:
-            raise ValueError("Engine is not initialized")
-        self._session_maker = sessionmaker[Session](bind=self._engine)
+        if DatabaseMySQL._engine is None:
+            engine_url = self.ENGINE_URL_TEMPLATE.format(
+                user=user, password=password, host=host, port=port, database=database
+            )
+            DatabaseMySQL._engine = create_engine(engine_url)
+
+        self._session_maker = sessionmaker[Session](bind=DatabaseMySQL._engine)
         self._session: Session | None = None
 
     def __enter__(self) -> Session:
@@ -38,7 +38,7 @@ class DatabaseMySQL:
         exc_type: Type[BaseException] | None,
         exc_value: BaseException | None,
         traceback: TracebackType | None
-        ) -> None:
+    ) -> None:
         if self._session is None:
             raise ValueError("Session is not open")
         try:
@@ -51,5 +51,6 @@ class DatabaseMySQL:
             self._session = None
             raise e
         finally:
-            self._session.close()
-            self._session = None
+            if self._session:
+                self._session.close()
+                self._session = None

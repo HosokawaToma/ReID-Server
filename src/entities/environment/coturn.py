@@ -3,8 +3,8 @@ from dataclasses import dataclass
 @dataclass
 class EntityEnvironmentCoturn:
     host: str
-    secure_port: str
+    port: str
     username: str
-    password: str
+    credential: str
     secret: str
     ttl: int

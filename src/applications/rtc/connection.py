@@ -1,5 +1,4 @@
 from modules.authenticator.camera_client import ModuleAuthenticatorCameraClient
-from entities.camera_client import EntityCameraClient
 from entities.rtc.sdp import EntityRtcSdp
 from entities.rtc.ice_server import EntityRtcIceServer
 from applications.rtc.peer_connection import ApplicationRtcPeerConnection
@@ -8,6 +7,7 @@ from aiortc import RTCConfiguration, RTCIceServer
 from entities.environment.jwt import EntityEnvironmentJwt
 from entities.environment.coturn import EntityEnvironmentCoturn
 from entities.environment.storage import EntityEnvironmentStorage
+from entities.jwt.camera_client import EntityJWTCameraClient
 
 class ApplicationRtcConnection:
     def __init__(
@@ -29,9 +29,9 @@ class ApplicationRtcConnection:
     ) -> "ApplicationRtcConnection":
         ice_server = EntityRtcIceServer(
             host=environment_coturn.host,
-            port=environment_coturn.secure_port,
+            port=environment_coturn.port,
             username=environment_coturn.username,
-            password=environment_coturn.password,
+            credential=environment_coturn.credential,
         )
         return cls(
             authenticator=ModuleAuthenticatorCameraClient(
@@ -43,7 +43,7 @@ class ApplicationRtcConnection:
                 iceServers=[
                     RTCIceServer(
                         urls=ice_server.urls,
-                        credential=ice_server.password,
+                        credential=ice_server.credential,
                         username=ice_server.username,
                     ),
                 ],
@@ -51,16 +51,16 @@ class ApplicationRtcConnection:
             storage=EntityStorage(path=environment_storage.path),
         )
 
-    def authenticate(self, authorization: str) -> EntityCameraClient:
+    def authenticate(self, authorization: str) -> EntityJWTCameraClient:
         return self.authenticator.verify(authorization)
 
     async def connect(
         self,
-        camera_client: EntityCameraClient,
+        jwt_camera_client: EntityJWTCameraClient,
         offer_sdp: EntityRtcSdp,
     ) -> EntityRtcSdp:
         peer_connection = ApplicationRtcPeerConnection(
-            camera_client=camera_client,
+            jwt_camera_client=jwt_camera_client,
             offer_sdp=offer_sdp,
             configuration=self.configuration,
             storage=self.storage,

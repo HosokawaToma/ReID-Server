@@ -37,7 +37,7 @@ class PresentationIdentifyPerson:
             except Exception as e:
                 return JSONResponse(content={"message": str(e)}, status_code=400)
             try:
-                self.application.identify(
+                await self.application.identify(
                     EntityImage(
                         id=None,
                         image=image,

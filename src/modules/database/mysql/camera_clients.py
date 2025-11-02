@@ -19,10 +19,11 @@ class ModuleDatabaseMySQLCameraClients:
             if client_model is None:
                 raise Exception("Client not found in database")
             return EntityCameraClient(
-                id=client_model.id,
-                hashed_password=client_model.hashed_password,
-                camera_id=client_model.camera_id,
-                view_id=client_model.view_id,
+                id=str(client_model.id),
+                password=None,
+                hashed_password=str(client_model.hashed_password),
+                camera_id=int(str(client_model.camera_id)),
+                view_id=int(str(client_model.view_id)),
             )
 
     def update_by_id(self, camera_client: EntityCameraClient) -> None:

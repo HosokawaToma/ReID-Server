@@ -15,13 +15,13 @@ class ModuleDatabaseChromaPersonFeature:
 
     def insert(self, person_feature: EntityPersonFeature) -> None:
         self.database_chroma(self.NAME).add(
-            embeddings=[person_feature.feature],
+            embeddings=[person_feature.feature.tolist()],
             metadatas=[
                 {
                     self.CAMERA_ID_KEY_OF_METADATA: person_feature.camera_id,
                     self.VIEW_ID_KEY_OF_METADATA: person_feature.view_id,
-                    self.TIMESTAMP_KEY_OF_METADATA: person_feature.timestamp,
+                    self.TIMESTAMP_KEY_OF_METADATA: person_feature.timestamp.isoformat(),
                 }
             ],
-            ids=[person_feature.id],
+            ids=[person_feature.id.hex],
         )

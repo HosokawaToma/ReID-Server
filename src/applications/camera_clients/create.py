@@ -1,8 +1,9 @@
-from src.modules.authenticator.admin_client import ModuleAuthenticatorAdminClient
-from src.entities.camera_client import EntityCameraClient
-from src.modules.database.mysql.camera_clients import ModuleDatabaseMySQLCameraClients
-from src.entities.environment.jwt import EntityEnvironmentJwt
-from src.entities.environment.mysql import EntityEnvironmentMysql
+from modules.authenticator.admin_client import ModuleAuthenticatorAdminClient
+from entities.camera_client import EntityCameraClient
+from modules.database.mysql.camera_clients import ModuleDatabaseMySQLCameraClients
+from entities.environment.jwt import EntityEnvironmentJwt
+from entities.environment.mysql import EntityEnvironmentMysql
+from database.mysql import DatabaseMySQL
 
 class ApplicationCameraClientsCreate:
     def __init__(
@@ -21,21 +22,23 @@ class ApplicationCameraClientsCreate:
     ) -> "ApplicationCameraClientsCreate":
         return cls(
             authenticator=ModuleAuthenticatorAdminClient(
-                secret_key=environment_jwt.secret_key(),
-                algorithm=environment_jwt.algorithm(),
-                expire_days=environment_jwt.expire_days(),
+                secret_key=environment_jwt.secret_key,
+                algorithm=environment_jwt.algorithm,
+                expire_days=environment_jwt.expire_days,
             ),
             database_camera_clients=ModuleDatabaseMySQLCameraClients(
-                host=environment_mysql.host,
-                port=environment_mysql.port,
-                database=environment_mysql.database,
-                user=environment_mysql.user,
-                password=environment_mysql.password,
+                DatabaseMySQL(
+                    host=environment_mysql.host,
+                    port=environment_mysql.port,
+                    database=environment_mysql.database,
+                    user=environment_mysql.user,
+                    password=environment_mysql.password,
+                ),
             ),
         )
 
     def authenticate(self, authorization: str):
         self.authenticator.verify(authorization)
 
-    def create(self, entity_camera_client: EntityCameraClient):
+    def create_camera_client(self, entity_camera_client: EntityCameraClient):
         self.database_camera_clients.insert(entity_camera_client)

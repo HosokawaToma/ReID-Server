@@ -1,5 +1,5 @@
 from PIL import Image
-from entities.camera_client import EntityCameraClient
+from entities.jwt.camera_client import EntityJWTCameraClient
 from entities.image import EntityImage
 from datetime import datetime
 from applications.identify_person.background import ApplicationIdentifyPersonBackgroundProcess
@@ -46,8 +46,9 @@ class ApplicationIdentifyPerson:
         ) -> "ApplicationIdentifyPerson":
         return cls(
             authenticator_camera_client=ModuleAuthenticatorCameraClient(
-                jwt_secret_key=environment_jwt.secret_key,
-                jwt_algorithm=environment_jwt.algorithm,
+                secret_key=environment_jwt.secret_key,
+                algorithm=environment_jwt.algorithm,
+                expire_days=environment_jwt.expire_days,
             ),
             database_camera_clients=ModuleDatabaseMySQLCameraClients(DatabaseMySQL(
                 host=environment_mysql.host,
@@ -65,11 +66,13 @@ class ApplicationIdentifyPerson:
                 yolo_pose=ModuleYoloPose(),
                 yolo_pose_verification=ModuleYoloPoseVerification(),
                 storage_image=ModuleStorageImage(storage_path=environment_storage.path),
-                database_person_feature=ModuleDatabaseChromaPersonFeature(DatabaseChroma(
-                    host=environment_chroma.host,
-                    port=environment_chroma.port,
-                    secret_token=environment_chroma.secret_token,
-                )),
+                database_person_feature=ModuleDatabaseChromaPersonFeature(
+                        DatabaseChroma(
+                        host=environment_chroma.host,
+                        port=environment_chroma.port,
+                        secret_token=environment_chroma.secret_token,
+                    )
+                ),
             ),
         )
 
@@ -79,7 +82,7 @@ class ApplicationIdentifyPerson:
     async def stop(self):
         await self.background_process.stop()
 
-    def authenticate(self, authorization: str) -> EntityCameraClient:
+    def authenticate(self, authorization: str) -> EntityJWTCameraClient:
         return self.authenticator_camera_client.verify(authorization)
 
     def from_iso_format(self, iso_timestamp: str) -> datetime:
@@ -88,5 +91,5 @@ class ApplicationIdentifyPerson:
     def decode_image(self, image: bytes) -> Image.Image:
         return self.image_module.decode(image)
 
-    def identify(self, image: EntityImage) -> None:
-        self.background_process.add(image)
+    async def identify(self, image: EntityImage) -> None:
+        await self.background_process.add(image)

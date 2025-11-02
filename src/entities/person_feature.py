@@ -1,16 +1,12 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import uuid
 import torch
 from datetime import datetime
 
 @dataclass
 class EntityPersonFeature:
-    id: uuid.UUID | None
     feature: torch.Tensor
     camera_id: int
     view_id: int
     timestamp: datetime
-
-    def __post_init__(self):
-        if self.id is None:
-            self.id = uuid.uuid4()
+    id: uuid.UUID = field(default_factory=uuid.uuid4)

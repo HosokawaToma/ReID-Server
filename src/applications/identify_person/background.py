@@ -56,12 +56,16 @@ class ApplicationIdentifyPersonBackgroundProcess:
         if not self.yolo_segmentation_verification.verify(masks):
             return
         keypoints = self.yolo_pose.extract(image.image)
+        if keypoints is None:
+            return
         if not self.yolo_pose_verification.verify(keypoints):
             return
         query_feature = self.reid_model.extract_feature(image.image, image.camera_id, image.view_id)
-        self.database_person_feature.insert(EntityPersonFeature(
-            feature=query_feature,
-            camera_id=image.camera_id,
-            view_id=image.view_id,
-            timestamp=image.timestamp,
-        ))
+        self.database_person_feature.insert(
+            EntityPersonFeature(
+                feature=query_feature,
+                camera_id=image.camera_id,
+                view_id=image.view_id,
+                timestamp=image.timestamp,
+            )
+        )

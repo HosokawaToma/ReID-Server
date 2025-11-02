@@ -50,8 +50,8 @@ if [ -z "${CERTS_PATH}" ]; then
 fi
 
 # 証明書ファイルのパスをDOMAINベースで設定
-CERT_FILE="${CERTS_PATH}/${DOMAIN}.crt"
-KEY_FILE="${CERTS_PATH}/${DOMAIN}.key"
+CERT_PATH="${CERTS_PATH}/${CERT_FILE}"
+KEY_PATH="${CERTS_PATH}/${KEY_FILE}"
 
 echo "✓ .envファイルを読み込みました"
 echo ""
@@ -71,8 +71,8 @@ run_openssl() {
     docker run --rm \
         -v "${certs_dir}:/certs" \
         -w /certs \
-        alpine:latest \
-        sh -c "apk add --no-cache openssl >/dev/null 2>&1 && openssl $*"
+        frapsoft/openssl \
+        $*
 }
 
 # 証明書が既に存在するか確認

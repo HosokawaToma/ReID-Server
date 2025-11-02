@@ -29,15 +29,21 @@ class ApplicationLoginCameraClient:
                 database=environment_mysql.database,
             )),
             authenticator_camera_client=ModuleAuthenticatorCameraClient(
-                jwt_secret_key=environment_jwt.secret_key,
-                jwt_algorithm=environment_jwt.algorithm,
+                secret_key=environment_jwt.secret_key,
+                algorithm=environment_jwt.algorithm,
                 expire_days=environment_jwt.expire_days,
             ),
         )
 
     def login(self, camera_client_id: str, password: str):
-        camera_client = EntityCameraClient(camera_client_id, password)
-        database_camera_client = self.database_camera_clients.select_by_id(camera_client.id)
+        database_camera_client = self.database_camera_clients.select_by_id(camera_client_id)
+        camera_client = EntityCameraClient(
+            id=database_camera_client.id,
+            password=password,
+            hashed_password=None,
+            camera_id=database_camera_client.camera_id,
+            view_id=database_camera_client.view_id,
+        )
         if database_camera_client.hashed_password != camera_client.hashed_password:
             raise Exception("Invalid camera_client_id or password")
         return self.authenticator_camera_client.generate_token(camera_client)

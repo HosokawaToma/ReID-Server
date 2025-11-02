@@ -26,7 +26,7 @@ class ServerApp:
     def __init__(
         self,
         host: str,
-        port: str,
+        port: int,
         fastapi_app: fastapi.FastAPI,
         login_admin_client: PresentationLoginAdminClient,
         camera_clients_create: PresentationCameraClientsCreate,
@@ -74,7 +74,7 @@ class ServerApp:
             host=environment.public_ip(),
             port=environment.coturn_secure_port(),
             username=environment.coturn_username(),
-            password=environment.coturn_password(),
+            credential=environment.coturn_credential(),
             secret=environment.coturn_secret(),
             ttl=environment.coturn_ttl(),
         )

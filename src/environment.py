@@ -8,11 +8,14 @@ class Environment:
             raise ValueError("HOST is not set")
         return value
 
-    def port(self) -> str:
+    def port(self) -> int:
         value = os.getenv("PORT")
         if value is None:
             raise ValueError("PORT is not set")
-        return value
+        try:
+            return int(value)
+        except ValueError:
+            raise ValueError("PORT is not a valid integer")
 
     def public_ip(self) -> str:
         value = os.getenv("PUBLIC_IP")
@@ -77,11 +80,14 @@ class Environment:
             raise ValueError("CHROMA_HOST is not set")
         return value
 
-    def chroma_port(self) -> str:
+    def chroma_port(self) -> int:
         value = os.getenv("CHROMA_PORT")
         if value is None:
             raise ValueError("CHROMA_PORT is not set")
-        return value
+        try:
+            return int(value)
+        except ValueError:
+            raise ValueError("CHROMA_PORT is not a valid integer")
 
     def chroma_secret_token(self) -> str:
         value = os.getenv("CHROMA_SECRET_TOKEN")
@@ -107,10 +113,10 @@ class Environment:
             raise ValueError("COTURN_USERNAME is not set")
         return value
 
-    def coturn_password(self) -> str:
-        value = os.getenv("COTURN_PASSWORD")
+    def coturn_credential(self) -> str:
+        value = os.getenv("COTURN_CREDENTIAL")
         if value is None:
-            raise ValueError("COTURN_PASSWORD is not set")
+            raise ValueError("COTURN_CREDENTIAL is not set")
         return value
 
     def coturn_secret(self) -> str:

@@ -8,8 +8,11 @@ class EntityRtcIceServer:
     credential: str
     urls: list[str] = field(init=False)
 
-    def __post_init__(self):
-        self.urls = [f"stun:{self.host}:{self.port}", f"turn:{self.host}:{self.port}"]
+    def __post_init__(self, host: str, port: str):
+        self.urls = [
+            f"stun:{host}:{port}",
+            f"turn:{host}:{port}",
+        ]
 
     def to_dict(self) -> dict:
         return {

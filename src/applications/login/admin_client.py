@@ -1,9 +1,7 @@
-from src.modules.database.mysql.clients import ModuleDatabaseMySQLClients
-from src.modules.authenticator.admin_client import ModuleAuthenticatorAdminClient
-from src.entities.environment.jwt import EntityEnvironmentJwt
-from src.entities.environment.mysql import EntityEnvironmentMysql
-from src.entities.admin_client import EntityAdminClient
-from src.entities.environment.admin_client import EntityEnvironmentAdminClient
+from modules.authenticator.admin_client import ModuleAuthenticatorAdminClient
+from entities.environment.jwt import EntityEnvironmentJwt
+from entities.admin_client import EntityAdminClient
+from entities.environment.admin_client import EntityEnvironmentAdminClient
 
 class ApplicationLoginAdminClient:
     def __init__(self, authenticator: ModuleAuthenticatorAdminClient, admin_client: EntityAdminClient):
