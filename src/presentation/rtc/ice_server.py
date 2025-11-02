@@ -17,6 +17,9 @@ class PresentationRtcIceServer:
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=401)
         try:
-            return JSONResponse(content=self.application.generate(jwt_camera_client.camera_client_id).to_dict(), status_code=200)
+            return JSONResponse(
+                content=self.application.generate(jwt_camera_client.camera_client_id).to_dict(),
+                status_code=200,
+            )
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=400)

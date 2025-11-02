@@ -5,7 +5,7 @@ class EntityRtcIceServer:
     host: InitVar[str]
     port: InitVar[str]
     username: str
-    password: str
+    credential: str
     urls: list[str] = field(init=False)
 
     def __post_init__(self):
@@ -15,5 +15,5 @@ class EntityRtcIceServer:
         return {
             "urls": self.urls,
             "username": self.username,
-            "password": self.password,
+            "credential": self.credential,
         }

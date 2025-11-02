@@ -36,12 +36,12 @@ class ApplicationRtcIceServer:
         return self.authenticator.verify(authorization)
 
     def generate(self, camera_client_id: str) -> EntityRtcIceServer:
-        username, password = self._generate_turn_credentials(camera_client_id)
+        username, credential = self._generate_turn_credentials(camera_client_id)
         return EntityRtcIceServer(
             host=self.host,
             port=self.port,
             username=username,
-            password=password,
+            credential=credential,
         )
 
     def _generate_turn_credentials(self, camera_client_id: str) -> tuple[str, str]:
@@ -54,6 +54,6 @@ class ApplicationRtcIceServer:
             username.encode('utf-8'),
             hashlib.sha1
         )
-        password = base64.b64encode(mac.digest()).decode('utf-8')
+        credential = base64.b64encode(mac.digest()).decode('utf-8')
 
-        return username, password
+        return username, credential
