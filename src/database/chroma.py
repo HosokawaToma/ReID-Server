@@ -6,7 +6,7 @@ from typing import Optional
 class DatabaseChroma:
     _client: Optional[ClientAPI] = None
 
-    def __init__(self, host: str, port: int, secret_token: str):
+    def __init__(self):
         if self._client is None:
             self._client = PersistentClient(path="/app/storage/chroma")
 

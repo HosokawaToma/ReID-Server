@@ -63,11 +63,6 @@ class ServerApp:
             password=environment.mysql_password(),
             database=environment.mysql_database(),
         )
-        environment_chroma = EntityEnvironmentChroma(
-            host=environment.chroma_host(),
-            port=environment.chroma_port(),
-            secret_token=environment.chroma_secret_token(),
-        )
         environment_storage = EntityEnvironmentStorage(
             path=environment.storage_path(),
         )
@@ -109,7 +104,6 @@ class ServerApp:
                 application=ApplicationIdentifyPerson.create(
                     environment_jwt=environment_jwt,
                     environment_mysql=environment_mysql,
-                    environment_chroma=environment_chroma,
                     environment_storage=environment_storage,
                 )
             ),

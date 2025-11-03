@@ -41,7 +41,6 @@ class ApplicationIdentifyPerson:
         cls,
         environment_jwt: EntityEnvironmentJwt,
         environment_mysql: EntityEnvironmentMysql,
-        environment_chroma: EntityEnvironmentChroma,
         environment_storage: EntityEnvironmentStorage,
         ) -> "ApplicationIdentifyPerson":
         return cls(
@@ -66,15 +65,9 @@ class ApplicationIdentifyPerson:
                 yolo_pose=ModuleYoloPose(),
                 yolo_pose_verification=ModuleYoloPoseVerification(),
                 storage_image=ModuleStorageImage(storage_path=environment_storage.path),
-                database_person_feature=ModuleDatabaseChromaPersonFeature(
-                        DatabaseChroma(
-                        host=environment_chroma.host,
-                        port=environment_chroma.port,
-                        secret_token=environment_chroma.secret_token,
-                    )
-                ),
-            ),
-        )
+                database_person_feature=ModuleDatabaseChromaPersonFeature(DatabaseChroma())
+                )
+            )
 
     async def start(self):
         await self.background_process.start()
