@@ -1,5 +1,6 @@
-from chromadb import HttpClient, Collection
+from chromadb import PersistentClient, Collection
 from chromadb.api import ClientAPI
+from chromadb.config import Settings
 from typing import Optional
 
 class DatabaseChroma:
@@ -7,13 +8,7 @@ class DatabaseChroma:
 
     def __init__(self, host: str, port: int, secret_token: str):
         if self._client is None:
-            self._client = HttpClient(
-                host=host,
-                port=port,
-                headers={
-                    "X-Chroma-Token": secret_token
-                }
-            )
+            self._client = PersistentClient(path="/app/storage/chroma")
 
     def __call__(self, name: str) -> Collection:
         if self._client is None:

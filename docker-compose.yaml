@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile
-    user: ${USER_ID}:${GROUP_ID}
+    # user: ${USER_ID}:${GROUP_ID}
     expose:
       - ${PORT}
     deploy:
@@ -18,7 +18,10 @@ services:
     env_file:
       - .env
     volumes:
-      - ./src/database/mysql/versions:/app/src/database/mysql/versions
+      - ./resources:/app/resources:rw
+      - ./volumes/app/storage:/app/storage:rw
+      - ./volumes/app/storage/chroma:/app/storage/chroma:rw
+      - ./src/database/mysql/versions:/app/src/database/mysql/versions:rw
 
   mysql:
     image: mysql:8.0
@@ -31,20 +34,6 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - ./volumes/mysql:/var/lib/mysql
-    networks:
-      - app_network
-
-  chroma:
-    image: chromadb/chroma:1.2.2
-    ports:
-      - ${CHROMA_PORT}:${CHROMA_PORT}
-    environment:
-      - CHROMA_SERVER_AUTH_PROVIDER=chromadb.auth.basic.BasicAuthServerProvider
-      - CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER=chromadb.auth.providers.HtpasswdFileServerAuthCredentialsProvider
-      - CHROMA_SERVER_AUTH_CREDENTIALS=${CHROMA_SECRET_TOKEN}
-      - CHROMA_SERVER_AUTH_TOKEN_TRANSPORT_HEADER=X-Chroma-Token
-    volumes:
-      - ./volumes/chroma:/chroma/chroma
     networks:
       - app_network
 

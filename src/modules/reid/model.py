@@ -6,6 +6,7 @@ from torchvision import transforms
 
 from modules.reid.clip_reid.config import cfg
 from modules.reid.clip_reid.model.make_model_clipreid import make_model
+from modules.reid.clip_reid.datasets.make_dataloader_clipreid import make_dataloader
 
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(
     __file__), "clip_reid/configs/person/vit_clipreid.yml")
@@ -18,6 +19,8 @@ OPTIONS = [
     "[12, 12]",
     "DATASETS.ROOT_DIR",
     "resources/dataset",
+    "DATASETS.NAMES",
+    "",
     "MODEL.PRETRAIN_PATH",
     "resources/models/jx_vit_base_p16_224-80ecf9dd.pth",
     "TEST.WEIGHT",
@@ -32,7 +35,9 @@ class ModuleReIDModel:
         cfg.freeze()
         self.config = cfg
         os.environ['CUDA_VISIBLE_DEVICES'] = cfg.MODEL.DEVICE_ID
-        model = make_model(self.config, 0, 0, 0)
+        # _, _, _, _, num_classes, camera_num, view_num = make_dataloader(self.config)
+        num_classes, camera_num, view_num = 751, 6, 1
+        model = make_model(self.config, num_classes, camera_num, view_num)
         model.load_param(self.config.TEST.WEIGHT)
         model.eval()
         model.to(self.config.MODEL.DEVICE)

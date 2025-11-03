@@ -6,7 +6,7 @@ from ultralytics.engine.results import Results
 
 class ModuleYoloSegmentation:
     def __init__(self):
-        self.model = YOLO("models/yolo11x-seg.pt")
+        self.model = YOLO("./resources/models/yolo11x-seg.pt")
 
     def extract(self, frame: Image.Image) -> list[EntityYoloMask]:
         results = self.model(frame, classes=[0], verbose=False)

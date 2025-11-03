@@ -1,3 +1,4 @@
+import asyncio
 import fastapi
 import uvicorn
 
@@ -127,14 +128,15 @@ class ServerApp:
             ),
         )
 
-    async def run(self):
+    def run(self):
         self.login_admin_client.setup(self.fastapi_app)
         self.login_camera_client.setup(self.fastapi_app)
         self.camera_clients_create.setup(self.fastapi_app)
-        await self.identify_person.setup(self.fastapi_app)
+        self.identify_person.setup(self.fastapi_app)
         self.rtc_connection.setup(self.fastapi_app)
         self.rtc_ice_server.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.host, port=self.port)
 
 if __name__ == "__main__":
     server_app = ServerApp.create(environment=Environment())
+    server_app.run()

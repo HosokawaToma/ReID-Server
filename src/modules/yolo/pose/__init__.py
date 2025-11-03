@@ -6,7 +6,7 @@ from entities.yolo.keypoints import EntityYoloKeypoints
 
 class ModuleYoloPose:
     def __init__(self):
-        self.model = YOLO("models/yolo11x-pose.pt")
+        self.model = YOLO("./resources/models/yolo11x-pose.pt")
 
     def extract(self, frame: Image.Image) -> EntityYoloKeypoints | None:
         results = self.model(frame, verbose=False)
