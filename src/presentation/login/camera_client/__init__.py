@@ -16,6 +16,7 @@ class PresentationLoginCameraClient():
 
     def endpoint(self, request: PresentationLoginCameraClientRequest):
         try:
-            return self.application.login(request.camera_client_id, request.password)
+            token = self.application.login(request.camera_client_id, request.password)
+            return JSONResponse(content={"token": token}, status_code=200)
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=400)
