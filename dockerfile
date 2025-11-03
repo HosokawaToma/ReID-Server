@@ -19,6 +19,7 @@ RUN pip install -r requirements.txt
 
 COPY ./src ./src
 COPY ./resources ./resources
+COPY ./alembic.ini ./alembic.ini
 
 RUN mkdir -p ./.cache && chmod 777 ./.cache
 
