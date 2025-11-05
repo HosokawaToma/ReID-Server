@@ -8,6 +8,8 @@ from entities.environment.jwt import EntityEnvironmentJwt
 from entities.environment.coturn import EntityEnvironmentCoturn
 from entities.environment.storage import EntityEnvironmentStorage
 from entities.jwt.camera_client import EntityJWTCameraClient
+from typing import Dict
+
 
 class ApplicationRtcConnection:
     def __init__(
@@ -19,6 +21,7 @@ class ApplicationRtcConnection:
         self.authenticator = authenticator
         self.configuration = configuration
         self.storage = storage
+        self.peer_connections: Dict[str, ApplicationRtcPeerConnection] = {}
 
     @classmethod
     def create(
@@ -47,7 +50,7 @@ class ApplicationRtcConnection:
                         username=ice_server.username,
                     ),
                 ],
-                ),
+            ),
             storage=EntityStorage(path=environment_storage.path),
         )
 
@@ -59,10 +62,18 @@ class ApplicationRtcConnection:
         jwt_camera_client: EntityJWTCameraClient,
         offer_sdp: EntityRtcSdp,
     ) -> EntityRtcSdp:
+        key = f"{jwt_camera_client.camera_id}:{jwt_camera_client.view_id}"
+
+        async def on_close():
+            if key in self.peer_connections:
+                del self.peer_connections[key]
+
         peer_connection = ApplicationRtcPeerConnection(
             jwt_camera_client=jwt_camera_client,
             offer_sdp=offer_sdp,
             configuration=self.configuration,
             storage=self.storage,
+            on_close=on_close,
         )
+        self.peer_connections[key] = peer_connection
         return await peer_connection.offer()

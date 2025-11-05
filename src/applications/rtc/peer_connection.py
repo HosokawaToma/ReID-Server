@@ -8,6 +8,7 @@ from aiortc import RTCConfiguration
 from entities.jwt.camera_client import EntityJWTCameraClient
 from entities.storage import EntityStorage
 from entities.rtc.sdp import EntityRtcSdp
+from typing import Callable, Coroutine
 
 
 class ApplicationRtcPeerConnection:
@@ -22,9 +23,12 @@ class ApplicationRtcPeerConnection:
         offer_sdp: EntityRtcSdp,
         configuration: RTCConfiguration,
         storage: EntityStorage,
+        on_close: Callable[[], Coroutine[None, None, None]],
     ) -> None:
         self.peer_connection = RTCPeerConnection(configuration)
-        self.session = RTCSessionDescription(sdp=offer_sdp.sdp, type=offer_sdp.type)
+        self.session = RTCSessionDescription(
+            sdp=offer_sdp.sdp, type=offer_sdp.type)
+        self.on_close = on_close
         filepath = self.PATH_OF_RECORDING.format(
             path=storage.path,
             camera_id=jwt_camera_client.camera_id,
@@ -66,6 +70,7 @@ class ApplicationRtcPeerConnection:
             await self.recorder.stop()
             self.recorder_started = False
         await self.peer_connection.close()
+        await self.on_close()
 
     async def offer(self) -> EntityRtcSdp:
         await self.peer_connection.setRemoteDescription(self.session)
