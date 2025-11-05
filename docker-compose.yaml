@@ -3,9 +3,6 @@ services:
     build:
       context: .
       dockerfile: dockerfile
-    # user: ${USER_ID}:${GROUP_ID}
-    expose:
-      - ${PORT}
     deploy:
       resources:
         reservations:
