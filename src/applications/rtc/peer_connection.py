@@ -1,4 +1,5 @@
 import asyncio
+import os
 from datetime import datetime
 from aiortc import RTCPeerConnection, RTCSessionDescription
 from aiortc.contrib.media import MediaRecorder
@@ -24,14 +25,14 @@ class ApplicationRtcPeerConnection:
     ) -> None:
         self.peer_connection = RTCPeerConnection(configuration)
         self.session = RTCSessionDescription(sdp=offer_sdp.sdp, type=offer_sdp.type)
-        self.recorder = MediaRecorder(
-            self.PATH_OF_RECORDING.format(
-                path=storage.path,
-                camera_id=jwt_camera_client.camera_id,
-                view_id=jwt_camera_client.view_id,
-                timestamp=datetime.now().isoformat()
-            )
+        filepath = self.PATH_OF_RECORDING.format(
+            path=storage.path,
+            camera_id=jwt_camera_client.camera_id,
+            view_id=jwt_camera_client.view_id,
+            timestamp=datetime.now().isoformat()
         )
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        self.recorder = MediaRecorder(filepath)
         self.peer_connection.on(
             self.CONNECTION_STATE_CHANGE,
             self._on_connectionstatechange,
