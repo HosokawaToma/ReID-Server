@@ -33,7 +33,7 @@ class ApplicationRtcPeerConnection:
             path=storage.path,
             camera_id=jwt_camera_client.camera_id,
             view_id=jwt_camera_client.view_id,
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().strftime("%Y%m%d%H%M%S")
         )
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         self.recorder = MediaRecorder(filepath)
