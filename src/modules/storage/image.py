@@ -6,7 +6,6 @@ class ModuleStorageImage:
 
     def __init__(self, storage_path: str):
         self.storage_path = storage_path
-        os.makedirs(os.path.dirname(self.storage_path), exist_ok=True)
 
     def save(self, image: EntityImage) -> None:
         path = self.IMAGE_PATH.format(
@@ -15,4 +14,5 @@ class ModuleStorageImage:
             timestamp=image.timestamp.isoformat(),
             id=image.id
         )
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         image.image.save(path)
