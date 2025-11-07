@@ -1,5 +1,5 @@
 import logging
-from src.entities.environment.storage import EntityEnvironmentStorage
+from entities.environment.storage import EntityEnvironmentStorage
 from datetime import datetime
 
 class ModuleLogger:

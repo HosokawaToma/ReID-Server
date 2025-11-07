@@ -14,7 +14,6 @@ from database.chroma import DatabaseChroma
 from database.mysql import DatabaseMySQL
 from entities.environment.jwt import EntityEnvironmentJwt
 from entities.environment.mysql import EntityEnvironmentMysql
-from entities.environment.chroma import EntityEnvironmentChroma
 from entities.environment.storage import EntityEnvironmentStorage
 from modules.yolo.segmentation import ModuleYoloSegmentation
 from modules.yolo.segmentation.verification import ModuleYoloSegmentationVerification
