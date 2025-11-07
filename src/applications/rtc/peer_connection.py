@@ -56,14 +56,6 @@ class ApplicationRtcPeerConnection:
         if not self.recorder_started:
             self.recorder_started = True
             await self.recorder.start()
-        asyncio.create_task(self.consume_frames(track))
-
-    async def consume_frames(self, track: RemoteStreamTrack):
-        try:
-            while True:
-                await track.recv()
-        except Exception:
-            pass
 
     async def close(self):
         if self.recorder_started:
