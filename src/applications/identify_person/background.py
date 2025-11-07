@@ -10,6 +10,7 @@ from modules.yolo.segmentation import ModuleYoloSegmentation
 from modules.yolo.segmentation.verification import ModuleYoloSegmentationVerification
 from modules.yolo.pose import ModuleYoloPose
 from modules.yolo.pose.verification import ModuleYoloPoseVerification
+from modules.logger import ModuleLogger
 
 class ApplicationIdentifyPersonBackgroundProcess:
     def __init__(
@@ -21,6 +22,7 @@ class ApplicationIdentifyPersonBackgroundProcess:
         yolo_pose_verification: ModuleYoloPoseVerification,
         storage_image: ModuleStorageImage,
         database_person_feature: ModuleDatabaseChromaPersonFeature,
+        logger: ModuleLogger,
     ):
         self.reid_model = reid_model
         self.yolo_segmentation = yolo_segmentation
@@ -31,22 +33,33 @@ class ApplicationIdentifyPersonBackgroundProcess:
         self.database_person_feature = database_person_feature
         self.queue = Queue[EntityImage]()
         self.task: Optional[asyncio.Task[None]] = None
+        self.logger = logger
 
     async def start(self):
         self.task = asyncio.create_task(self.process_queue())
+        self.logger.info("Background process started")
 
     async def stop(self):
         if self.task is not None:
             self.task.cancel()
+        self.logger.info("Background process stopped")
 
     async def add(self, image: EntityImage):
         await self.queue.put(image)
+        self.logger.info(f"Image added to queue: {image.id}")
 
     async def process_queue(self):
         while True:
             try:
                 image = await self.queue.get()
+            except Exception as e:
+                self.logger.error(f"Error getting image from queue: {e}")
+                continue
+            try:
                 await self.process(image)
+            except Exception as e:
+                self.logger.error(f"Error processing image: {image.id}: {e}")
+                continue
             except asyncio.CancelledError:
                 break
 

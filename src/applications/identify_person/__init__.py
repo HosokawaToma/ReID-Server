@@ -20,6 +20,7 @@ from modules.yolo.segmentation import ModuleYoloSegmentation
 from modules.yolo.segmentation.verification import ModuleYoloSegmentationVerification
 from modules.yolo.pose import ModuleYoloPose
 from modules.yolo.pose.verification import ModuleYoloPoseVerification
+from modules.logger import ModuleLogger
 
 class ApplicationIdentifyPerson:
     def __init__(
@@ -65,7 +66,8 @@ class ApplicationIdentifyPerson:
                 yolo_pose=ModuleYoloPose(),
                 yolo_pose_verification=ModuleYoloPoseVerification(),
                 storage_image=ModuleStorageImage(storage_path=environment_storage.path),
-                database_person_feature=ModuleDatabaseChromaPersonFeature(DatabaseChroma())
+                database_person_feature=ModuleDatabaseChromaPersonFeature(DatabaseChroma()),
+                logger=ModuleLogger(environment_storage=environment_storage)
                 )
             )
 
