@@ -36,7 +36,9 @@ class ModuleReIDModel:
         self.config = cfg
         os.environ['CUDA_VISIBLE_DEVICES'] = cfg.MODEL.DEVICE_ID
         # _, _, _, _, num_classes, camera_num, view_num = make_dataloader(self.config)
-        num_classes, camera_num, view_num = 751, 6, 1
+        num_classes = torch.tensor(751, dtype=torch.int64).to(self.config.MODEL.DEVICE)
+        camera_num = torch.tensor(6, dtype=torch.int64).to(self.config.MODEL.DEVICE)
+        view_num = torch.tensor(1, dtype=torch.int64).to(self.config.MODEL.DEVICE)
         model = make_model(self.config, num_classes, camera_num, view_num)
         model.load_param(self.config.TEST.WEIGHT)
         model.eval()
