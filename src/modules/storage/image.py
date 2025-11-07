@@ -9,6 +9,7 @@ class ModuleStorageImage:
 
     def save(self, image: EntityImage) -> None:
         path = self.IMAGE_PATH.format(
+            storage_path=self.storage_path,
             camera_id=image.camera_id,
             view_id=image.view_id,
             timestamp=image.timestamp.strftime("%Y%m%d%H%M%S"),
