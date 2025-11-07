@@ -11,7 +11,7 @@ class ModuleStorageImage:
         path = self.IMAGE_PATH.format(
             camera_id=image.camera_id,
             view_id=image.view_id,
-            timestamp=image.timestamp.isoformat(),
+            timestamp=image.timestamp.strftime("%Y%m%d%H%M%S"),
             id=image.id
         )
         os.makedirs(os.path.dirname(path), exist_ok=True)
