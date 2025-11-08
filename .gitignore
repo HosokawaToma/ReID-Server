@@ -6,3 +6,4 @@ results/
 .env
 volumes/
 docker-compose.override.yaml
+.http
