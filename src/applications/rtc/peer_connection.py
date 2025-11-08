@@ -1,4 +1,3 @@
-import asyncio
 import os
 from datetime import datetime
 from aiortc import RTCPeerConnection, RTCSessionDescription
@@ -8,7 +7,6 @@ from aiortc import RTCConfiguration
 from entities.jwt.camera_client import EntityJWTCameraClient
 from entities.storage import EntityStorage
 from entities.rtc.sdp import EntityRtcSdp
-from typing import Callable, Coroutine
 
 
 class ApplicationRtcPeerConnection:
@@ -16,6 +14,7 @@ class ApplicationRtcPeerConnection:
     CONNECTION_STATE_CHANGE = "connectionstatechange"
     TRACK = "track"
     FAILED = "failed"
+    CLOSED = "closed"
 
     def __init__(
         self,
@@ -23,12 +22,10 @@ class ApplicationRtcPeerConnection:
         offer_sdp: EntityRtcSdp,
         configuration: RTCConfiguration,
         storage: EntityStorage,
-        on_close: Callable[[], Coroutine[None, None, None]],
     ) -> None:
         self.peer_connection = RTCPeerConnection(configuration)
         self.session = RTCSessionDescription(
             sdp=offer_sdp.sdp, type=offer_sdp.type)
-        self.on_close = on_close
         filepath = self.PATH_OF_RECORDING.format(
             path=storage.path,
             camera_id=jwt_camera_client.camera_id,
@@ -48,7 +45,7 @@ class ApplicationRtcPeerConnection:
         self.recorder_started = False
 
     async def _on_connectionstatechange(self):
-        if self.peer_connection.connectionState == self.FAILED:
+        if self.peer_connection.connectionState in [self.FAILED, self.CLOSED]:
             await self.close()
 
     async def _on_track(self, track: RemoteStreamTrack):
@@ -62,7 +59,6 @@ class ApplicationRtcPeerConnection:
             await self.recorder.stop()
             self.recorder_started = False
         await self.peer_connection.close()
-        await self.on_close()
 
     async def offer(self) -> EntityRtcSdp:
         await self.peer_connection.setRemoteDescription(self.session)
