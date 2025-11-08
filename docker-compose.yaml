@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: dockerfile/app/Dockerfile
+      dockerfile: dockerfiles/app/Dockerfile
     deploy:
       resources:
         reservations:
