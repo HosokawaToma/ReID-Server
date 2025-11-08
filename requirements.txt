@@ -24,7 +24,7 @@ ftfy==6.1.1
 regex==2021.11.10
 
 # database
-psycopg==3.2.12
+psycopg2-binary==2.9.11
 pgvector==0.4.1
 sqlalchemy==2.0.44
 alembic==1.17.0

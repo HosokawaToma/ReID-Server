@@ -7,7 +7,7 @@ from sqlalchemy import pool
 from alembic import context
 
 # root から読み込まれることを想定しているためここだけ src から始める
-from src.database.postgresql.models import ALEMBIC_MODELS
+from src.database.models import ALEMBIC_MODELS
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -46,8 +46,10 @@ def get_database_url() -> str:
 
     # alembic.iniのsqlalchemy.urlが優先されるが、設定されていない場合は環境変数から構築
     url = config.get_main_option("sqlalchemy.url")
-    if url is None or url == "postgresql+psycopg://user:pass@localhost/dbname":
-        url = f"postgresql+psycopg://{user}:{password}@{host}:{port}/{database}"
+    if url is None:
+        url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
+    else:
+        url = url.format(user=user, password=password, host=host, port=port, database=database)
 
     return url
 

@@ -1,14 +1,14 @@
 from entities.camera_client import EntityCameraClient
-from modules.database.postgresql.camera_clients import ModuleDatabasePostgreSQLCameraClients
+from modules.database.camera_clients import ModuleDatabaseCameraClients
 from modules.authenticator.camera_client import ModuleAuthenticatorCameraClient
-from database.postgresql import DatabasePostgreSQL
+from database import Database
 from entities.environment.jwt import EntityEnvironmentJwt
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 
 class ApplicationLoginCameraClient:
     def __init__(
         self,
-        database_camera_clients: ModuleDatabasePostgreSQLCameraClients,
+        database_camera_clients: ModuleDatabaseCameraClients,
         authenticator_camera_client: ModuleAuthenticatorCameraClient,
         ):
         self.database_camera_clients = database_camera_clients
@@ -21,7 +21,7 @@ class ApplicationLoginCameraClient:
         environment_postgresql: EntityEnvironmentPostgreSQL,
     ) -> "ApplicationLoginCameraClient":
         return cls(
-            database_camera_clients=ModuleDatabasePostgreSQLCameraClients(DatabasePostgreSQL(
+            database_camera_clients=ModuleDatabaseCameraClients(Database(
                 host=environment_postgresql.host,
                 port=environment_postgresql.port,
                 user=environment_postgresql.user,

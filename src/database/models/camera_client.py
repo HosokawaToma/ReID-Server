@@ -5,7 +5,7 @@ from datetime import datetime
 
 Base = declarative_base()
 
-class DatabasePostgreSQLModelCameraClient(Base):
+class DatabaseModelCameraClient(Base):
     __tablename__ = "camera_clients"
     id = Column[str](String(255), primary_key=True)
     hashed_password = Column[str](String(255))

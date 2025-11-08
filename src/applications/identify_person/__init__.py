@@ -6,11 +6,11 @@ from applications.identify_person.background import ApplicationIdentifyPersonBac
 from modules.authenticator.camera_client import ModuleAuthenticatorCameraClient
 from modules.datetime import ModuleDatetime
 from modules.image import ModuleImage
-from modules.database.postgresql.camera_clients import ModuleDatabasePostgreSQLCameraClients
+from modules.database.camera_clients import ModuleDatabaseCameraClients
 from modules.reid.model import ModuleReIDModel
 from modules.storage.image import ModuleStorageImage
-from modules.database.postgresql.person_features import ModuleDatabasePostgreSQLPersonFeatures
-from database.postgresql import DatabasePostgreSQL
+from modules.database.person_features import ModuleDatabasePersonFeatures
+from database import Database
 from entities.environment.jwt import EntityEnvironmentJwt
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
@@ -24,7 +24,7 @@ class ApplicationIdentifyPerson:
     def __init__(
         self,
         authenticator_camera_client: ModuleAuthenticatorCameraClient,
-        database_camera_clients: ModuleDatabasePostgreSQLCameraClients,
+        database_camera_clients: ModuleDatabaseCameraClients,
         datetime_module: ModuleDatetime,
         image_module: ModuleImage,
         background_process: ApplicationIdentifyPersonBackgroundProcess
@@ -48,7 +48,7 @@ class ApplicationIdentifyPerson:
                 algorithm=environment_jwt.algorithm,
                 expire_days=environment_jwt.expire_days,
             ),
-            database_camera_clients=ModuleDatabasePostgreSQLCameraClients(DatabasePostgreSQL(
+            database_camera_clients=ModuleDatabaseCameraClients(Database(
                 host=environment_postgresql.host,
                 port=environment_postgresql.port,
                 user=environment_postgresql.user,
@@ -64,7 +64,7 @@ class ApplicationIdentifyPerson:
                 yolo_pose=ModuleYoloPose(),
                 yolo_pose_verification=ModuleYoloPoseVerification(),
                 storage_image=ModuleStorageImage(storage_path=environment_storage.path),
-                database_person_features=ModuleDatabasePostgreSQLPersonFeatures(DatabasePostgreSQL(
+                database_person_features=ModuleDatabasePersonFeatures(Database(
                     host=environment_postgresql.host,
                     port=environment_postgresql.port,
                     user=environment_postgresql.user,

@@ -2,23 +2,27 @@ from dataclasses import dataclass, field
 import uuid
 import torch
 from datetime import datetime
-from database.postgresql.models.person_feature import DatabasePostgreSQLModelPersonFeature
+from database.models.person_feature import DatabaseModelPersonFeature
 
 @dataclass
 class EntityPersonFeature:
+    id: uuid.UUID | None
     feature: torch.Tensor
     camera_id: int
     view_id: int
     timestamp: datetime
 
     def __post_init__(self):
+        if self.id is None:
+            self.id = uuid.uuid4()
         if self.feature.ndim != 1:
             raise ValueError("Person feature must be a 1D tensor")
         if self.feature.shape[0] != 1280:
             raise ValueError("Person feature must be a 1280D tensor")
 
     def to_database_model(self):
-        return DatabasePostgreSQLModelPersonFeature(
+        return DatabaseModelPersonFeature(
+            id=self.id,
             feature=self.feature.tolist(),
             camera_id=self.camera_id,
             view_id=self.view_id,

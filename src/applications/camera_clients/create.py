@@ -1,15 +1,15 @@
 from modules.authenticator.admin_client import ModuleAuthenticatorAdminClient
 from entities.camera_client import EntityCameraClient
-from modules.database.postgresql.camera_clients import ModuleDatabasePostgreSQLCameraClients
+from modules.database.camera_clients import ModuleDatabaseCameraClients
 from entities.environment.jwt import EntityEnvironmentJwt
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
-from database.postgresql import DatabasePostgreSQL
+from database import Database
 
 class ApplicationCameraClientsCreate:
     def __init__(
         self,
         authenticator: ModuleAuthenticatorAdminClient,
-        database_camera_clients: ModuleDatabasePostgreSQLCameraClients,
+        database_camera_clients: ModuleDatabaseCameraClients,
     ):
         self.authenticator = authenticator
         self.database_camera_clients = database_camera_clients
@@ -26,8 +26,8 @@ class ApplicationCameraClientsCreate:
                 algorithm=environment_jwt.algorithm,
                 expire_days=environment_jwt.expire_days,
             ),
-            database_camera_clients=ModuleDatabasePostgreSQLCameraClients(
-                DatabasePostgreSQL(
+            database_camera_clients=ModuleDatabaseCameraClients(
+                Database(
                     host=environment_postgresql.host,
                     port=environment_postgresql.port,
                     database=environment_postgresql.database,

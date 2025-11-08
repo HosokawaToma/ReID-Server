@@ -4,7 +4,7 @@ from typing import Optional
 from entities.image import EntityImage
 from modules.reid.model import ModuleReIDModel
 from modules.storage.image import ModuleStorageImage
-from modules.database.postgresql.person_features import ModuleDatabasePostgreSQLPersonFeatures
+from modules.database.person_features import ModuleDatabasePersonFeatures
 from entities.person_feature import EntityPersonFeature
 from modules.yolo.segmentation import ModuleYoloSegmentation
 from modules.yolo.segmentation.verification import ModuleYoloSegmentationVerification
@@ -21,7 +21,7 @@ class ApplicationIdentifyPersonBackgroundProcess:
         yolo_pose: ModuleYoloPose,
         yolo_pose_verification: ModuleYoloPoseVerification,
         storage_image: ModuleStorageImage,
-        database_person_features: ModuleDatabasePostgreSQLPersonFeatures,
+        database_person_features: ModuleDatabasePersonFeatures,
         logger: ModuleLogger,
     ):
         self.reid_model = reid_model
@@ -76,6 +76,7 @@ class ApplicationIdentifyPersonBackgroundProcess:
         query_feature = self.reid_model.extract_feature(image.image, image.camera_id, image.view_id)
         self.database_person_features.insert(
             EntityPersonFeature(
+                id=None,
                 feature=query_feature,
                 camera_id=image.camera_id,
                 view_id=image.view_id,

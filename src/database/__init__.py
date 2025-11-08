@@ -5,19 +5,19 @@ from typing import Type
 from types import TracebackType
 
 
-class DatabasePostgreSQL:
-    ENGINE_URL_TEMPLATE = "postgresql+psycopg://{user}:{password}@{host}:{port}/{database}"
+class Database:
+    ENGINE_URL_TEMPLATE = "postgresql://{user}:{password}@{host}:{port}/{database}"
     _engine: Engine | None = None
 
     def __init__(self, host: str, port: str, database: str, user: str, password: str):
 
-        if DatabasePostgreSQL._engine is None:
+        if Database._engine is None:
             engine_url = self.ENGINE_URL_TEMPLATE.format(
                 user=user, password=password, host=host, port=port, database=database
             )
-            DatabasePostgreSQL._engine = create_engine(engine_url)
+            Database._engine = create_engine(engine_url)
 
-        self._session_maker = sessionmaker[Session](bind=DatabasePostgreSQL._engine)
+        self._session_maker = sessionmaker[Session](bind=Database._engine)
         self._session: Session | None = None
 
     def __enter__(self) -> Session:

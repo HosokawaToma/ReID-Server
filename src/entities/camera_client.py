@@ -1,4 +1,4 @@
-from database.postgresql.models.camera_client import DatabasePostgreSQLModelCameraClient
+from database.models.camera_client import DatabaseModelCameraClient
 import hashlib
 from dataclasses import dataclass, field, InitVar
 
@@ -17,7 +17,7 @@ class EntityCameraClient:
             self.hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
     def to_database_model(self):
-        return DatabasePostgreSQLModelCameraClient(
+        return DatabaseModelCameraClient(
             id=self.id,
             hashed_password=self.hashed_password,
             camera_id=self.camera_id,
