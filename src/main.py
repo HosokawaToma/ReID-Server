@@ -1,4 +1,3 @@
-import asyncio
 import fastapi
 import uvicorn
 
