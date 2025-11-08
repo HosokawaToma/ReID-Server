@@ -1,6 +1,6 @@
 ---
 name: 💡 機能提案 (Feature Request)
-description: 新機能を提案する (Suggest a new feature)
+about: 新機能を提案する (Suggest a new feature)
 title: "【💡機能提案】"
 ---
 
