@@ -11,6 +11,12 @@ class EntityPersonFeature:
     view_id: int
     timestamp: datetime
 
+    def __post_init__(self):
+        if self.feature.ndim != 1:
+            raise ValueError("Person feature must be a 1D tensor")
+        if self.feature.shape[0] != 1280:
+            raise ValueError("Person feature must be a 1280D tensor")
+
     def to_database_model(self):
         return DatabasePostgreSQLModelPersonFeature(
             feature=self.feature.tolist(),

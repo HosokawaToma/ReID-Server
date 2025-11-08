@@ -71,7 +71,4 @@ class ModuleReIDModel:
                 view_id, dtype=torch.long).to(self.config.MODEL.DEVICE)
 
         with torch.no_grad():
-            feature = self.model(
-                image_tensor, cam_label=camera_id_tensor, view_label=view_id_tensor)
-
-        return feature
+            return self.model(image_tensor, cam_label=camera_id_tensor, view_label=view_id_tensor).squeeze()
