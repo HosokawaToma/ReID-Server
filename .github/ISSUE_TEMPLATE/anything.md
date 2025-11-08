@@ -1,6 +1,6 @@
 ---
 name: 🫧何でも (Anything)
-description: どんなことでも自由に書いていいテンプレート (A template where you can write anything you want freely.)
+about: どんなことでも自由に書いていいテンプレート (A template where you can write anything you want freely.)
 title: "【🫧】"
 ---
 

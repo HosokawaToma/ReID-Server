@@ -1,6 +1,6 @@
 ---
 name: 🐛 バグ報告 (Bug Report)
-description: バグを報告する (Report a bug)
+about: バグを報告する (Report a bug)
 title: "【🐛バグ】"
 ---
 
