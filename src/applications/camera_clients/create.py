@@ -1,15 +1,15 @@
 from modules.authenticator.admin_client import ModuleAuthenticatorAdminClient
 from entities.camera_client import EntityCameraClient
-from modules.database.mysql.camera_clients import ModuleDatabaseMySQLCameraClients
+from modules.database.postgresql.camera_clients import ModuleDatabasePostgreSQLCameraClients
 from entities.environment.jwt import EntityEnvironmentJwt
-from entities.environment.mysql import EntityEnvironmentMysql
-from database.mysql import DatabaseMySQL
+from entities.environment.postgresql import EntityEnvironmentPostgreSQL
+from database.postgresql import DatabasePostgreSQL
 
 class ApplicationCameraClientsCreate:
     def __init__(
         self,
         authenticator: ModuleAuthenticatorAdminClient,
-        database_camera_clients: ModuleDatabaseMySQLCameraClients,
+        database_camera_clients: ModuleDatabasePostgreSQLCameraClients,
     ):
         self.authenticator = authenticator
         self.database_camera_clients = database_camera_clients
@@ -18,7 +18,7 @@ class ApplicationCameraClientsCreate:
     def create(
         cls,
         environment_jwt: EntityEnvironmentJwt,
-        environment_mysql: EntityEnvironmentMysql,
+        environment_postgresql: EntityEnvironmentPostgreSQL,
     ) -> "ApplicationCameraClientsCreate":
         return cls(
             authenticator=ModuleAuthenticatorAdminClient(
@@ -26,13 +26,13 @@ class ApplicationCameraClientsCreate:
                 algorithm=environment_jwt.algorithm,
                 expire_days=environment_jwt.expire_days,
             ),
-            database_camera_clients=ModuleDatabaseMySQLCameraClients(
-                DatabaseMySQL(
-                    host=environment_mysql.host,
-                    port=environment_mysql.port,
-                    database=environment_mysql.database,
-                    user=environment_mysql.user,
-                    password=environment_mysql.password,
+            database_camera_clients=ModuleDatabasePostgreSQLCameraClients(
+                DatabasePostgreSQL(
+                    host=environment_postgresql.host,
+                    port=environment_postgresql.port,
+                    database=environment_postgresql.database,
+                    user=environment_postgresql.user,
+                    password=environment_postgresql.password,
                 ),
             ),
         )

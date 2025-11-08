@@ -16,8 +16,7 @@ from applications.rtc.connection import ApplicationRtcConnection
 from applications.rtc.ice_server import ApplicationRtcIceServer
 from environment import Environment
 from entities.environment.jwt import EntityEnvironmentJwt
-from entities.environment.mysql import EntityEnvironmentMysql
-from entities.environment.chroma import EntityEnvironmentChroma
+from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
 from entities.environment.coturn import EntityEnvironmentCoturn
 from entities.environment.admin_client import EntityEnvironmentAdminClient
@@ -56,12 +55,12 @@ class ServerApp:
             algorithm=environment.jwt_algorithm(),
             expire_days=environment.jwt_expire_days(),
         )
-        environment_mysql = EntityEnvironmentMysql(
-            host=environment.mysql_host(),
-            port=environment.mysql_port(),
-            user=environment.mysql_user(),
-            password=environment.mysql_password(),
-            database=environment.mysql_database(),
+        environment_postgresql = EntityEnvironmentPostgreSQL(
+            host=environment.postgresql_host(),
+            port=environment.postgresql_port(),
+            user=environment.postgresql_user(),
+            password=environment.postgresql_password(),
+            database=environment.postgresql_database(),
         )
         environment_storage = EntityEnvironmentStorage(
             path=environment.storage_path(),
@@ -91,19 +90,19 @@ class ServerApp:
             login_camera_client=PresentationLoginCameraClient(
                 application=ApplicationLoginCameraClient.create(
                     environment_jwt=environment_jwt,
-                    environment_mysql=environment_mysql,
+                    environment_postgresql=environment_postgresql,
                 )
             ),
             camera_clients_create=PresentationCameraClientsCreate(
                 application=ApplicationCameraClientsCreate.create(
                     environment_jwt=environment_jwt,
-                    environment_mysql=environment_mysql,
+                    environment_postgresql=environment_postgresql,
                 )
             ),
             identify_person=PresentationIdentifyPerson(
                 application=ApplicationIdentifyPerson.create(
                     environment_jwt=environment_jwt,
-                    environment_mysql=environment_mysql,
+                    environment_postgresql=environment_postgresql,
                     environment_storage=environment_storage,
                 )
             ),

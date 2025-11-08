@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: dockerfile
+      dockerfile: dockerfile/app/Dockerfile
     deploy:
       resources:
         reservations:
@@ -18,19 +18,20 @@ services:
       - ./resources:/app/resources:rw
       - ./volumes/app/storage:/app/storage:rw
       - ./volumes/app/storage/chroma:/app/storage/chroma:rw
-      - ./src/database/mysql/versions:/app/src/database/mysql/versions:rw
 
-  mysql:
-    image: mysql:8.0
+  postgresql:
+    build:
+      context: .
+      dockerfile: dockerfiles/postgresql/Dockerfile
     ports:
-      - ${MYSQL_PORT}:${MYSQL_PORT}
+      - ${POSTGRESQL_PORT}:${POSTGRESQL_PORT}
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      - POSTGRESQL_ROOT_PASSWORD=${POSTGRESQL_ROOT_PASSWORD}
+      - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
+      - POSTGRESQL_USER=${POSTGRESQL_USER}
+      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
     volumes:
-      - ./volumes/mysql:/var/lib/mysql
+      - ./volumes/postgresql:/var/lib/postgresql/data
     networks:
       - app_network
 

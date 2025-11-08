@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 @dataclass
-class EntityEnvironmentMysql:
+class EntityEnvironmentPostgreSQL:
     host: str
     port: str
     user: str

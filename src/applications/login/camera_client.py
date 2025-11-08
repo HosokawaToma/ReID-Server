@@ -1,14 +1,14 @@
 from entities.camera_client import EntityCameraClient
-from modules.database.mysql.camera_clients import ModuleDatabaseMySQLCameraClients
+from modules.database.postgresql.camera_clients import ModuleDatabasePostgreSQLCameraClients
 from modules.authenticator.camera_client import ModuleAuthenticatorCameraClient
-from database.mysql import DatabaseMySQL
+from database.postgresql import DatabasePostgreSQL
 from entities.environment.jwt import EntityEnvironmentJwt
-from entities.environment.mysql import EntityEnvironmentMysql
+from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 
 class ApplicationLoginCameraClient:
     def __init__(
         self,
-        database_camera_clients: ModuleDatabaseMySQLCameraClients,
+        database_camera_clients: ModuleDatabasePostgreSQLCameraClients,
         authenticator_camera_client: ModuleAuthenticatorCameraClient,
         ):
         self.database_camera_clients = database_camera_clients
@@ -18,15 +18,15 @@ class ApplicationLoginCameraClient:
     def create(
         cls,
         environment_jwt: EntityEnvironmentJwt,
-        environment_mysql: EntityEnvironmentMysql,
+        environment_postgresql: EntityEnvironmentPostgreSQL,
     ) -> "ApplicationLoginCameraClient":
         return cls(
-            database_camera_clients=ModuleDatabaseMySQLCameraClients(DatabaseMySQL(
-                host=environment_mysql.host,
-                port=environment_mysql.port,
-                user=environment_mysql.user,
-                password=environment_mysql.password,
-                database=environment_mysql.database,
+            database_camera_clients=ModuleDatabasePostgreSQLCameraClients(DatabasePostgreSQL(
+                host=environment_postgresql.host,
+                port=environment_postgresql.port,
+                user=environment_postgresql.user,
+                password=environment_postgresql.password,
+                database=environment_postgresql.database,
             )),
             authenticator_camera_client=ModuleAuthenticatorCameraClient(
                 secret_key=environment_jwt.secret_key,

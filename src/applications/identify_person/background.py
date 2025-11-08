@@ -4,7 +4,7 @@ from typing import Optional
 from entities.image import EntityImage
 from modules.reid.model import ModuleReIDModel
 from modules.storage.image import ModuleStorageImage
-from modules.database.chroma.person_feature import ModuleDatabaseChromaPersonFeature
+from modules.database.postgresql.person_features import ModuleDatabasePostgreSQLPersonFeatures
 from entities.person_feature import EntityPersonFeature
 from modules.yolo.segmentation import ModuleYoloSegmentation
 from modules.yolo.segmentation.verification import ModuleYoloSegmentationVerification
@@ -21,7 +21,7 @@ class ApplicationIdentifyPersonBackgroundProcess:
         yolo_pose: ModuleYoloPose,
         yolo_pose_verification: ModuleYoloPoseVerification,
         storage_image: ModuleStorageImage,
-        database_person_feature: ModuleDatabaseChromaPersonFeature,
+        database_person_features: ModuleDatabasePostgreSQLPersonFeatures,
         logger: ModuleLogger,
     ):
         self.reid_model = reid_model
@@ -30,7 +30,7 @@ class ApplicationIdentifyPersonBackgroundProcess:
         self.yolo_pose = yolo_pose
         self.yolo_pose_verification = yolo_pose_verification
         self.storage_image = storage_image
-        self.database_person_feature = database_person_feature
+        self.database_person_features = database_person_features
         self.queue = Queue[EntityImage]()
         self.task: Optional[asyncio.Task[None]] = None
         self.logger = logger
@@ -74,7 +74,7 @@ class ApplicationIdentifyPersonBackgroundProcess:
         if not self.yolo_pose_verification.verify(keypoints):
             return
         query_feature = self.reid_model.extract_feature(image.image, image.camera_id, image.view_id)
-        self.database_person_feature.insert(
+        self.database_person_features.insert(
             EntityPersonFeature(
                 feature=query_feature,
                 camera_id=image.camera_id,

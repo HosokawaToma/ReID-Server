@@ -44,55 +44,34 @@ class Environment:
         except ValueError:
             raise ValueError("JWT_EXPIRE_DAYS is not a valid integer")
 
-    def mysql_host(self) -> str:
-        value = os.getenv("MYSQL_HOST")
+    def postgresql_host(self) -> str:
+        value = os.getenv("POSTGRESQL_HOST")
         if value is None:
-            raise ValueError("MYSQL_HOST is not set")
+            raise ValueError("POSTGRESQL_HOST is not set")
         return value
 
-    def mysql_port(self) -> str:
-        value = os.getenv("MYSQL_PORT")
+    def postgresql_port(self) -> str:
+        value = os.getenv("POSTGRESQL_PORT")
         if value is None:
-            raise ValueError("MYSQL_PORT is not set")
+            raise ValueError("POSTGRESQL_PORT is not set")
         return value
 
-    def mysql_database(self) -> str:
-        value = os.getenv("MYSQL_DATABASE")
+    def postgresql_database(self) -> str:
+        value = os.getenv("POSTGRESQL_DATABASE")
         if value is None:
-            raise ValueError("MYSQL_DATABASE is not set")
+            raise ValueError("POSTGRESQL_DATABASE is not set")
         return value
 
-    def mysql_user(self) -> str:
-        value = os.getenv("MYSQL_USER")
+    def postgresql_user(self) -> str:
+        value = os.getenv("POSTGRESQL_USER")
         if value is None:
-            raise ValueError("MYSQL_USER is not set")
+            raise ValueError("POSTGRESQL_USER is not set")
         return value
 
-    def mysql_password(self) -> str:
-        value = os.getenv("MYSQL_PASSWORD")
+    def postgresql_password(self) -> str:
+        value = os.getenv("POSTGRESQL_PASSWORD")
         if value is None:
-            raise ValueError("MYSQL_PASSWORD is not set")
-        return value
-
-    def chroma_host(self) -> str:
-        value = os.getenv("CHROMA_HOST")
-        if value is None:
-            raise ValueError("CHROMA_HOST is not set")
-        return value
-
-    def chroma_port(self) -> int:
-        value = os.getenv("CHROMA_PORT")
-        if value is None:
-            raise ValueError("CHROMA_PORT is not set")
-        try:
-            return int(value)
-        except ValueError:
-            raise ValueError("CHROMA_PORT is not a valid integer")
-
-    def chroma_secret_token(self) -> str:
-        value = os.getenv("CHROMA_SECRET_TOKEN")
-        if value is None:
-            raise ValueError("CHROMA_SECRET_TOKEN is not set")
+            raise ValueError("POSTGRESQL_PASSWORD is not set")
         return value
 
     def storage_path(self) -> str:

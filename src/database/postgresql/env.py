@@ -7,7 +7,7 @@ from sqlalchemy import pool
 from alembic import context
 
 # root から読み込まれることを想定しているためここだけ src から始める
-from src.database.mysql.models import ALEMBIC_MODELS
+from src.database.postgresql.models import ALEMBIC_MODELS
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -32,22 +32,22 @@ target_metadata = ALEMBIC_MODELS
 
 def get_database_url() -> str:
     """環境変数からデータベースURLを動的に構築する"""
-    host = os.getenv("MYSQL_HOST")
-    port = os.getenv("MYSQL_PORT")
-    user = os.getenv("MYSQL_USER")
-    password = os.getenv("MYSQL_PASSWORD")
-    database = os.getenv("MYSQL_DATABASE")
+    host = os.getenv("POSTGRESQL_HOST")
+    port = os.getenv("POSTGRESQL_PORT")
+    user = os.getenv("POSTGRESQL_USER")
+    password = os.getenv("POSTGRESQL_PASSWORD")
+    database = os.getenv("POSTGRESQL_DATABASE")
 
     if not all([host, port, user, password, database]):
         raise ValueError(
             "以下の環境変数が設定されていません: "
-            "MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE"
+            "POSTGRESQL_HOST, POSTGRESQL_PORT, POSTGRESQL_USER, POSTGRESQL_PASSWORD, POSTGRESQL_DATABASE"
         )
 
     # alembic.iniのsqlalchemy.urlが優先されるが、設定されていない場合は環境変数から構築
     url = config.get_main_option("sqlalchemy.url")
-    if url is None or url == "mysql+pymysql://user:pass@localhost/dbname":
-        url = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
+    if url is None or url == "postgresql+psycopg://user:pass@localhost/dbname":
+        url = f"postgresql+psycopg://{user}:{password}@{host}:{port}/{database}"
 
     return url
 

@@ -6,14 +6,13 @@ from applications.identify_person.background import ApplicationIdentifyPersonBac
 from modules.authenticator.camera_client import ModuleAuthenticatorCameraClient
 from modules.datetime import ModuleDatetime
 from modules.image import ModuleImage
-from modules.database.mysql.camera_clients import ModuleDatabaseMySQLCameraClients
+from modules.database.postgresql.camera_clients import ModuleDatabasePostgreSQLCameraClients
 from modules.reid.model import ModuleReIDModel
 from modules.storage.image import ModuleStorageImage
-from modules.database.chroma.person_feature import ModuleDatabaseChromaPersonFeature
-from database.chroma import DatabaseChroma
-from database.mysql import DatabaseMySQL
+from modules.database.postgresql.person_features import ModuleDatabasePostgreSQLPersonFeatures
+from database.postgresql import DatabasePostgreSQL
 from entities.environment.jwt import EntityEnvironmentJwt
-from entities.environment.mysql import EntityEnvironmentMysql
+from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
 from modules.yolo.segmentation import ModuleYoloSegmentation
 from modules.yolo.segmentation.verification import ModuleYoloSegmentationVerification
@@ -25,7 +24,7 @@ class ApplicationIdentifyPerson:
     def __init__(
         self,
         authenticator_camera_client: ModuleAuthenticatorCameraClient,
-        database_camera_clients: ModuleDatabaseMySQLCameraClients,
+        database_camera_clients: ModuleDatabasePostgreSQLCameraClients,
         datetime_module: ModuleDatetime,
         image_module: ModuleImage,
         background_process: ApplicationIdentifyPersonBackgroundProcess
@@ -40,7 +39,7 @@ class ApplicationIdentifyPerson:
     def create(
         cls,
         environment_jwt: EntityEnvironmentJwt,
-        environment_mysql: EntityEnvironmentMysql,
+        environment_postgresql: EntityEnvironmentPostgreSQL,
         environment_storage: EntityEnvironmentStorage,
         ) -> "ApplicationIdentifyPerson":
         return cls(
@@ -49,12 +48,12 @@ class ApplicationIdentifyPerson:
                 algorithm=environment_jwt.algorithm,
                 expire_days=environment_jwt.expire_days,
             ),
-            database_camera_clients=ModuleDatabaseMySQLCameraClients(DatabaseMySQL(
-                host=environment_mysql.host,
-                port=environment_mysql.port,
-                user=environment_mysql.user,
-                password=environment_mysql.password,
-                database=environment_mysql.database,
+            database_camera_clients=ModuleDatabasePostgreSQLCameraClients(DatabasePostgreSQL(
+                host=environment_postgresql.host,
+                port=environment_postgresql.port,
+                user=environment_postgresql.user,
+                password=environment_postgresql.password,
+                database=environment_postgresql.database,
             )),
             datetime_module=ModuleDatetime(),
             image_module=ModuleImage(),
@@ -65,7 +64,13 @@ class ApplicationIdentifyPerson:
                 yolo_pose=ModuleYoloPose(),
                 yolo_pose_verification=ModuleYoloPoseVerification(),
                 storage_image=ModuleStorageImage(storage_path=environment_storage.path),
-                database_person_feature=ModuleDatabaseChromaPersonFeature(DatabaseChroma()),
+                database_person_features=ModuleDatabasePostgreSQLPersonFeatures(DatabasePostgreSQL(
+                    host=environment_postgresql.host,
+                    port=environment_postgresql.port,
+                    user=environment_postgresql.user,
+                    password=environment_postgresql.password,
+                    database=environment_postgresql.database,
+                )),
                 logger=ModuleLogger(environment_storage=environment_storage)
                 )
             )

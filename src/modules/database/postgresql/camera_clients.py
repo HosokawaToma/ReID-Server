@@ -1,9 +1,9 @@
-from database.mysql import DatabaseMySQL
-from database.mysql.models.camera_client import DatabaseMySQLModelCameraClient
+from database.postgresql import DatabasePostgreSQL
+from database.postgresql.models.camera_client import DatabasePostgreSQLModelCameraClient
 from entities.camera_client import EntityCameraClient
 
-class ModuleDatabaseMySQLCameraClients:
-    def __init__(self, database: DatabaseMySQL):
+class ModuleDatabasePostgreSQLCameraClients:
+    def __init__(self, database: DatabasePostgreSQL):
         self.database = database
 
     def insert(self, camera_client: EntityCameraClient) -> None:
@@ -13,8 +13,8 @@ class ModuleDatabaseMySQLCameraClients:
     def select_by_id(self, camera_client_id: str) -> EntityCameraClient:
         with self.database as db_session:
             client_model = db_session \
-                .query(DatabaseMySQLModelCameraClient) \
-                .filter(DatabaseMySQLModelCameraClient.id == camera_client_id) \
+                .query(DatabasePostgreSQLModelCameraClient) \
+                .filter(DatabasePostgreSQLModelCameraClient.id == camera_client_id) \
                 .first()
             if client_model is None:
                 raise Exception("Client not found in database")
@@ -29,6 +29,6 @@ class ModuleDatabaseMySQLCameraClients:
     def update_by_id(self, camera_client: EntityCameraClient) -> None:
         with self.database as db_session:
             db_session \
-            .query(DatabaseMySQLModelCameraClient) \
-            .filter(DatabaseMySQLModelCameraClient.id == camera_client.id) \
-            .update({DatabaseMySQLModelCameraClient.hashed_password: camera_client.hashed_password})
+            .query(DatabasePostgreSQLModelCameraClient) \
+            .filter(DatabasePostgreSQLModelCameraClient.id == camera_client.id) \
+            .update({DatabasePostgreSQLModelCameraClient.hashed_password: camera_client.hashed_password})
