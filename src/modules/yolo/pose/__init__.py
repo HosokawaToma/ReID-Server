@@ -19,5 +19,5 @@ class ModuleYoloPose:
         confs = result.keypoints.conf
         if confs is None:
             return None
-        confs = confs.tolist()
+        confs = confs.squeeze().tolist()
         return EntityYoloKeypoints(keypoints=xys, confidences=confs)

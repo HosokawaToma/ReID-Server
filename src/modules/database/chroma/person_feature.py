@@ -15,7 +15,7 @@ class ModuleDatabaseChromaPersonFeature:
 
     def insert(self, person_feature: EntityPersonFeature) -> None:
         self.database_chroma(self.NAME).add(
-            embeddings=[person_feature.feature.tolist()],
+            embeddings=person_feature.feature.tolist(),
             metadatas=[
                 {
                     self.CAMERA_ID_KEY_OF_METADATA: person_feature.camera_id,
