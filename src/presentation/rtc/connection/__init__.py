@@ -21,7 +21,7 @@ class PresentationRtcConnection:
 
     async def endpoint(self, authorization: Annotated[str, Header()], request: PresentationRtcConnectionRequest):
         try:
-            _, token = self.application_auth.parse(authorization)
+            token = self.application_auth.parse(authorization)
             camera_client = self.application_auth.verify(token)
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=401)

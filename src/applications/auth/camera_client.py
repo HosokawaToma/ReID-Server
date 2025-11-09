@@ -34,7 +34,7 @@ class ApplicationAuthCameraClient:
             raise Exception("Invalid id or password")
         return request_camera_client
 
-    def parse(self, authorization: str) -> tuple[str, str]:
+    def parse(self, authorization: str) -> str:
         return self.parser(authorization)
 
     def verify(self, token: str) -> EntityJWTCameraClient:

@@ -1,6 +1,6 @@
 class ModuleAuthParse:
     HEADER_TYPE_KEY_OF_AUTHORIZATION = "Bearer"
-    def __call__(self, authorization: str) -> tuple[str, str]:
+    def __call__(self, authorization: str) -> str:
         header_type, token = authorization.split(" ")
         if not header_type:
             raise Exception("Invalid authorization header type")
@@ -8,4 +8,4 @@ class ModuleAuthParse:
             raise Exception("Invalid authorization header type")
         if not token:
             raise Exception("Invalid authorization token")
-        return header_type, token
+        return token

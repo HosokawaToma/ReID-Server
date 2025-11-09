@@ -19,7 +19,7 @@ class PresentationRtcIceServer:
 
     async def endpoint(self, authorization: Annotated[str, Header()]):
         try:
-            _, token = self.application_auth.parse(authorization)
+            token = self.application_auth.parse(authorization)
             jwt_camera_client = self.application_auth.verify(token)
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=401)

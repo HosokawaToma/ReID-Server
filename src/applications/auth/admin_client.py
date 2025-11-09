@@ -24,7 +24,7 @@ class ApplicationAuthAdminClient:
             raise Exception("Invalid id or password")
         return EntityAdminClient(id=id, password=password)
 
-    def parse(self, authorization: str) -> tuple[str, str]:
+    def parse(self, authorization: str) -> str:
         return self.parser(authorization)
 
     def verify(self, token: str) -> EntityJWTAdminClient:
