@@ -7,6 +7,7 @@ class ModuleAuthVerifyCameraClient:
     CAMERA_ID_KEY_OF_PAYLOAD = "camera_id"
     VIEW_ID_KEY_OF_PAYLOAD = "view_id"
     EXPIRE_TIME_KEY_OF_PAYLOAD = "exp"
+    MINUTES_TO_SECONDS = 60
 
     def __init__(self, secret_key: str, algorithm: str, expire_minutes: int):
         self.secret_key = secret_key
@@ -46,6 +47,6 @@ class ModuleAuthVerifyCameraClient:
             expire_time = int(expire_time)
         except Exception:
             raise Exception("Invalid token")
-        if expire_time > time.time() + self.expire_minutes * 60:
+        if expire_time > time.time() + self.expire_minutes * self.MINUTES_TO_SECONDS:
             raise Exception("Token expired")
         return EntityJWTCameraClient(camera_client_id, camera_id, view_id)
