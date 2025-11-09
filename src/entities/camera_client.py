@@ -16,9 +16,6 @@ class EntityCameraClient:
                 raise Exception("Password is required")
             self.hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
-    def password_hashed(self, password: str) -> str:
-        return hashlib.sha256(password.encode()).hexdigest()
-
     def to_database_model(self):
         return DatabaseModelCameraClient(
             id=self.id,
