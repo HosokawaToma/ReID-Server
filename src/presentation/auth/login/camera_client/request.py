@@ -1,5 +1,5 @@
 from pydantic import BaseModel
 
-class PresentationLoginCameraClientRequest(BaseModel):
+class PresentationAuthLoginCameraClientRequest(BaseModel):
     camera_client_id: str
     password: str

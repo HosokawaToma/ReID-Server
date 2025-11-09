@@ -2,12 +2,21 @@
 @token =
 
 ###
-POST {{host}}/login/admin_client HTTP/1.1
+POST {{host}}/auth/login/admin_client HTTP/1.1
 Content-Type: application/json
 
 {
     "admin_client_id": "admin",
     "password": "password"
+}
+
+###
+POST {{host}}/auth/login/camera_client HTTP/1.1
+Content-Type: application/json
+
+{
+    "camera_client_id": "camera1",
+    "password": "camera1"
 }
 
 ###

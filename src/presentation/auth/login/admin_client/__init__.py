@@ -1,21 +1,21 @@
 import fastapi
 from fastapi.responses import JSONResponse
-from applications.login.admin_client import ApplicationLoginAdminClient
-from presentation.login.admin_client.request import PresentationLoginAdminClientRequest
+from applications.auth.login.admin_client import ApplicationAuthLoginAdminClient
+from presentation.auth.login.admin_client.request import PresentationAuthLoginAdminClientRequest
 
 
-class PresentationLoginAdminClient():
+class PresentationAuthLoginAdminClient():
     def __init__(
         self,
-        application: ApplicationLoginAdminClient
+        application: ApplicationAuthLoginAdminClient
     ):
         self.application = application
 
     def setup(self, app: fastapi.FastAPI):
-        app.add_api_route("/login/admin_client",
+        app.add_api_route("/auth/login/admin_client",
                           self.endpoint, methods=["POST"])
 
-    def endpoint(self, request: PresentationLoginAdminClientRequest):
+    def endpoint(self, request: PresentationAuthLoginAdminClientRequest):
         try:
             return self.application.login(request.admin_client_id, request.password)
         except Exception as e:

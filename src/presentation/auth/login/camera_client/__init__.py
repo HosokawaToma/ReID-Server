@@ -1,20 +1,20 @@
 import fastapi
 from fastapi.responses import JSONResponse
-from applications.login.camera_client import ApplicationLoginCameraClient
-from presentation.login.camera_client.request import PresentationLoginCameraClientRequest
+from applications.auth.login.camera_client import ApplicationAuthLoginCameraClient
+from presentation.auth.login.camera_client.request import PresentationAuthLoginCameraClientRequest
 
 
-class PresentationLoginCameraClient():
+class PresentationAuthLoginCameraClient():
     def __init__(
         self,
-        application: ApplicationLoginCameraClient
+        application: ApplicationAuthLoginCameraClient
         ):
         self.application = application
 
     def setup(self, app: fastapi.FastAPI):
-        app.add_api_route("/login/camera_client", self.endpoint, methods=["POST"])
+        app.add_api_route("/auth/login/camera_client", self.endpoint, methods=["POST"])
 
-    def endpoint(self, request: PresentationLoginCameraClientRequest):
+    def endpoint(self, request: PresentationAuthLoginCameraClientRequest):
         try:
             token = self.application.login(request.camera_client_id, request.password)
             return JSONResponse(content={"token": token}, status_code=200)

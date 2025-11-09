@@ -3,7 +3,7 @@ from entities.environment.jwt import EntityEnvironmentJwt
 from entities.admin_client import EntityAdminClient
 from entities.environment.admin_client import EntityEnvironmentAdminClient
 
-class ApplicationLoginAdminClient:
+class ApplicationAuthLoginAdminClient:
     def __init__(self, authenticator: ModuleAuthenticatorAdminClient, admin_client: EntityAdminClient):
         self.authenticator = authenticator
         self.admin_client = admin_client
@@ -13,7 +13,7 @@ class ApplicationLoginAdminClient:
         cls,
         environment_jwt: EntityEnvironmentJwt,
         environment_admin_client: EntityEnvironmentAdminClient,
-    ) -> "ApplicationLoginAdminClient":
+    ) -> "ApplicationAuthLoginAdminClient":
         return cls(
             authenticator=ModuleAuthenticatorAdminClient(
                 secret_key=environment_jwt.secret_key,
