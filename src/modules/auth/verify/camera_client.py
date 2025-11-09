@@ -28,20 +28,24 @@ class ModuleAuthVerifyCameraClient:
         expire_time = payload.get(self.EXPIRE_TIME_KEY_OF_PAYLOAD)
         if not camera_client_id:
             raise Exception("Invalid token")
-        if not isinstance(camera_client_id, str):
-            raise Exception("Invalid token")
         if not camera_id:
             raise Exception("Invalid token")
-        if not isinstance(camera_id, int):
+        try:
+            camera_id = int(camera_id)
+        except Exception:
             raise Exception("Invalid token")
         if not view_id:
             raise Exception("Invalid token")
-        if not isinstance(view_id, int):
+        try:
+            view_id = int(view_id)
+        except Exception:
             raise Exception("Invalid token")
         if not expire_time:
             raise Exception("Invalid token")
-        if not isinstance(expire_time, int):
+        try:
+            expire_time = int(expire_time)
+        except Exception:
             raise Exception("Invalid token")
-        if expire_time < time.time() + self.expire_minutes * 60:
+        if expire_time > time.time() + self.expire_minutes * 60:
             raise Exception("Token expired")
         return EntityJWTCameraClient(camera_client_id, camera_id, view_id)
