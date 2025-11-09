@@ -1,4 +1,4 @@
-@host = https://123.456.789.0
+@host = https://123.456.789.0/api/v1
 @token =
 
 ###
