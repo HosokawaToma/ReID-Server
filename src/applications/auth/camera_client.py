@@ -1,5 +1,5 @@
 from modules.auth.verify.camera_client import ModuleAuthVerifyCameraClient
-from modules.auth.parse import ModuleAuthParse
+from modules.auth.parse_bearer import ModuleAuthParseBearer
 from modules.auth.generate_token.camera_client import ModuleAuthGenerateTokenCameraClient
 from entities.jwt.camera_client import EntityJWTCameraClient
 from entities.camera_client import EntityCameraClient
@@ -12,7 +12,7 @@ class ApplicationAuthCameraClient:
     def __init__(
         self,
         database_camera_clients: ModuleDatabaseCameraClients,
-        parser: ModuleAuthParse,
+        parser: ModuleAuthParseBearer,
         verifier: ModuleAuthVerifyCameraClient,
         generator: ModuleAuthGenerateTokenCameraClient,
     ):
@@ -59,7 +59,7 @@ class ApplicationAuthCameraClient:
                     password=environment_postgresql.password,
                 ),
             ),
-            parser=ModuleAuthParse(),
+            parser=ModuleAuthParseBearer(),
             verifier=ModuleAuthVerifyCameraClient(
                 secret_key=environment_jwt.secret_key,
                 algorithm=environment_jwt.algorithm,

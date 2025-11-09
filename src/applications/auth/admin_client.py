@@ -1,4 +1,4 @@
-from modules.auth.parse import ModuleAuthParse
+from modules.auth.parse_bearer import ModuleAuthParseBearer
 from modules.auth.verify.admin_client import ModuleAuthVerifyAdminClient
 from modules.auth.generate_token.admin_client import ModuleAuthGenerateTokenAdminClient
 from entities.jwt.admin_client import EntityJWTAdminClient
@@ -10,7 +10,7 @@ class ApplicationAuthAdminClient:
     def __init__(
         self,
         environment_admin_client: EntityEnvironmentAdminClient,
-        parser: ModuleAuthParse,
+        parser: ModuleAuthParseBearer,
         verifier: ModuleAuthVerifyAdminClient,
         generator: ModuleAuthGenerateTokenAdminClient,
     ):
@@ -41,7 +41,7 @@ class ApplicationAuthAdminClient:
     ) -> "ApplicationAuthAdminClient":
         return cls(
             environment_admin_client=environment_admin_client,
-            parser=ModuleAuthParse(),
+            parser=ModuleAuthParseBearer(),
             verifier=ModuleAuthVerifyAdminClient(
                 secret_key=environment_jwt.secret_key,
                 algorithm=environment_jwt.algorithm,

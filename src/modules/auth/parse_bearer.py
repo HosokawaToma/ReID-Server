@@ -1,4 +1,4 @@
-class ModuleAuthParse:
+class ModuleAuthParseBearer:
     HEADER_TYPE_KEY_OF_AUTHORIZATION = "Bearer"
     def __call__(self, authorization: str) -> str:
         header_type, token = authorization.split(" ")
