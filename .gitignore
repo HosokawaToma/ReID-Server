@@ -7,3 +7,4 @@ results/
 volumes/
 docker-compose.override.yaml
 .http
+nginx.conf.template
