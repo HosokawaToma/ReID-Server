@@ -132,29 +132,41 @@ class ServerApp:
                 )
             ),
             camera_clients_create=PresentationCameraClientsCreate(
-                application=ApplicationCameraClientsCreate.create(
+                application_auth=ApplicationAuthAdminClient.create(
                     environment_jwt=environment_jwt,
+                    environment_admin_client=environment_admin_client,
+                ),
+                application=ApplicationCameraClientsCreate.create(
                     environment_postgresql=environment_postgresql,
                 )
             ),
             identify_person=PresentationIdentifyPerson(
-                application=ApplicationIdentifyPerson.create(
+                application_auth=ApplicationAuthCameraClient.create(
                     environment_jwt=environment_jwt,
+                    environment_postgresql=environment_postgresql,
+                ),
+                application=ApplicationIdentifyPerson.create(
                     environment_postgresql=environment_postgresql,
                     environment_storage=environment_storage,
                 )
             ),
             rtc_connection=PresentationRtcConnection(
-                application=ApplicationRtcConnection.create(
+                application_auth=ApplicationAuthCameraClient.create(
                     environment_jwt=environment_jwt,
+                    environment_postgresql=environment_postgresql,
+                ),
+                application=ApplicationRtcConnection.create(
                     environment_coturn=environment_coturn,
                     environment_storage=environment_storage,
                 )
             ),
             rtc_ice_server=PresentationRtcIceServer(
+                application_auth=ApplicationAuthCameraClient.create(
+                    environment_jwt=environment_jwt,
+                    environment_postgresql=environment_postgresql,
+                ),
                 application=ApplicationRtcIceServer.create(
                     environment_coturn=environment_coturn,
-                    environment_jwt=environment_jwt,
                 )
             ),
         )

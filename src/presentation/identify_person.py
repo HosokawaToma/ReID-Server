@@ -4,12 +4,15 @@ from fastapi import UploadFile, Form, Header
 from applications.identify_person import ApplicationIdentifyPerson
 from entities.image import EntityImage
 from fastapi.responses import JSONResponse
+from applications.auth.camera_client import ApplicationAuthCameraClient
 
 class PresentationIdentifyPerson:
     def __init__(
         self,
+        application_auth: ApplicationAuthCameraClient,
         application: ApplicationIdentifyPerson
         ):
+        self.application_auth = application_auth
         self.application = application
 
     def setup(self, app: fastapi.FastAPI):
@@ -24,7 +27,7 @@ class PresentationIdentifyPerson:
         timestamp: str = Form(...),
     ):
         try:
-            camera_client = self.application.authenticate(authorization)
+            camera_client = self.application_auth.verify(authorization)
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=401)
         try:

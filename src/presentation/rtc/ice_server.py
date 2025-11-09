@@ -3,9 +3,15 @@ from typing import Annotated
 from fastapi import Header
 from fastapi.responses import JSONResponse
 from applications.rtc.ice_server import ApplicationRtcIceServer
+from applications.auth.camera_client import ApplicationAuthCameraClient
 
 class PresentationRtcIceServer:
-    def __init__(self, application: ApplicationRtcIceServer):
+    def __init__(
+        self,
+        application_auth: ApplicationAuthCameraClient,
+        application: ApplicationRtcIceServer,
+    ):
+        self.application_auth = application_auth
         self.application = application
 
     def setup(self, app: fastapi.FastAPI):
@@ -13,12 +19,12 @@ class PresentationRtcIceServer:
 
     async def endpoint(self, authorization: Annotated[str, Header()]):
         try:
-            jwt_camera_client = self.application.authenticate(authorization)
+            jwt_camera_client = self.application_auth.verify(authorization)
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=401)
         try:
             return JSONResponse(
-                content=self.application.generate(jwt_camera_client.camera_client_id).to_dict(),
+                content=self.application.generate(jwt_camera_client.id).to_dict(),
                 status_code=200,
             )
         except Exception as e:

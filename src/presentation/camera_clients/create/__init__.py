@@ -5,12 +5,15 @@ from fastapi.responses import JSONResponse
 from applications.camera_clients.create import ApplicationCameraClientsCreate
 from presentation.camera_clients.create.request import PresentationCameraClientsCreateRequest
 from entities.camera_client import EntityCameraClient
+from applications.auth.admin_client import ApplicationAuthAdminClient
 
 class PresentationCameraClientsCreate():
     def __init__(
         self,
+        application_auth: ApplicationAuthAdminClient,
         application: ApplicationCameraClientsCreate
     ):
+        self.application_auth = application_auth
         self.application = application
 
     def setup(self, app: fastapi.FastAPI):
@@ -22,7 +25,7 @@ class PresentationCameraClientsCreate():
         request: PresentationCameraClientsCreateRequest
         ):
         try:
-            self.application.authenticate(authorization)
+            self.application_auth.verify(authorization)
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=401)
         try:

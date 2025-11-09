@@ -5,9 +5,15 @@ from fastapi.responses import JSONResponse
 from applications.rtc.connection import ApplicationRtcConnection
 from presentation.rtc.connection.request import PresentationRtcConnectionRequest
 from entities.rtc.sdp import EntityRtcSdp
+from applications.auth.camera_client import ApplicationAuthCameraClient
 
 class PresentationRtcConnection:
-    def __init__(self, application: ApplicationRtcConnection):
+    def __init__(
+        self,
+        application_auth: ApplicationAuthCameraClient,
+        application: ApplicationRtcConnection,
+    ):
+        self.application_auth = application_auth
         self.application = application
 
     def setup(self, app: fastapi.FastAPI):
@@ -15,7 +21,7 @@ class PresentationRtcConnection:
 
     async def endpoint(self, authorization: Annotated[str, Header()], request: PresentationRtcConnectionRequest):
         try:
-            camera_client = self.application.authenticate(authorization)
+            camera_client = self.application_auth.verify(authorization)
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=401)
         try:
