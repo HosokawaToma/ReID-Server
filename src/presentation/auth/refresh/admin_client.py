@@ -1,7 +1,6 @@
 import fastapi
 from applications.auth.admin_client import ApplicationAuthAdminClient
-from typing import Annotated
-from fastapi import Header
+from fastapi import Cookie
 from fastapi.responses import JSONResponse
 
 class PresentationAuthRefreshAdminClient:
@@ -17,9 +16,9 @@ class PresentationAuthRefreshAdminClient:
     def setup(self, app: fastapi.FastAPI):
         app.add_api_route("/auth/refresh/admin_client", self.endpoint, methods=["POST"])
 
-    def endpoint(self, authorization: Annotated[str, Header()]):
+    def endpoint(self, refresh_token: str = Cookie(...)):
         try:
-            admin_client = self.application_token.verify(authorization)
+            admin_client = self.application_token.verify(refresh_token)
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=401)
         try:

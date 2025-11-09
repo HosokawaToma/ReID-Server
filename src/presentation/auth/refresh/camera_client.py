@@ -1,7 +1,6 @@
 import fastapi
 from applications.auth.camera_client import ApplicationAuthCameraClient
-from typing import Annotated
-from fastapi import Header
+from fastapi import Cookie
 from fastapi.responses import JSONResponse
 
 
@@ -19,9 +18,9 @@ class PresentationAuthRefreshCameraClient:
         app.add_api_route("/auth/refresh/camera_client",
                           self.endpoint, methods=["POST"])
 
-    def endpoint(self, authorization: Annotated[str, Header()]):
+    def endpoint(self, refresh_token: str = Cookie(...)):
         try:
-            camera_client = self.application_token.verify(authorization)
+            camera_client = self.application_token.verify(refresh_token)
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=401)
         try:
