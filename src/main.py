@@ -3,14 +3,14 @@ import uvicorn
 
 from presentation.identify_person import PresentationIdentifyPerson
 from applications.identify_person import ApplicationIdentifyPerson
-from presentation.login.admin_client import PresentationLoginAdminClient
-from presentation.login.camera_client import PresentationLoginCameraClient
+from presentation.auth.login.admin_client import PresentationAuthLoginAdminClient
+from presentation.auth.login.camera_client import PresentationAuthLoginCameraClient
 from presentation.camera_clients.create import PresentationCameraClientsCreate
 from presentation.rtc.connection import PresentationRtcConnection
 from presentation.rtc.ice_server import PresentationRtcIceServer
 from applications.camera_clients.create import ApplicationCameraClientsCreate
-from applications.login.admin_client import ApplicationLoginAdminClient
-from applications.login.camera_client import ApplicationLoginCameraClient
+from applications.auth.login.admin_client import ApplicationAuthLoginAdminClient
+from applications.auth.login.camera_client import ApplicationAuthLoginCameraClient
 from applications.rtc.connection import ApplicationRtcConnection
 from applications.rtc.ice_server import ApplicationRtcIceServer
 from environment import Environment
@@ -27,9 +27,9 @@ class ServerApp:
         host: str,
         port: int,
         fastapi_app: fastapi.FastAPI,
-        login_admin_client: PresentationLoginAdminClient,
+        login_admin_client: PresentationAuthLoginAdminClient,
         camera_clients_create: PresentationCameraClientsCreate,
-        login_camera_client: PresentationLoginCameraClient,
+        login_camera_client: PresentationAuthLoginCameraClient,
         identify_person: PresentationIdentifyPerson,
         rtc_connection: PresentationRtcConnection,
         rtc_ice_server: PresentationRtcIceServer,
@@ -80,14 +80,14 @@ class ServerApp:
             host=environment.host(),
             port=environment.port(),
             fastapi_app=fastapi.FastAPI(),
-            login_admin_client=PresentationLoginAdminClient(
-                application=ApplicationLoginAdminClient.create(
+            login_admin_client=PresentationAuthLoginAdminClient(
+                application=ApplicationAuthLoginAdminClient.create(
                     environment_jwt=environment_jwt,
                     environment_admin_client=environment_admin_client,
                 )
             ),
-            login_camera_client=PresentationLoginCameraClient(
-                application=ApplicationLoginCameraClient.create(
+            login_camera_client=PresentationAuthLoginCameraClient(
+                application=ApplicationAuthLoginCameraClient.create(
                     environment_jwt=environment_jwt,
                     environment_postgresql=environment_postgresql,
                 )

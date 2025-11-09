@@ -5,7 +5,7 @@ from database import Database
 from entities.environment.jwt import EntityEnvironmentJwt
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 
-class ApplicationLoginCameraClient:
+class ApplicationAuthLoginCameraClient:
     def __init__(
         self,
         database_camera_clients: ModuleDatabaseCameraClients,
@@ -19,7 +19,7 @@ class ApplicationLoginCameraClient:
         cls,
         environment_jwt: EntityEnvironmentJwt,
         environment_postgresql: EntityEnvironmentPostgreSQL,
-    ) -> "ApplicationLoginCameraClient":
+    ) -> "ApplicationAuthLoginCameraClient":
         return cls(
             database_camera_clients=ModuleDatabaseCameraClients(Database(
                 host=environment_postgresql.host,

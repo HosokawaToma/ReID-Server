@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
 
-class PresentationLoginAdminClientRequest(BaseModel):
+class PresentationAuthLoginAdminClientRequest(BaseModel):
     admin_client_id: str
     password: str
