@@ -14,11 +14,9 @@ from typing import List
 class ApplicationRtcConnection:
     def __init__(
         self,
-        authenticator: ModuleAuthenticatorCameraClient,
         configuration: RTCConfiguration,
         storage: EntityStorage,
     ):
-        self.authenticator = authenticator
         self.configuration = configuration
         self.storage = storage
         self.peer_connections: List[ApplicationRtcPeerConnection] = []
@@ -26,7 +24,6 @@ class ApplicationRtcConnection:
     @classmethod
     def create(
         cls,
-        environment_jwt: EntityEnvironmentJwt,
         environment_coturn: EntityEnvironmentCoturn,
         environment_storage: EntityEnvironmentStorage,
     ) -> "ApplicationRtcConnection":
@@ -37,11 +34,6 @@ class ApplicationRtcConnection:
             credential=environment_coturn.credential,
         )
         return cls(
-            authenticator=ModuleAuthenticatorCameraClient(
-                secret_key=environment_jwt.secret_key,
-                algorithm=environment_jwt.algorithm,
-                expire_days=environment_jwt.expire_days,
-            ),
             configuration=RTCConfiguration(
                 iceServers=[
                     RTCIceServer(
@@ -53,9 +45,6 @@ class ApplicationRtcConnection:
             ),
             storage=EntityStorage(path=environment_storage.path),
         )
-
-    def authenticate(self, authorization: str) -> EntityJWTCameraClient:
-        return self.authenticator.verify(authorization)
 
     async def connect(
         self,

@@ -23,13 +23,11 @@ from modules.logger import ModuleLogger
 class ApplicationIdentifyPerson:
     def __init__(
         self,
-        authenticator_camera_client: ModuleAuthenticatorCameraClient,
         database_camera_clients: ModuleDatabaseCameraClients,
         datetime_module: ModuleDatetime,
         image_module: ModuleImage,
         background_process: ApplicationIdentifyPersonBackgroundProcess
         ):
-        self.authenticator_camera_client = authenticator_camera_client
         self.database_camera_clients = database_camera_clients
         self.datetime_module = datetime_module
         self.image_module = image_module
@@ -38,16 +36,10 @@ class ApplicationIdentifyPerson:
     @classmethod
     def create(
         cls,
-        environment_jwt: EntityEnvironmentJwt,
         environment_postgresql: EntityEnvironmentPostgreSQL,
         environment_storage: EntityEnvironmentStorage,
         ) -> "ApplicationIdentifyPerson":
         return cls(
-            authenticator_camera_client=ModuleAuthenticatorCameraClient(
-                secret_key=environment_jwt.secret_key,
-                algorithm=environment_jwt.algorithm,
-                expire_days=environment_jwt.expire_days,
-            ),
             database_camera_clients=ModuleDatabaseCameraClients(Database(
                 host=environment_postgresql.host,
                 port=environment_postgresql.port,
@@ -80,9 +72,6 @@ class ApplicationIdentifyPerson:
 
     async def stop(self):
         await self.background_process.stop()
-
-    def authenticate(self, authorization: str) -> EntityJWTCameraClient:
-        return self.authenticator_camera_client.verify(authorization)
 
     def from_iso_format(self, iso_timestamp: str) -> datetime:
         return self.datetime_module.from_iso_format(iso_timestamp)

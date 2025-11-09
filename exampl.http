@@ -1,5 +1,6 @@
 @host = https://123.456.789.0/api/v1
-@token =
+@admin_token =
+@camera_token =
 
 ###
 POST {{host}}/auth/login/admin_client HTTP/1.1
@@ -20,9 +21,12 @@ Content-Type: application/json
 }
 
 ###
+POST {{host}}/auth/refresh/admin_client HTTP/1.1
+Authorization: Bearer {{admin_token}}
+
+###
 POST {{host}}/camera_clients/create HTTP/1.1
-Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{camera_token}}
 
 {
     "camera_client_id": "camera1",
