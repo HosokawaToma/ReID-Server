@@ -25,7 +25,8 @@ class PresentationCameraClientsCreate():
         request: PresentationCameraClientsCreateRequest
         ):
         try:
-            self.application_auth.verify(authorization)
+            _, token = self.application_auth.parse(authorization)
+            self.application_auth.verify(token)
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=401)
         try:

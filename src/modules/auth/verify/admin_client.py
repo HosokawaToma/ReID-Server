@@ -3,7 +3,6 @@ import jwt
 import time
 
 class ModuleAuthVerifyAdminClient:
-    HEADER_TYPE_KEY_OF_AUTHORIZATION = "Bearer"
     ADMIN_CLIENT_ID_KEY_OF_PAYLOAD = "admin_client_id"
     EXPIRE_TIME_KEY_OF_PAYLOAD = "exp"
 
@@ -12,15 +11,11 @@ class ModuleAuthVerifyAdminClient:
         self.algorithm = algorithm
         self.expire_minutes = expire_minutes
 
-    def __call__(self, authorization: str) -> EntityJWTAdminClient:
-        header_type, token = authorization.split(" ")
-        if not header_type:
-            raise Exception("Invalid authorization header type")
-        if header_type != self.HEADER_TYPE_KEY_OF_AUTHORIZATION:
-            raise Exception("Invalid authorization header type")
-        if not token:
+    def __call__(self, token: str) -> EntityJWTAdminClient:
+        try:
+            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+        except Exception:
             raise Exception("Invalid authorization token")
-        payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
         if not payload:
             raise Exception("Invalid authorization token")
         if not isinstance(payload, dict):

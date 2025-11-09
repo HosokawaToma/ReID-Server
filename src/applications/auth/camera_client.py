@@ -1,4 +1,5 @@
 from modules.auth.verify.camera_client import ModuleAuthVerifyCameraClient
+from modules.auth.parse import ModuleAuthParse
 from modules.auth.generate_token.camera_client import ModuleAuthGenerateTokenCameraClient
 from entities.jwt.camera_client import EntityJWTCameraClient
 from entities.camera_client import EntityCameraClient
@@ -11,10 +12,12 @@ class ApplicationAuthCameraClient:
     def __init__(
         self,
         database_camera_clients: ModuleDatabaseCameraClients,
+        parser: ModuleAuthParse,
         verifier: ModuleAuthVerifyCameraClient,
         generator: ModuleAuthGenerateTokenCameraClient,
     ):
         self.database_camera_clients = database_camera_clients
+        self.parser = parser
         self.verifier = verifier
         self.generator = generator
 
@@ -31,8 +34,11 @@ class ApplicationAuthCameraClient:
             raise Exception("Invalid id or password")
         return request_camera_client
 
-    def verify(self, authorization: str) -> EntityJWTCameraClient:
-        return self.verifier(authorization)
+    def parse(self, authorization: str) -> tuple[str, str]:
+        return self.parser(authorization)
+
+    def verify(self, token: str) -> EntityJWTCameraClient:
+        return self.verifier(token)
 
     def generate(self, id: str, camera_id: int, view_id: int) -> str:
         return self.generator(id, camera_id, view_id)
@@ -53,6 +59,7 @@ class ApplicationAuthCameraClient:
                     password=environment_postgresql.password,
                 ),
             ),
+            parser=ModuleAuthParse(),
             verifier=ModuleAuthVerifyCameraClient(
                 secret_key=environment_jwt.secret_key,
                 algorithm=environment_jwt.algorithm,

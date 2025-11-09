@@ -3,7 +3,6 @@ import jwt
 import time
 
 class ModuleAuthVerifyCameraClient:
-    HEADER_TYPE_KEY_OF_AUTHORIZATION = "Bearer"
     CAMERA_CLIENT_ID_KEY_OF_PAYLOAD = "camera_client_id"
     CAMERA_ID_KEY_OF_PAYLOAD = "camera_id"
     VIEW_ID_KEY_OF_PAYLOAD = "view_id"
@@ -14,16 +13,11 @@ class ModuleAuthVerifyCameraClient:
         self.algorithm = algorithm
         self.expire_minutes = expire_minutes
 
-    def __call__(self, authorization: str) -> EntityJWTCameraClient:
-        header_type, token = authorization.split(" ")
-        if not header_type:
-            raise Exception("Invalid authorization header type")
-        if header_type != self.HEADER_TYPE_KEY_OF_AUTHORIZATION:
-            raise Exception("Invalid authorization header type")
-        if not token:
+    def __call__(self, token: str) -> EntityJWTCameraClient:
+        try:
+            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+        except Exception:
             raise Exception("Invalid authorization token")
-        payload = jwt.decode(token, self.secret_key,
-                             algorithms=[self.algorithm])
         if not payload:
             raise Exception("Invalid authorization token")
         if not isinstance(payload, dict):

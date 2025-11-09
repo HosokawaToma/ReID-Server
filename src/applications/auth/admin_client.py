@@ -1,3 +1,4 @@
+from modules.auth.parse import ModuleAuthParse
 from modules.auth.verify.admin_client import ModuleAuthVerifyAdminClient
 from modules.auth.generate_token.admin_client import ModuleAuthGenerateTokenAdminClient
 from entities.jwt.admin_client import EntityJWTAdminClient
@@ -9,10 +10,12 @@ class ApplicationAuthAdminClient:
     def __init__(
         self,
         environment_admin_client: EntityEnvironmentAdminClient,
+        parser: ModuleAuthParse,
         verifier: ModuleAuthVerifyAdminClient,
         generator: ModuleAuthGenerateTokenAdminClient,
     ):
         self.environment_admin_client = environment_admin_client
+        self.parser = parser
         self.verifier = verifier
         self.generator = generator
 
@@ -21,9 +24,11 @@ class ApplicationAuthAdminClient:
             raise Exception("Invalid id or password")
         return EntityAdminClient(id=id, password=password)
 
+    def parse(self, authorization: str) -> tuple[str, str]:
+        return self.parser(authorization)
 
-    def verify(self, authorization: str) -> EntityJWTAdminClient:
-        return self.verifier(authorization)
+    def verify(self, token: str) -> EntityJWTAdminClient:
+        return self.verifier(token)
 
     def generate(self, id: str) -> str:
         return self.generator(id)
@@ -36,6 +41,7 @@ class ApplicationAuthAdminClient:
     ) -> "ApplicationAuthAdminClient":
         return cls(
             environment_admin_client=environment_admin_client,
+            parser=ModuleAuthParse(),
             verifier=ModuleAuthVerifyAdminClient(
                 secret_key=environment_jwt.secret_key,
                 algorithm=environment_jwt.algorithm,
