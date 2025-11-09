@@ -45,4 +45,6 @@ sudo systemctl restart docker
 
 ## SSL/TLS証明書の発行
 
+## nginx.conf.template ファイルの作成
+
 ## 起動
