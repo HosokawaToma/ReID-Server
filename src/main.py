@@ -5,12 +5,14 @@ from presentation.identify_person import PresentationIdentifyPerson
 from applications.identify_person import ApplicationIdentifyPerson
 from presentation.auth.login.admin_client import PresentationAuthLoginAdminClient
 from presentation.auth.login.camera_client import PresentationAuthLoginCameraClient
+from presentation.auth.refresh.admin_client import PresentationAuthRefreshAdminClient
+from presentation.auth.refresh.camera_client import PresentationAuthRefreshCameraClient
 from presentation.camera_clients.create import PresentationCameraClientsCreate
 from presentation.rtc.connection import PresentationRtcConnection
 from presentation.rtc.ice_server import PresentationRtcIceServer
 from applications.camera_clients.create import ApplicationCameraClientsCreate
-from applications.auth.login.admin_client import ApplicationAuthLoginAdminClient
-from applications.auth.login.camera_client import ApplicationAuthLoginCameraClient
+from applications.auth.admin_client import ApplicationAuthAdminClient
+from applications.auth.camera_client import ApplicationAuthCameraClient
 from applications.rtc.connection import ApplicationRtcConnection
 from applications.rtc.ice_server import ApplicationRtcIceServer
 from environment import Environment
@@ -28,8 +30,10 @@ class ServerApp:
         port: int,
         fastapi_app: fastapi.FastAPI,
         login_admin_client: PresentationAuthLoginAdminClient,
-        camera_clients_create: PresentationCameraClientsCreate,
         login_camera_client: PresentationAuthLoginCameraClient,
+        refresh_admin_client: PresentationAuthRefreshAdminClient,
+        refresh_camera_client: PresentationAuthRefreshCameraClient,
+        camera_clients_create: PresentationCameraClientsCreate,
         identify_person: PresentationIdentifyPerson,
         rtc_connection: PresentationRtcConnection,
         rtc_ice_server: PresentationRtcIceServer,
@@ -38,8 +42,10 @@ class ServerApp:
         self.port = port
         self.fastapi_app = fastapi_app
         self.login_admin_client = login_admin_client
-        self.camera_clients_create = camera_clients_create
         self.login_camera_client = login_camera_client
+        self.refresh_admin_client = refresh_admin_client
+        self.refresh_camera_client = refresh_camera_client
+        self.camera_clients_create = camera_clients_create
         self.identify_person = identify_person
         self.rtc_connection = rtc_connection
         self.rtc_ice_server = rtc_ice_server
@@ -52,7 +58,12 @@ class ServerApp:
         environment_jwt = EntityEnvironmentJwt(
             secret_key=environment.jwt_secret_key(),
             algorithm=environment.jwt_algorithm(),
-            expire_days=environment.jwt_expire_days(),
+            expire_minutes=environment.jwt_expire_minutes(),
+        )
+        environment_jwt_refresh = EntityEnvironmentJwt(
+            secret_key=environment.jwt_refresh_secret_key(),
+            algorithm=environment.jwt_refresh_algorithm(),
+            expire_minutes=environment.jwt_refresh_expire_minutes(),
         )
         environment_postgresql = EntityEnvironmentPostgreSQL(
             host=environment.postgresql_host(),
@@ -81,14 +92,42 @@ class ServerApp:
             port=environment.port(),
             fastapi_app=fastapi.FastAPI(),
             login_admin_client=PresentationAuthLoginAdminClient(
-                application=ApplicationAuthLoginAdminClient.create(
+                application_token=ApplicationAuthAdminClient.create(
                     environment_jwt=environment_jwt,
+                    environment_admin_client=environment_admin_client,
+                ),
+                application_refresh_token=ApplicationAuthAdminClient.create(
+                    environment_jwt=environment_jwt_refresh,
                     environment_admin_client=environment_admin_client,
                 )
             ),
             login_camera_client=PresentationAuthLoginCameraClient(
-                application=ApplicationAuthLoginCameraClient.create(
+                application_token=ApplicationAuthCameraClient.create(
                     environment_jwt=environment_jwt,
+                    environment_postgresql=environment_postgresql,
+                ),
+                application_refresh_token=ApplicationAuthCameraClient.create(
+                    environment_jwt=environment_jwt_refresh,
+                    environment_postgresql=environment_postgresql,
+                )
+            ),
+            refresh_admin_client=PresentationAuthRefreshAdminClient(
+                application_token=ApplicationAuthAdminClient.create(
+                    environment_jwt=environment_jwt_refresh,
+                    environment_admin_client=environment_admin_client,
+                ),
+                application_refresh_token=ApplicationAuthAdminClient.create(
+                    environment_jwt=environment_jwt_refresh,
+                    environment_admin_client=environment_admin_client,
+                )
+            ),
+            refresh_camera_client=PresentationAuthRefreshCameraClient(
+                application_token=ApplicationAuthCameraClient.create(
+                    environment_jwt=environment_jwt_refresh,
+                    environment_postgresql=environment_postgresql,
+                ),
+                application_refresh_token=ApplicationAuthCameraClient.create(
+                    environment_jwt=environment_jwt_refresh,
                     environment_postgresql=environment_postgresql,
                 )
             ),
@@ -123,6 +162,8 @@ class ServerApp:
     def run(self):
         self.login_admin_client.setup(self.fastapi_app)
         self.login_camera_client.setup(self.fastapi_app)
+        self.refresh_admin_client.setup(self.fastapi_app)
+        self.refresh_camera_client.setup(self.fastapi_app)
         self.camera_clients_create.setup(self.fastapi_app)
         self.identify_person.setup(self.fastapi_app)
         self.rtc_connection.setup(self.fastapi_app)

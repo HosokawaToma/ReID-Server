@@ -35,14 +35,35 @@ class Environment:
             raise ValueError("JWT_ALGORITHM is not set")
         return value
 
-    def jwt_expire_days(self) -> int:
-        value = os.getenv("JWT_EXPIRE_DAYS")
+    def jwt_expire_minutes(self) -> int:
+        value = os.getenv("JWT_EXPIRE_MINUTES")
         if value is None:
-            raise ValueError("JWT_EXPIRE_DAYS is not set")
+            raise ValueError("JWT_EXPIRE_MINUTES is not set")
         try:
             return int(value)
         except ValueError:
-            raise ValueError("JWT_EXPIRE_DAYS is not a valid integer")
+            raise ValueError("JWT_EXPIRE_MINUTES is not a valid integer")
+
+    def jwt_refresh_secret_key(self) -> str:
+        value = os.getenv("JWT_REFRESH_SECRET_KEY")
+        if value is None:
+            raise ValueError("JWT_REFRESH_SECRET_KEY is not set")
+        return value
+
+    def jwt_refresh_algorithm(self) -> str:
+        value = os.getenv("JWT_REFRESH_ALGORITHM")
+        if value is None:
+            raise ValueError("JWT_REFRESH_ALGORITHM is not set")
+        return value
+
+    def jwt_refresh_expire_minutes(self) -> int:
+        value = os.getenv("JWT_REFRESH_EXPIRE_MINUTES")
+        if value is None:
+            raise ValueError("JWT_REFRESH_EXPIRE_MINUTES is not set")
+        try:
+            return int(value)
+        except ValueError:
+            raise ValueError("JWT_REFRESH_EXPIRE_MINUTES is not a valid integer")
 
     def postgresql_host(self) -> str:
         value = os.getenv("POSTGRESQL_HOST")
