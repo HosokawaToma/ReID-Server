@@ -1,0 +1,2 @@
+class ErrorModulesAuthGenerateToken(Exception):
+    pass
