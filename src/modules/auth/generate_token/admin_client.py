@@ -5,6 +5,7 @@ import jwt
 class ModuleAuthGenerateTokenAdminClient:
     ADMIN_CLIENT_ID_KEY_OF_PAYLOAD = "admin_client_id"
     EXPIRE_TIME_KEY_OF_PAYLOAD = "exp"
+    SECONDS_TO_MINUTES = 60
 
     def __init__(self, secret_key: str, algorithm: str, expire_minutes: int):
         self.secret_key = secret_key
@@ -15,7 +16,7 @@ class ModuleAuthGenerateTokenAdminClient:
         return jwt.encode(
             {
                 self.ADMIN_CLIENT_ID_KEY_OF_PAYLOAD: id,
-                self.EXPIRE_TIME_KEY_OF_PAYLOAD: time.time() + self.expire_minutes
+                self.EXPIRE_TIME_KEY_OF_PAYLOAD: time.time() + self.expire_minutes * self.SECONDS_TO_MINUTES
             },
             self.secret_key,
             self.algorithm
