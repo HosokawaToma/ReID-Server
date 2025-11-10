@@ -1,20 +1,20 @@
 ---
-name: 💡 機能提案 (Feature Request)
+name: 💡 機能案 (Feature Proposals)
 about: 新機能を提案する (Suggest a new feature)
-title: "【💡機能提案】"
+title: "【💡機能】"
 ---
 
 # 概要 (Description)
 <!-- 本Issueで伝えたい内容を記載してください -->
-<!-- 機能提案では、提案する機能により解決する問題と、その仕様を必ず記載してください -->
+<!-- 機能提案では、提案する機能により解決する問題と、その仕様を記載してください -->
 <!-- Please describe the content you want to convey in this issue. -->
-<!-- For feature requests, please be sure to describe the problem the proposed feature solves and its specifications. -->
+<!-- For feature requests, please to describe the problem the proposed feature solves and its specifications. -->
 
 # 目的 (Purpose)
 <!-- 本Issueで達成したい目的を記載してください -->
-<!-- 機能提案では、提案する機能がなぜ必要なのか、それによってどのような価値が生まれるのかを必ず記載してください -->
+<!-- 機能提案では、提案する機能がなぜ必要なのか、それによってどのような価値が生まれるのかを記載してください -->
 <!-- Please describe the goal you want to achieve with this issue. -->
-<!-- For feature requests, please be sure to describe why the proposed feature is necessary and what value it will create. -->
+<!-- For feature requests, please to describe why the proposed feature is necessary and what value it will create. -->
 
 # 備考 (Additional Information)
 <!-- 本Issueの概要や目的の補足を記載してください -->
