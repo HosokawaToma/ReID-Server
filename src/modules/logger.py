@@ -2,6 +2,7 @@ import logging
 import os
 from entities.environment.storage import EntityEnvironmentStorage
 from datetime import datetime
+from errors.modules.logger import ErrorModuleLogger
 
 class ModuleLogger:
     _logger: logging.Logger | None = None
@@ -24,20 +25,20 @@ class ModuleLogger:
 
     def info(self, message: str):
         if self._logger is None:
-            raise ValueError("Logger is not initialized")
+            raise ErrorModuleLogger("Logger is not initialized")
         self._logger.info(message)
 
     def error(self, message: str):
         if self._logger is None:
-            raise ValueError("Logger is not initialized")
+            raise ErrorModuleLogger("Logger is not initialized")
         self._logger.error(message)
 
     def warning(self, message: str):
         if self._logger is None:
-            raise ValueError("Logger is not initialized")
+            raise ErrorModuleLogger("Logger is not initialized")
         self._logger.warning(message)
 
     def debug(self, message: str):
         if self._logger is None:
-            raise ValueError("Logger is not initialized")
+            raise ErrorModuleLogger("Logger is not initialized")
         self._logger.debug(message)
