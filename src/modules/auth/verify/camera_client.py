@@ -2,6 +2,8 @@ from entities.jwt.camera_client import EntityJWTCameraClient
 import jwt
 import time
 
+from errors.modules.auth.verify import ErrorModulesAuthVerify
+
 class ModuleAuthVerifyCameraClient:
     CAMERA_CLIENT_ID_KEY_OF_PAYLOAD = "camera_client_id"
     CAMERA_ID_KEY_OF_PAYLOAD = "camera_id"
@@ -18,35 +20,35 @@ class ModuleAuthVerifyCameraClient:
         try:
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
         except Exception:
-            raise Exception("Invalid token")
+            raise ErrorModulesAuthVerify("Failed to decode token")
         if not payload:
-            raise Exception("Invalid token")
+            raise ErrorModulesAuthVerify("Token in missing payload")
         if not isinstance(payload, dict):
-            raise Exception("Invalid token")
+            raise ErrorModulesAuthVerify("Payload is not a dictionary")
         camera_client_id = payload.get(self.CAMERA_CLIENT_ID_KEY_OF_PAYLOAD)
         camera_id = payload.get(self.CAMERA_ID_KEY_OF_PAYLOAD)
         view_id = payload.get(self.VIEW_ID_KEY_OF_PAYLOAD)
         expire_time = payload.get(self.EXPIRE_TIME_KEY_OF_PAYLOAD)
         if camera_client_id is None:
-            raise Exception("Invalid token")
+            raise ErrorModulesAuthVerify("Payload in missing camera client id")
         if camera_id is None:
-            raise Exception("Invalid token")
+            raise ErrorModulesAuthVerify("Payload in missing camera id")
         try:
             camera_id = int(camera_id)
         except Exception:
-            raise Exception("Invalid token")
+            raise ErrorModulesAuthVerify("Camera id is not a number")
         if view_id is None:
-            raise Exception("Invalid token")
+            raise ErrorModulesAuthVerify("Payload in missing view id")
         try:
             view_id = int(view_id)
         except Exception:
-            raise Exception("Invalid token")
+            raise ErrorModulesAuthVerify("View id is not a number")
         if expire_time is None:
-            raise Exception("Invalid token")
+            raise ErrorModulesAuthVerify("Payload in missing expire time")
         try:
             expire_time = int(expire_time)
         except Exception:
-            raise Exception("Invalid token")
+            raise ErrorModulesAuthVerify("Expire time is not a number")
         if expire_time > time.time() + self.expire_minutes * self.SECONDS_TO_MINUTES:
-            raise Exception("Token expired")
+            raise ErrorModulesAuthVerify("Token is expired")
         return EntityJWTCameraClient(camera_client_id, camera_id, view_id)
