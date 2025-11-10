@@ -1,0 +1,2 @@
+class ErrorModuleReidModel(Exception):
+    pass
