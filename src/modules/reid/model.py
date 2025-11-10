@@ -8,7 +8,7 @@ from modules.reid.clip_reid.config import cfg
 from modules.reid.clip_reid.model.make_model_clipreid import make_model
 from modules.reid.clip_reid.datasets.make_dataloader_clipreid import make_dataloader
 
-from errors.reid.model import ErrorModuleReidModel
+from errors.modules.reid.model import ErrorModuleReidModel
 
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(
     __file__), "clip_reid/configs/person/vit_clipreid.yml")
