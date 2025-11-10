@@ -1,4 +1,4 @@
-from entities.admin_client import EntityAdminClient
+from errors.modules.auth.generate_token import ErrorModulesAuthGenerateToken
 import time
 import jwt
 
@@ -13,11 +13,14 @@ class ModuleAuthGenerateTokenAdminClient:
         self.expire_minutes = expire_minutes
 
     def __call__(self, id: str) -> str:
-        return jwt.encode(
-            {
-                self.ADMIN_CLIENT_ID_KEY_OF_PAYLOAD: id,
-                self.EXPIRE_TIME_KEY_OF_PAYLOAD: time.time() + self.expire_minutes * self.SECONDS_TO_MINUTES
-            },
-            self.secret_key,
-            self.algorithm
-        )
+        try:
+            return jwt.encode(
+                {
+                    self.ADMIN_CLIENT_ID_KEY_OF_PAYLOAD: id,
+                    self.EXPIRE_TIME_KEY_OF_PAYLOAD: time.time() + self.expire_minutes * self.SECONDS_TO_MINUTES
+                },
+                self.secret_key,
+                self.algorithm
+            )
+        except Exception:
+            raise ErrorModulesAuthGenerateToken("Failed to generate admin client token")

@@ -1,3 +1,4 @@
+from errors.modules.auth.generate_token import ErrorModulesAuthGenerateToken
 import time
 import jwt
 
@@ -15,13 +16,16 @@ class ModuleAuthGenerateTokenCameraClient:
         self.expire_minutes = expire_minutes
 
     def __call__(self, id: str, camera_id: int, view_id: int) -> str:
-        return jwt.encode(
-            {
-                self.CAMERA_CLIENT_ID_KEY_OF_PAYLOAD: id,
-                self.CAMERA_ID_KEY_OF_PAYLOAD: camera_id,
-                self.VIEW_ID_KEY_OF_PAYLOAD: view_id,
-                self.EXPIRE_TIME_KEY_OF_PAYLOAD: time.time() + self.expire_minutes * self.SECONDS_TO_MINUTES
-            },
-            self.secret_key,
-            self.algorithm
-        )
+        try:
+            return jwt.encode(
+                {
+                    self.CAMERA_CLIENT_ID_KEY_OF_PAYLOAD: id,
+                    self.CAMERA_ID_KEY_OF_PAYLOAD: camera_id,
+                    self.VIEW_ID_KEY_OF_PAYLOAD: view_id,
+                    self.EXPIRE_TIME_KEY_OF_PAYLOAD: time.time() + self.expire_minutes * self.SECONDS_TO_MINUTES
+                },
+                self.secret_key,
+                self.algorithm
+            )
+        except Exception:
+            raise ErrorModulesAuthGenerateToken("Failed to generate camera client token")
