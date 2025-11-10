@@ -8,6 +8,8 @@ from modules.reid.clip_reid.config import cfg
 from modules.reid.clip_reid.model.make_model_clipreid import make_model
 from modules.reid.clip_reid.datasets.make_dataloader_clipreid import make_dataloader
 
+from errors.reid.model import ErrorModuleReidModel
+
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(
     __file__), "clip_reid/configs/person/vit_clipreid.yml")
 OPTIONS = [
@@ -57,18 +59,21 @@ class ModuleReIDModel:
         )
 
     def extract_feature(self, image: Image.Image, camera_id: int, view_id: int) -> torch.Tensor:
-        image_tensor: torch.Tensor = self.transform(image)  # pyright: ignore[reportAssignmentType]
-        image_tensor = image_tensor.unsqueeze(0).to(self.config.MODEL.DEVICE)
-        camera_id_tensor: Optional[torch.Tensor] = None
-        view_id_tensor: Optional[torch.Tensor] = None
+        try:
+            image_tensor: torch.Tensor = self.transform(image)  # pyright: ignore[reportAssignmentType]
+            image_tensor = image_tensor.unsqueeze(0).to(self.config.MODEL.DEVICE)
+            camera_id_tensor: Optional[torch.Tensor] = None
+            view_id_tensor: Optional[torch.Tensor] = None
 
-        if self.config.MODEL.SIE_CAMERA:
-            camera_id_tensor = torch.tensor(
-                camera_id, dtype=torch.long).to(self.config.MODEL.DEVICE)
+            if self.config.MODEL.SIE_CAMERA:
+                camera_id_tensor = torch.tensor(
+                    camera_id, dtype=torch.long).to(self.config.MODEL.DEVICE)
 
-        if self.config.MODEL.SIE_VIEW:
-            view_id_tensor = torch.tensor(
-                view_id, dtype=torch.long).to(self.config.MODEL.DEVICE)
+            if self.config.MODEL.SIE_VIEW:
+                view_id_tensor = torch.tensor(
+                    view_id, dtype=torch.long).to(self.config.MODEL.DEVICE)
 
-        with torch.no_grad():
-            return self.model(image_tensor, cam_label=camera_id_tensor, view_label=view_id_tensor).squeeze()
+            with torch.no_grad():
+                return self.model(image_tensor, cam_label=camera_id_tensor, view_label=view_id_tensor).squeeze()
+        except Exception as e:
+            raise ErrorModuleReidModel(f"Failed to extract feature: {e}")
