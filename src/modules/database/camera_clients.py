@@ -1,6 +1,7 @@
 from database import Database
 from database.models.camera_client import DatabaseModelCameraClient
 from entities.camera_client import EntityCameraClient
+from errors.modules.database import ErrorModuleDatabase
 
 class ModuleDatabaseCameraClients:
     def __init__(self, database: Database):
@@ -17,7 +18,7 @@ class ModuleDatabaseCameraClients:
                 .filter(DatabaseModelCameraClient.id == camera_client_id) \
                 .first()
             if client_model is None:
-                raise Exception("Client not found in database")
+                raise ErrorModuleDatabase("Camera client not found in database")
             return EntityCameraClient(
                 id=str(client_model.id),
                 password=None,
