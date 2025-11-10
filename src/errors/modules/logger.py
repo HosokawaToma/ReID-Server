@@ -1,0 +1,2 @@
+class ErrorModuleLogger(Exception):
+    pass
