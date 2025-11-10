@@ -7,6 +7,7 @@ class ModuleAuthGenerateTokenCameraClient:
     CAMERA_ID_KEY_OF_PAYLOAD = "camera_id"
     VIEW_ID_KEY_OF_PAYLOAD = "view_id"
     EXPIRE_TIME_KEY_OF_PAYLOAD = "exp"
+    SECONDS_TO_MINUTES = 60
 
     def __init__(self, secret_key: str, algorithm: str, expire_minutes: int):
         self.secret_key = secret_key
@@ -19,7 +20,7 @@ class ModuleAuthGenerateTokenCameraClient:
                 self.CAMERA_CLIENT_ID_KEY_OF_PAYLOAD: id,
                 self.CAMERA_ID_KEY_OF_PAYLOAD: camera_id,
                 self.VIEW_ID_KEY_OF_PAYLOAD: view_id,
-                self.EXPIRE_TIME_KEY_OF_PAYLOAD: time.time() + self.expire_minutes
+                self.EXPIRE_TIME_KEY_OF_PAYLOAD: time.time() + self.expire_minutes * self.SECONDS_TO_MINUTES
             },
             self.secret_key,
             self.algorithm

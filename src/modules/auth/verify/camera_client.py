@@ -7,7 +7,7 @@ class ModuleAuthVerifyCameraClient:
     CAMERA_ID_KEY_OF_PAYLOAD = "camera_id"
     VIEW_ID_KEY_OF_PAYLOAD = "view_id"
     EXPIRE_TIME_KEY_OF_PAYLOAD = "exp"
-    MINUTES_TO_SECONDS = 60
+    SECONDS_TO_MINUTES = 60
 
     def __init__(self, secret_key: str, algorithm: str, expire_minutes: int):
         self.secret_key = secret_key
@@ -27,26 +27,26 @@ class ModuleAuthVerifyCameraClient:
         camera_id = payload.get(self.CAMERA_ID_KEY_OF_PAYLOAD)
         view_id = payload.get(self.VIEW_ID_KEY_OF_PAYLOAD)
         expire_time = payload.get(self.EXPIRE_TIME_KEY_OF_PAYLOAD)
-        if not camera_client_id:
+        if camera_client_id is None:
             raise Exception("Invalid token")
-        if not camera_id:
+        if camera_id is None:
             raise Exception("Invalid token")
         try:
             camera_id = int(camera_id)
         except Exception:
             raise Exception("Invalid token")
-        if not view_id:
+        if view_id is None:
             raise Exception("Invalid token")
         try:
             view_id = int(view_id)
         except Exception:
             raise Exception("Invalid token")
-        if not expire_time:
+        if expire_time is None:
             raise Exception("Invalid token")
         try:
             expire_time = int(expire_time)
         except Exception:
             raise Exception("Invalid token")
-        if expire_time > time.time() + self.expire_minutes * self.MINUTES_TO_SECONDS:
+        if expire_time > time.time() + self.expire_minutes * self.SECONDS_TO_MINUTES:
             raise Exception("Token expired")
         return EntityJWTCameraClient(camera_client_id, camera_id, view_id)
