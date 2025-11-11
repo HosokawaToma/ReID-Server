@@ -8,6 +8,7 @@ from modules.datetime import ModuleDatetime
 from modules.image import ModuleImage
 from modules.database.camera_clients import ModuleDatabaseCameraClients
 from modules.reid.model import ModuleReIDModel
+from modules.reid.identifier import ModuleReIDIdentifier
 from modules.storage.image import ModuleStorageImage
 from modules.database.person_features import ModuleDatabasePersonFeatures
 from database import Database
@@ -51,6 +52,7 @@ class ApplicationIdentifyPerson:
             image_module=ModuleImage(),
             background_process=ApplicationIdentifyPersonBackgroundProcess(
                 reid_model=ModuleReIDModel(),
+                reid_identifier=ModuleReIDIdentifier(threshold=0.9),
                 yolo_segmentation=ModuleYoloSegmentation(),
                 yolo_segmentation_verification=ModuleYoloSegmentationVerification(),
                 yolo_pose=ModuleYoloPose(),
