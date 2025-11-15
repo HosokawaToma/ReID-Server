@@ -3,6 +3,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        USER_ID: ${USER_ID}
+        GROUP_ID: ${GROUP_ID}
+        USER_NAME: ${USER_NAME}
     deploy:
       resources:
         reservations:
@@ -15,9 +19,9 @@ services:
     env_file:
       - .env
     volumes:
-      - ./src/database/postgresql/versions:/app/src/database/postgresql/versions:rw
-      - ./resources:/app/resources:rw
-      - app_storage:/app/storage:rw
+      - ./src/database/versions:/app/src/database/versions
+      - ./resources:/app/resources
+      - app_storage:/app/storage
 
   database:
     image: pgvector/pgvector:pg16
