@@ -89,7 +89,6 @@ class ApplicationIdentifyPersonBackgroundProcess:
                     timestamp=image.timestamp,
                 )
             )
-            self.logger.info(f"Person not identified: {image.timestamp}")
             return
         self.database_person_features.insert(
             EntityPersonFeature(
