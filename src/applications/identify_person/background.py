@@ -3,6 +3,7 @@ from asyncio import Queue
 from typing import Optional
 from entities.image import EntityImage
 from modules.reid.model import ModuleReIDModel
+from modules.reid.identifier import ModuleReIDIdentifier
 from modules.storage.image import ModuleStorageImage
 from modules.database.person_features import ModuleDatabasePersonFeatures
 from entities.person_feature import EntityPersonFeature
@@ -16,6 +17,7 @@ class ApplicationIdentifyPersonBackgroundProcess:
     def __init__(
         self,
         reid_model: ModuleReIDModel,
+        reid_identifier: ModuleReIDIdentifier,
         yolo_segmentation: ModuleYoloSegmentation,
         yolo_segmentation_verification: ModuleYoloSegmentationVerification,
         yolo_pose: ModuleYoloPose,
@@ -25,6 +27,7 @@ class ApplicationIdentifyPersonBackgroundProcess:
         logger: ModuleLogger,
     ):
         self.reid_model = reid_model
+        self.reid_identifier = reid_identifier
         self.yolo_segmentation = yolo_segmentation
         self.yolo_segmentation_verification = yolo_segmentation_verification
         self.yolo_pose = yolo_pose
@@ -74,9 +77,23 @@ class ApplicationIdentifyPersonBackgroundProcess:
         if not self.yolo_pose_verification.verify(keypoints):
             return
         query_feature = self.reid_model.extract_feature(image.image, image.camera_id, image.view_id)
+        person_feature = self.database_person_features.select_top_one_by_before_timestamp(query_feature, image.timestamp)
+        if person_feature is None or not self.reid_identifier.identify(query_feature, person_feature.feature):
+            self.database_person_features.insert(
+                EntityPersonFeature(
+                    id=None,
+                    person_id=None,
+                    feature=query_feature,
+                    camera_id=image.camera_id,
+                    view_id=image.view_id,
+                    timestamp=image.timestamp,
+                )
+            )
+            return
         self.database_person_features.insert(
             EntityPersonFeature(
                 id=None,
+                person_id=person_feature.person_id,
                 feature=query_feature,
                 camera_id=image.camera_id,
                 view_id=image.view_id,
