@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import List
 import uuid
 from errors.modules.database import ErrorModuleDatabase
+from entities.database.where.person_features import EntityDatabaseWherePersonFeatures
 class ModuleDatabasePersonFeatures:
     NAME = "person_features"
     CAMERA_ID_KEY_OF_METADATA = "camera_id"
@@ -21,6 +22,26 @@ class ModuleDatabasePersonFeatures:
     def insert(self, person_feature: EntityPersonFeature) -> None:
         with self.database as db_session:
             db_session.add(person_feature.to_database_model())
+
+    def select_one(self, where: EntityDatabaseWherePersonFeatures) -> EntityPersonFeature:
+        with self.database as db_session:
+            query = db_session.query(DatabaseModelPersonFeature)
+            if where.after is not None:
+                query = query.filter(DatabaseModelPersonFeature.timestamp >= where.after)
+            if where.before is not None:
+                query = query.filter(DatabaseModelPersonFeature.timestamp <= where.before)
+            if where.view_ids is not None:
+                query = query.filter(DatabaseModelPersonFeature.view_id.in_(where.view_ids))
+            if where.camera_ids is not None:
+                query = query.filter(DatabaseModelPersonFeature.camera_id.in_(where.camera_ids))
+            if where.image_ids is not None:
+                query = query.filter(DatabaseModelPersonFeature.image_id.in_(where.image_ids))
+            if where.person_ids is not None:
+                query = query.filter(DatabaseModelPersonFeature.person_id.in_(where.person_ids))
+            model = query.first()
+            if model is None:
+                raise ErrorModuleDatabase(f"Person feature with where {where} not found")
+            return EntityPersonFeature.from_database_model(model)
 
     def select_all(self) -> List[EntityPersonFeature]:
         with self.database as db_session:
