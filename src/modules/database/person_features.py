@@ -44,6 +44,15 @@ class ModuleDatabasePersonFeatures:
                 return None
             return EntityPersonFeature.from_database_model(model)
 
+    def select_by_timestamp_range(self, after_timestamp: datetime | None, before_timestamp: datetime | None) -> List[EntityPersonFeature]:
+        with self.database as db_session:
+            query = db_session.query(DatabaseModelPersonFeature)
+            if after_timestamp is not None:
+                query = query.filter(DatabaseModelPersonFeature.timestamp > after_timestamp)
+            if before_timestamp is not None:
+                query = query.filter(DatabaseModelPersonFeature.timestamp < before_timestamp)
+            return [EntityPersonFeature.from_database_model(model) for model in query.all()]
+
     def update(self, person_feature: EntityPersonFeature) -> None:
         with self.database as db_session:
             db_session.merge(person_feature.to_database_model())

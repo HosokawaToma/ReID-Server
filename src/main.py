@@ -26,7 +26,8 @@ from presentation.identify_person.refresh import PresentationIdentifyPersonRefre
 from applications.identify_person.background.feature.queue import ApplicationIdentifyPersonBackgroundFeatureQueue
 from applications.identify_person.background.identify.queue import ApplicationIdentifyPersonBackgroundIdentifyQueue
 from applications.identify_person.refresh import ApplicationIdentifyPersonRefresh
-
+from presentation.person_path import PresentationPersonPath
+from applications.person_flow import ApplicationPersonFlow
 class ServerApp:
     def __init__(
         self,
@@ -41,6 +42,7 @@ class ServerApp:
         identify_person_refresh: PresentationIdentifyPersonRefresh,
         rtc_connection: PresentationRtcConnection,
         rtc_ice_server: PresentationRtcIceServer,
+        person_path: PresentationPersonPath,
     ):
         self.host = host
         self.port = port
@@ -53,6 +55,7 @@ class ServerApp:
         self.identify_person_refresh = identify_person_refresh
         self.rtc_connection = rtc_connection
         self.rtc_ice_server = rtc_ice_server
+        self.person_path = person_path
 
     @classmethod
     def create(
@@ -178,6 +181,11 @@ class ServerApp:
                     environment_coturn=environment_coturn,
                 )
             ),
+            person_path=PresentationPersonPath(
+                application_person_flow=ApplicationPersonFlow.create(
+                    environment_postgresql=environment_postgresql,
+                ),
+            ),
         )
 
     def run(self):
@@ -189,6 +197,7 @@ class ServerApp:
         self.identify_person_refresh.setup(self.fastapi_app)
         self.rtc_connection.setup(self.fastapi_app)
         self.rtc_ice_server.setup(self.fastapi_app)
+        self.person_path.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.host, port=self.port)
 
 if __name__ == "__main__":
