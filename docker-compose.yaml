@@ -78,11 +78,12 @@ services:
       - ./resources/certs:/etc/nginx/certs:ro
     networks:
       - app_network
+      - web_app_network
     restart: unless-stopped
 
 networks:
   app_network:
-
+  web_app_network:
 volumes:
   app_storage:
   postgresql_data:
