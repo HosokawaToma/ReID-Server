@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import List
 import uuid
 from errors.modules.database import ErrorModuleDatabase
+from entities.database.where.person_features import EntityDatabaseWherePersonFeatures
 class ModuleDatabasePersonFeatures:
     NAME = "person_features"
     CAMERA_ID_KEY_OF_METADATA = "camera_id"
@@ -34,6 +35,13 @@ class ModuleDatabasePersonFeatures:
                 raise ErrorModuleDatabase(f"Person feature with id {id} not found")
             return EntityPersonFeature.from_database_model(model)
 
+    def select_by_image_id(self, image_id: uuid.UUID) -> EntityPersonFeature:
+        with self.database as db_session:
+            model = db_session.query(DatabaseModelPersonFeature).filter(DatabaseModelPersonFeature.image_id == image_id).first()
+            if model is None:
+                raise ErrorModuleDatabase(f"Person feature with image id {image_id} not found")
+            return EntityPersonFeature.from_database_model(model)
+
     def select_top_one_by_before_timestamp(self, feature: torch.Tensor, timestamp: datetime) -> EntityPersonFeature | None:
         with self.database as db_session:
             model = db_session.query(DatabaseModelPersonFeature) \
@@ -56,4 +64,11 @@ class ModuleDatabasePersonFeatures:
     def update(self, person_feature: EntityPersonFeature) -> None:
         with self.database as db_session:
             db_session.merge(person_feature.to_database_model())
+            db_session.commit()
+
+    def delete_by_image_id(self, image_id: uuid.UUID) -> None:
+        with self.database as db_session:
+            db_session.query(DatabaseModelPersonFeature) \
+                .filter(DatabaseModelPersonFeature.image_id == image_id) \
+                .delete()
             db_session.commit()

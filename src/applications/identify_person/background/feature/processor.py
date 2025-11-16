@@ -11,7 +11,7 @@ from modules.storage.person_image import ModuleStoragePersonImage
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
 from database import Database
-
+from errors.modules.database import ErrorModuleDatabase
 class ApplicationIdentifyPersonBackgroundFeatureProcessor:
     def __init__(
         self,
@@ -85,5 +85,6 @@ class ApplicationIdentifyPersonBackgroundFeatureProcessor:
             view_id=person_image.view_id,
             timestamp=person_image.timestamp,
         )
-        self.database_person_features.update(person_feature)
+        self.database_person_features.delete_by_image_id(person_image.id)
+        self.database_person_features.insert(person_feature)
         return person_feature
