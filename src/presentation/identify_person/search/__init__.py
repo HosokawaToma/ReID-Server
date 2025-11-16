@@ -13,7 +13,7 @@ class PresentationIdentifyPersonSearch:
         self.application = application
 
     def setup(self, app: fastapi.FastAPI):
-        app.add_api_route("/identify_person/search", self.endpoint, methods=["GET"])
+        app.add_api_route("/identify_person/search", self.endpoint, methods=["POST"])
 
     async def endpoint(self, authorization: Annotated[str, Header()], request: PresentationIdentifyPersonSearchRequest):
         try:
