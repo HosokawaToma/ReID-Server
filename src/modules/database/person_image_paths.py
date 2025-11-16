@@ -19,3 +19,9 @@ class ModuleDatabasePersonImagePaths:
             if model is None:
                 raise ErrorModuleDatabase(f"Person image path with id {id} not found")
             return EntityPersonImagePath.from_database_model(model)
+
+    def update_all(self, person_image_paths: list[EntityPersonImagePath]) -> None:
+        with self.database as db_session:
+            for person_image_path in person_image_paths:
+                db_session.merge(person_image_path.to_database_model())
+            db_session.commit()

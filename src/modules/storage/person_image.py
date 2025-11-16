@@ -3,10 +3,11 @@ from entities.person_image import EntityPersonImage
 from entities.person_image_path import EntityPersonImagePath
 from errors.modules.storage.person_image import ErrorModuleStoragePersonImageNotFound
 from PIL import Image
+from pathlib import Path
 
 class ModuleStoragePersonImage:
     def __init__(self, storage_path: str):
-        self.storage_path = storage_path
+        self.storage_path = Path(storage_path)
 
     def save(self, person_image: EntityPersonImage) -> EntityPersonImagePath:
         person_image_path = EntityPersonImagePath(
@@ -36,3 +37,10 @@ class ModuleStoragePersonImage:
             )
         except Exception as e:
             raise ErrorModuleStoragePersonImageNotFound(f"Error opening person image: {e}")
+
+    def get_all_paths(self) -> list[EntityPersonImagePath]:
+        paths = []
+        for path in self.storage_path.glob("**/*.jpg"):
+            person_image_path = EntityPersonImagePath.from_path(path)
+            paths.append(person_image_path)
+        return paths

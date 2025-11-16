@@ -3,6 +3,7 @@ from applications.identify_person.background.feature.processor import Applicatio
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
 import asyncio
+import logging
 
 class ApplicationIdentifyPersonBackgroundFeature:
     def __init__(
@@ -13,6 +14,10 @@ class ApplicationIdentifyPersonBackgroundFeature:
         self.queue = queue
         self.processor = processor
         self.task: asyncio.Task[None] | None = None
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(logging.StreamHandler())
+        self.logger.addHandler(logging.FileHandler("identify_person_background_feature.log"))
 
     @classmethod
     def create(
@@ -41,8 +46,10 @@ class ApplicationIdentifyPersonBackgroundFeature:
         while True:
             try:
                 id, callback = await self.queue.get()
+                self.logger.info(f"Processing feature for image {id}")
                 person_feature = await self.processor.process(id)
                 if callback is not None:
                     await callback(person_feature.id)
+                self.logger.info(f"Feature processed for image {id}")
             except Exception as e:
                 continue
