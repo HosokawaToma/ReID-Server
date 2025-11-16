@@ -23,26 +23,6 @@ class ModuleDatabasePersonFeatures:
         with self.database as db_session:
             db_session.add(person_feature.to_database_model())
 
-    def select_one(self, where: EntityDatabaseWherePersonFeatures) -> EntityPersonFeature:
-        with self.database as db_session:
-            query = db_session.query(DatabaseModelPersonFeature)
-            if where.after is not None:
-                query = query.filter(DatabaseModelPersonFeature.timestamp >= where.after)
-            if where.before is not None:
-                query = query.filter(DatabaseModelPersonFeature.timestamp <= where.before)
-            if where.view_ids is not None:
-                query = query.filter(DatabaseModelPersonFeature.view_id.in_(where.view_ids))
-            if where.camera_ids is not None:
-                query = query.filter(DatabaseModelPersonFeature.camera_id.in_(where.camera_ids))
-            if where.image_ids is not None:
-                query = query.filter(DatabaseModelPersonFeature.image_id.in_(where.image_ids))
-            if where.person_ids is not None:
-                query = query.filter(DatabaseModelPersonFeature.person_id.in_(where.person_ids))
-            model = query.first()
-            if model is None:
-                raise ErrorModuleDatabase(f"Person feature with where {where} not found")
-            return EntityPersonFeature.from_database_model(model)
-
     def select_all(self) -> List[EntityPersonFeature]:
         with self.database as db_session:
             models = db_session.query(DatabaseModelPersonFeature).all()
@@ -53,6 +33,13 @@ class ModuleDatabasePersonFeatures:
             model = db_session.query(DatabaseModelPersonFeature).filter(DatabaseModelPersonFeature.id == id).first()
             if model is None:
                 raise ErrorModuleDatabase(f"Person feature with id {id} not found")
+            return EntityPersonFeature.from_database_model(model)
+
+    def select_by_image_id(self, image_id: uuid.UUID) -> EntityPersonFeature:
+        with self.database as db_session:
+            model = db_session.query(DatabaseModelPersonFeature).filter(DatabaseModelPersonFeature.image_id == image_id).first()
+            if model is None:
+                raise ErrorModuleDatabase(f"Person feature with image id {image_id} not found")
             return EntityPersonFeature.from_database_model(model)
 
     def select_top_one_by_before_timestamp(self, feature: torch.Tensor, timestamp: datetime) -> EntityPersonFeature | None:
@@ -77,4 +64,11 @@ class ModuleDatabasePersonFeatures:
     def update(self, person_feature: EntityPersonFeature) -> None:
         with self.database as db_session:
             db_session.merge(person_feature.to_database_model())
+            db_session.commit()
+
+    def delete_by_image_id(self, image_id: uuid.UUID) -> None:
+        with self.database as db_session:
+            db_session.query(DatabaseModelPersonFeature) \
+                .filter(DatabaseModelPersonFeature.image_id == image_id) \
+                .delete()
             db_session.commit()

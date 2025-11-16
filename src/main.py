@@ -28,6 +28,10 @@ from applications.identify_person.background.identify.queue import ApplicationId
 from applications.identify_person.refresh import ApplicationIdentifyPersonRefresh
 from presentation.person_path import PresentationPersonPath
 from applications.person_flow import ApplicationPersonFlow
+from presentation.identify_person.search import PresentationIdentifyPersonSearch
+from applications.identify_person.search import ApplicationIdentifyPersonSearch
+from presentation.person_images import PresentationPersonImages
+from applications.person_images import ApplicationPersonImages
 class ServerApp:
     def __init__(
         self,
@@ -43,6 +47,8 @@ class ServerApp:
         rtc_connection: PresentationRtcConnection,
         rtc_ice_server: PresentationRtcIceServer,
         person_path: PresentationPersonPath,
+        identify_person_search: PresentationIdentifyPersonSearch,
+        person_images: PresentationPersonImages,
     ):
         self.host = host
         self.port = port
@@ -56,6 +62,8 @@ class ServerApp:
         self.rtc_connection = rtc_connection
         self.rtc_ice_server = rtc_ice_server
         self.person_path = person_path
+        self.identify_person_search = identify_person_search
+        self.person_images = person_images
 
     @classmethod
     def create(
@@ -186,6 +194,26 @@ class ServerApp:
                     environment_postgresql=environment_postgresql,
                 ),
             ),
+            identify_person_search=PresentationIdentifyPersonSearch(
+                application_auth=ApplicationAuthAdminClient.create(
+                    environment_jwt=environment_jwt,
+                    environment_admin_client=environment_admin_client,
+                ),
+                application=ApplicationIdentifyPersonSearch.create(
+                    environment_postgresql=environment_postgresql,
+                    environment_storage=environment_storage,
+                ),
+            ),
+            person_images=PresentationPersonImages(
+                application_auth=ApplicationAuthAdminClient.create(
+                    environment_jwt=environment_jwt,
+                    environment_admin_client=environment_admin_client,
+                ),
+                application=ApplicationPersonImages.create(
+                    environment_storage=environment_storage,
+                    environment_postgresql=environment_postgresql
+                ),
+            ),
         )
 
     def run(self):
@@ -198,6 +226,8 @@ class ServerApp:
         self.rtc_connection.setup(self.fastapi_app)
         self.rtc_ice_server.setup(self.fastapi_app)
         self.person_path.setup(self.fastapi_app)
+        self.identify_person_search.setup(self.fastapi_app)
+        self.person_images.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.host, port=self.port)
 
 if __name__ == "__main__":

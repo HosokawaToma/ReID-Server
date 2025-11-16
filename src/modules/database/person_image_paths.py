@@ -35,6 +35,13 @@ class ModuleDatabasePersonImagePaths:
                 query = query.filter(DatabaseModelPersonImagePath.image_id.in_(where.image_ids))
             return [EntityPersonImagePath.from_database_model(model) for model in query.all()]
 
+    def select_by_image_id(self, image_id: uuid.UUID) -> EntityPersonImagePath:
+        with self.database as db_session:
+            model = db_session.query(DatabaseModelPersonImagePath).filter(DatabaseModelPersonImagePath.image_id == image_id).first()
+            if model is None:
+                raise ErrorModuleDatabase(f"Person image path with image id {image_id} not found")
+            return EntityPersonImagePath.from_database_model(model)
+
     def update_all(self, person_image_paths: list[EntityPersonImagePath]) -> None:
         with self.database as db_session:
             for person_image_path in person_image_paths:
