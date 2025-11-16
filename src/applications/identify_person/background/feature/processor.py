@@ -79,10 +79,11 @@ class ApplicationIdentifyPersonBackgroundFeatureProcessor:
             raise ValueError("Pose verification failed")
         feature = self.reid_model.extract_feature(person_image.image, person_image.camera_id, person_image.view_id)
         person_feature = EntityPersonFeature(
+            image_id=person_image.id,
             feature=feature,
             camera_id=person_image.camera_id,
             view_id=person_image.view_id,
             timestamp=person_image.timestamp,
         )
-        self.database_person_features.insert(person_feature)
+        self.database_person_features.update(person_feature)
         return person_feature
