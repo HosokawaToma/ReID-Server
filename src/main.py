@@ -22,7 +22,10 @@ from entities.environment.coturn import EntityEnvironmentCoturn
 from entities.environment.admin_client import EntityEnvironmentAdminClient
 from applications.identify_person.background.feature import ApplicationIdentifyPersonBackgroundFeature
 from applications.identify_person.background.identify import ApplicationIdentifyPersonBackgroundIdentify
-
+from presentation.identify_person.refresh import PresentationIdentifyPersonRefresh
+from applications.identify_person.background.feature.queue import ApplicationIdentifyPersonBackgroundFeatureQueue
+from applications.identify_person.background.identify.queue import ApplicationIdentifyPersonBackgroundIdentifyQueue
+from applications.identify_person.refresh import ApplicationIdentifyPersonRefresh
 
 class ServerApp:
     def __init__(
@@ -35,6 +38,7 @@ class ServerApp:
         refresh_admin_client: PresentationAuthRefreshAdminClient,
         camera_clients_create: PresentationCameraClientsCreate,
         identify_person: PresentationIdentifyPerson,
+        identify_person_refresh: PresentationIdentifyPersonRefresh,
         rtc_connection: PresentationRtcConnection,
         rtc_ice_server: PresentationRtcIceServer,
     ):
@@ -46,6 +50,7 @@ class ServerApp:
         self.refresh_admin_client = refresh_admin_client
         self.camera_clients_create = camera_clients_create
         self.identify_person = identify_person
+        self.identify_person_refresh = identify_person_refresh
         self.rtc_connection = rtc_connection
         self.rtc_ice_server = rtc_ice_server
 
@@ -142,6 +147,18 @@ class ServerApp:
                     environment_postgresql=environment_postgresql,
                 ),
             ),
+            identify_person_refresh=PresentationIdentifyPersonRefresh(
+                application_auth=ApplicationAuthAdminClient.create(
+                    environment_jwt=environment_jwt,
+                    environment_admin_client=environment_admin_client,
+                ),
+                application=ApplicationIdentifyPersonRefresh.create(
+                    environment_postgresql=environment_postgresql,
+                    environment_storage=environment_storage,
+                ),
+                application_background_feature_queue=ApplicationIdentifyPersonBackgroundFeatureQueue(),
+                application_background_identify_queue=ApplicationIdentifyPersonBackgroundIdentifyQueue(),
+            ),
             rtc_connection=PresentationRtcConnection(
                 application_auth=ApplicationAuthCameraClient.create(
                     environment_jwt=environment_jwt,
@@ -169,6 +186,7 @@ class ServerApp:
         self.refresh_admin_client.setup(self.fastapi_app)
         self.camera_clients_create.setup(self.fastapi_app)
         self.identify_person.setup(self.fastapi_app)
+        self.identify_person_refresh.setup(self.fastapi_app)
         self.rtc_connection.setup(self.fastapi_app)
         self.rtc_ice_server.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.host, port=self.port)
