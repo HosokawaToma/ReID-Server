@@ -1,38 +1,29 @@
-from PIL import Image
-from entities.jwt.camera_client import EntityJWTCameraClient
-from entities.image import EntityImage
 from datetime import datetime
-from applications.identify_person.background import ApplicationIdentifyPersonBackgroundProcess
-from modules.authenticator.camera_client import ModuleAuthenticatorCameraClient
+from modules.database.camera_clients import ModuleDatabaseCameraClients
 from modules.datetime import ModuleDatetime
 from modules.image import ModuleImage
-from modules.database.camera_clients import ModuleDatabaseCameraClients
-from modules.reid.model import ModuleReIDModel
-from modules.reid.identifier import ModuleReIDIdentifier
-from modules.storage.image import ModuleStorageImage
-from modules.database.person_features import ModuleDatabasePersonFeatures
 from database import Database
-from entities.environment.jwt import EntityEnvironmentJwt
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
-from modules.yolo.segmentation import ModuleYoloSegmentation
-from modules.yolo.segmentation.verification import ModuleYoloSegmentationVerification
-from modules.yolo.pose import ModuleYoloPose
-from modules.yolo.pose.verification import ModuleYoloPoseVerification
-from modules.logger import ModuleLogger
+from modules.storage.person_image import ModuleStoragePersonImage
+from entities.person_image import EntityPersonImage
+from modules.database.person_image_paths import ModuleDatabasePersonImagePaths
+from entities.person_image_path import EntityPersonImagePath
 
 class ApplicationIdentifyPerson:
     def __init__(
         self,
         database_camera_clients: ModuleDatabaseCameraClients,
-        datetime_module: ModuleDatetime,
         image_module: ModuleImage,
-        background_process: ApplicationIdentifyPersonBackgroundProcess
+        datetime_module: ModuleDatetime,
+        storage_person_image: ModuleStoragePersonImage,
+        database_person_image_paths: ModuleDatabasePersonImagePaths,
         ):
         self.database_camera_clients = database_camera_clients
-        self.datetime_module = datetime_module
         self.image_module = image_module
-        self.background_process = background_process
+        self.datetime_module = datetime_module
+        self.storage_person_image = storage_person_image
+        self.database_person_image_paths = database_person_image_paths
 
     @classmethod
     def create(
@@ -48,38 +39,41 @@ class ApplicationIdentifyPerson:
                 password=environment_postgresql.password,
                 database=environment_postgresql.database,
             )),
-            datetime_module=ModuleDatetime(),
             image_module=ModuleImage(),
-            background_process=ApplicationIdentifyPersonBackgroundProcess(
-                reid_model=ModuleReIDModel(),
-                reid_identifier=ModuleReIDIdentifier(threshold=0.9),
-                yolo_segmentation=ModuleYoloSegmentation(),
-                yolo_segmentation_verification=ModuleYoloSegmentationVerification(),
-                yolo_pose=ModuleYoloPose(),
-                yolo_pose_verification=ModuleYoloPoseVerification(),
-                storage_image=ModuleStorageImage(storage_path=environment_storage.path),
-                database_person_features=ModuleDatabasePersonFeatures(Database(
-                    host=environment_postgresql.host,
-                    port=environment_postgresql.port,
-                    user=environment_postgresql.user,
-                    password=environment_postgresql.password,
-                    database=environment_postgresql.database,
-                )),
-                logger=ModuleLogger(environment_storage=environment_storage)
-                )
-            )
+            datetime_module=ModuleDatetime(),
+            storage_person_image=ModuleStoragePersonImage(environment_storage.path),
+            database_person_image_paths=ModuleDatabasePersonImagePaths(Database(
+                host=environment_postgresql.host,
+                port=environment_postgresql.port,
+                user=environment_postgresql.user,
+                password=environment_postgresql.password,
+                database=environment_postgresql.database,
+            )),
+        )
 
     async def start(self):
-        await self.background_process.start()
+        pass
 
     async def stop(self):
-        await self.background_process.stop()
+        pass
 
-    def from_iso_format(self, iso_timestamp: str) -> datetime:
-        return self.datetime_module.from_iso_format(iso_timestamp)
-
-    def decode_image(self, image: bytes) -> Image.Image:
-        return self.image_module.decode(image)
-
-    async def identify(self, image: EntityImage) -> None:
-        await self.background_process.add(image)
+    async def proses(self, camera_client_id: str, binary_images: list[bytes], timestamp: datetime) -> list[EntityPersonImage]:
+        camera_client = self.database_camera_clients.select_by_id(camera_client_id)
+        person_images = []
+        for binary_image in binary_images:
+            image = self.image_module.decode(binary_image)
+            entity_person_image = EntityPersonImage(
+                image=image,
+                camera_id=camera_client.camera_id,
+                view_id=camera_client.view_id,
+                timestamp=timestamp
+            )
+            self.storage_person_image.save(entity_person_image)
+            self.database_person_image_paths.insert(EntityPersonImagePath(
+                image_id=entity_person_image.id,
+                camera_id=camera_client.camera_id,
+                view_id=camera_client.view_id,
+                timestamp=timestamp,
+            ))
+            person_images.append(entity_person_image)
+        return person_images
