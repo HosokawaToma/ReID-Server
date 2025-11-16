@@ -20,6 +20,8 @@ from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
 from entities.environment.coturn import EntityEnvironmentCoturn
 from entities.environment.admin_client import EntityEnvironmentAdminClient
+from applications.identify_person.background.feature import ApplicationIdentifyPersonBackgroundFeature
+from applications.identify_person.background.identify import ApplicationIdentifyPersonBackgroundIdentify
 
 
 class ServerApp:
@@ -131,7 +133,14 @@ class ServerApp:
                 application=ApplicationIdentifyPerson.create(
                     environment_postgresql=environment_postgresql,
                     environment_storage=environment_storage,
-                )
+                ),
+                application_background_feature=ApplicationIdentifyPersonBackgroundFeature.create(
+                    environment_postgresql=environment_postgresql,
+                    environment_storage=environment_storage,
+                ),
+                application_background_identify=ApplicationIdentifyPersonBackgroundIdentify.create(
+                    environment_postgresql=environment_postgresql,
+                ),
             ),
             rtc_connection=PresentationRtcConnection(
                 application_auth=ApplicationAuthCameraClient.create(

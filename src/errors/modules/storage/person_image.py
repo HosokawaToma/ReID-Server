@@ -1,0 +1,2 @@
+class ErrorModuleStoragePersonImageNotFound(Exception):
+    pass

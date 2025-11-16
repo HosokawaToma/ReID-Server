@@ -1,30 +1,38 @@
 import fastapi
 from typing import Annotated
-from fastapi import UploadFile, Form, Header
+from fastapi import Form, Header, UploadFile
 from applications.identify_person import ApplicationIdentifyPerson
-from entities.image import EntityImage
 from fastapi.responses import JSONResponse
 from applications.auth.camera_client import ApplicationAuthCameraClient
-
+from applications.identify_person.background.feature import ApplicationIdentifyPersonBackgroundFeature
+from applications.identify_person.background.identify import ApplicationIdentifyPersonBackgroundIdentify
+from datetime import datetime
+import asyncio
 class PresentationIdentifyPerson:
     def __init__(
         self,
         application_auth: ApplicationAuthCameraClient,
-        application: ApplicationIdentifyPerson
+        application: ApplicationIdentifyPerson,
+        application_background_feature: ApplicationIdentifyPersonBackgroundFeature,
+        application_background_identify: ApplicationIdentifyPersonBackgroundIdentify,
         ):
         self.application_auth = application_auth
         self.application = application
+        self.application_background_feature = application_background_feature
+        self.application_background_identify = application_background_identify
 
     def setup(self, app: fastapi.FastAPI):
         app.add_api_route("/identify_person", self.endpoint, methods=["POST"])
-        app.add_event_handler("startup", self.application.start)
-        app.add_event_handler("shutdown", self.application.stop)
+        app.add_event_handler("startup", self.application_background_feature.start)
+        app.add_event_handler("shutdown", self.application_background_feature.stop)
+        app.add_event_handler("startup", self.application_background_identify.start)
+        app.add_event_handler("shutdown", self.application_background_identify.stop)
 
     async def endpoint(
         self,
         authorization: Annotated[str, Header()],
         images: list[UploadFile],
-        timestamp: str = Form(...),
+        timestamp: datetime = Form(...),
     ):
         try:
             token = self.application_auth.parse(authorization)
@@ -32,24 +40,9 @@ class PresentationIdentifyPerson:
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=401)
         try:
-            timestamp_datetime = self.application.from_iso_format(timestamp)
+            person_images = await self.application.proses(camera_client.id, [await image.read() for image in images], timestamp)
+            for person_image in person_images:
+                await self.application_background_feature.queue.add(person_image.id, self.application_background_identify.queue.add)
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=400)
-        for image in images:
-            try:
-                image = self.application.decode_image(await image.read())
-            except Exception as e:
-                return JSONResponse(content={"message": str(e)}, status_code=400)
-            try:
-                await self.application.identify(
-                    EntityImage(
-                        id=None,
-                        image=image,
-                        camera_id=camera_client.camera_id,
-                        view_id=camera_client.view_id,
-                        timestamp=timestamp_datetime,
-                    )
-                )
-            except Exception as e:
-                return JSONResponse(content={"message": str(e)}, status_code=400)
-        return JSONResponse(content={"message": "Person identified successfully"}, status_code=200)
+        return JSONResponse(content={"message": "Person images saved successfully. Person identification will be processed in background."}, status_code=200)

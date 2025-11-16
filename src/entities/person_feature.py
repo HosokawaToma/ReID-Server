@@ -6,18 +6,14 @@ from database.models.person_feature import DatabaseModelPersonFeature
 
 @dataclass
 class EntityPersonFeature:
-    id: uuid.UUID | None
-    person_id: uuid.UUID | None
     feature: torch.Tensor
     camera_id: int
     view_id: int
     timestamp: datetime
+    id: uuid.UUID = field(default_factory=uuid.uuid4)
+    person_id: uuid.UUID = field(default_factory=uuid.uuid4)
 
     def __post_init__(self):
-        if self.id is None:
-            self.id = uuid.uuid4()
-        if self.person_id is None:
-            self.person_id = uuid.uuid4()
         if self.feature.ndim != 1:
             raise ValueError("Person feature must be a 1D tensor")
         if self.feature.shape[0] != 1280:
