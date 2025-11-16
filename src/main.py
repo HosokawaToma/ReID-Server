@@ -1,4 +1,5 @@
 import fastapi
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from presentation.identify_person import PresentationIdentifyPerson
@@ -217,6 +218,13 @@ class ServerApp:
         )
 
     def run(self):
+        self.fastapi_app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
         self.login_admin_client.setup(self.fastapi_app)
         self.login_camera_client.setup(self.fastapi_app)
         self.refresh_admin_client.setup(self.fastapi_app)

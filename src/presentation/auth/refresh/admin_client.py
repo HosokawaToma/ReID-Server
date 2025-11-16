@@ -1,4 +1,3 @@
-from cgitb import reset
 import fastapi
 from applications.auth.admin_client import ApplicationAuthAdminClient
 from fastapi import Cookie
@@ -7,7 +6,7 @@ from fastapi.responses import JSONResponse
 class PresentationAuthRefreshAdminClient:
     TOKEN_BODY_NAME = "token"
     SET_COOKIE_HEADER_NAME = "Set-Cookie"
-    SET_COOKIE_HEADER_VALUE_FORMAT = "Set-Cookie: {token}; Secure; HttpOnly; SameSite=Strict; Path=/api/auth/refresh/admin_client; Max-Age=0"
+    SET_COOKIE_HEADER_VALUE_FORMAT = "Set-Cookie: refresh_token={token}; HttpOnly; Path=/api/v1/auth/refresh/admin_client; Max-Age=2592000"
 
     def __init__(
         self, application_token: ApplicationAuthAdminClient, application_refresh_token: ApplicationAuthAdminClient):

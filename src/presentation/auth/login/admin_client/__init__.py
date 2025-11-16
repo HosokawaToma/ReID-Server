@@ -7,7 +7,7 @@ from entities.admin_client import EntityAdminClient
 class PresentationAuthLoginAdminClient():
     TOKEN_BODY_NAME = "token"
     SET_COOKIE_HEADER_NAME = "Set-Cookie"
-    SET_COOKIE_HEADER_VALUE_FORMAT = "Set-Cookie: {token}; Secure; HttpOnly; SameSite=Strict; Path=/api/auth/refresh/admin_client; Max-Age=0"
+    SET_COOKIE_HEADER_VALUE_FORMAT = "Set-Cookie: refresh_token={token}; HttpOnly; Path=/api/v1/auth/refresh/admin_client; Max-Age=2592000"
     def __init__(
         self,
         application_token: ApplicationAuthAdminClient,
