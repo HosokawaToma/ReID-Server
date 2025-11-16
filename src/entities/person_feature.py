@@ -12,6 +12,7 @@ class EntityPersonFeature:
     timestamp: datetime
     id: uuid.UUID = field(default_factory=uuid.uuid4)
     person_id: uuid.UUID = field(default_factory=uuid.uuid4)
+    image_id: uuid.UUID = field(default_factory=uuid.uuid4)
 
     def __post_init__(self):
         if self.feature.ndim != 1:
@@ -22,6 +23,7 @@ class EntityPersonFeature:
     def to_database_model(self):
         return DatabaseModelPersonFeature(
             id=self.id,
+            image_id=self.image_id,
             person_id=self.person_id,
             feature=self.feature.tolist(),
             camera_id=self.camera_id,
@@ -33,6 +35,7 @@ class EntityPersonFeature:
     def from_database_model(model: DatabaseModelPersonFeature) -> "EntityPersonFeature":
         return EntityPersonFeature(
             id=uuid.UUID(str(model.id)),
+            image_id=uuid.UUID(str(model.image_id)),
             person_id=uuid.UUID(str(model.person_id)),
             feature=torch.tensor(model.feature),
             camera_id=int(str(model.camera_id)),
