@@ -1,0 +1,2 @@
+class ErrorModuleYoloPose(Exception):
+    pass

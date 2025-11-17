@@ -1,2 +1,2 @@
-class ErrorModuleStoragePersonImageNotFound(Exception):
+class ErrorModuleStoragePersonImage(Exception):
     pass

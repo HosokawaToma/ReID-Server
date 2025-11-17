@@ -1,0 +1,2 @@
+class ErrorModuleYoloSegmentation(Exception):
+    pass
