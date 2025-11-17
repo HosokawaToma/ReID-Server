@@ -31,8 +31,7 @@ class PresentationIdentifyPerson:
     async def endpoint(
         self,
         authorization: Annotated[str, Header()],
-        images: list[UploadFile],
-        timestamp: datetime = Form(...),
+        images: list[UploadFile]
     ):
         try:
             token = self.application_auth.parse(authorization)
@@ -40,7 +39,7 @@ class PresentationIdentifyPerson:
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=401)
         try:
-            person_images = await self.application.proses(camera_client.id, [await image.read() for image in images], timestamp)
+            person_images = await self.application.proses(camera_client.id, [await image.read() for image in images])
             for person_image in person_images:
                 await self.application_background_feature.queue.add(person_image.id, self.application_background_identify.queue.add)
         except Exception as e:
