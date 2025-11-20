@@ -1,0 +1,2 @@
+class ErrorEntitiesAdminClientAuthTokenEmbedding(Exception):
+    pass

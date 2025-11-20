@@ -1,0 +1,2 @@
+class ErrorEntitiesCameraClientAuthTokenEmbedding(Exception):
+    pass

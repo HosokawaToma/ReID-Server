@@ -21,7 +21,6 @@ class ModuleDatabaseCameraClients:
                 raise ErrorModuleDatabase("Camera client not found in database")
             return EntityCameraClient(
                 id=str(client_model.id),
-                password=None,
                 hashed_password=str(client_model.hashed_password),
                 camera_id=int(str(client_model.camera_id)),
                 view_id=int(str(client_model.view_id)),

@@ -1,2 +1,0 @@
-class ErrorModulesAuthParseBearer(Exception):
-    pass

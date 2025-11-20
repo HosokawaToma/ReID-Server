@@ -1,4 +1,3 @@
-from modules.authenticator.camera_client import ModuleAuthenticatorCameraClient
 from entities.rtc.sdp import EntityRtcSdp
 from entities.rtc.ice_server import EntityRtcIceServer
 from applications.rtc.peer_connection import ApplicationRtcPeerConnection

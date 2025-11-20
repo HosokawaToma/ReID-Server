@@ -1,0 +1,2 @@
+class ErrorModuleHasherInvalidCredential(Exception):
+    pass

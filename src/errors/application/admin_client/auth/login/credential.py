@@ -1,0 +1,2 @@
+class ErrorApplicationAdminClientAuthLoginCredential(Exception):
+    pass
