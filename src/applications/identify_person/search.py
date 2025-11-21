@@ -8,6 +8,7 @@ from entities.application.identify_person.search.return_value import EntityAppli
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
 from database import Database
+from errors.modules.database import ErrorModuleDatabase
 class ApplicationIdentifyPersonSearch:
     def __init__(
         self,
@@ -54,11 +55,14 @@ class ApplicationIdentifyPersonSearch:
         ))
         return_values = []
         for person_image_path in person_image_paths:
-            return_values.append(EntityApplicationIdentifyPersonSearchReturnValue(
-                image_id=person_image_path.image_id,
-                person_id=self.database_person_features.select_by_image_id(person_image_path.image_id).person_id,
-                camera_id=person_image_path.camera_id,
-                view_id=person_image_path.view_id,
-                timestamp=person_image_path.timestamp,
-            ))
+            try:
+                return_values.append(EntityApplicationIdentifyPersonSearchReturnValue(
+                    image_id=person_image_path.image_id,
+                    person_id=self.database_person_features.select_by_image_id(person_image_path.image_id).person_id,
+                    camera_id=person_image_path.camera_id,
+                    view_id=person_image_path.view_id,
+                    timestamp=person_image_path.timestamp,
+                ))
+            except ErrorModuleDatabase:
+                continue
         return return_values

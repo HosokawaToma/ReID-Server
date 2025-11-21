@@ -57,7 +57,7 @@ class ApplicationIdentifyPerson:
     async def stop(self):
         pass
 
-    async def proses(self, camera_client_id: str, binary_images: list[bytes], timestamp: datetime) -> list[EntityPersonImage]:
+    async def proses(self, camera_client_id: str, binary_images: list[bytes]) -> list[EntityPersonImage]:
         camera_client = self.database_camera_clients.select_by_id(camera_client_id)
         person_images = []
         for binary_image in binary_images:
@@ -66,14 +66,13 @@ class ApplicationIdentifyPerson:
                 image=image,
                 camera_id=camera_client.camera_id,
                 view_id=camera_client.view_id,
-                timestamp=timestamp
             )
             self.storage_person_image.save(entity_person_image)
             self.database_person_image_paths.insert(EntityPersonImagePath(
                 image_id=entity_person_image.id,
                 camera_id=camera_client.camera_id,
                 view_id=camera_client.view_id,
-                timestamp=timestamp,
+                timestamp=entity_person_image.timestamp,
             ))
             person_images.append(entity_person_image)
         return person_images
