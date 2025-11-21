@@ -29,7 +29,7 @@ RUN mkdir -p ${STORAGE_DIRECTORY_NAME} && chown -R ${USER_NAME}:${GROUP_ID} ${ST
 USER ${USER_NAME}
 
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt --timeout=600
 
 COPY ./src ./src
 COPY ./resources ./resources
