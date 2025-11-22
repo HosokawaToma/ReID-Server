@@ -1,0 +1,3 @@
+{$DOMAIN} {
+    reverse_proxy {$REVERSE_PROXY}:{$REVERSE_PROXY_PORT}
+}

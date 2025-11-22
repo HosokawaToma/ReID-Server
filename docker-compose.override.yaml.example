@@ -1,0 +1,5 @@
+services:
+  caddy:
+    environment:
+      - no_proxy=*
+      - NO_PROXY=*
