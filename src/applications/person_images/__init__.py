@@ -1,16 +1,16 @@
 from modules.storage.person_image import ModuleStoragePersonImage
-from modules.database.person_image_paths import ModuleDatabasePersonImagePaths
-from entities.person_image import EntityPersonImage
+from repositories.database.person_image_paths import RepositoryDatabasePersonImagePaths
+from repositories.database.person_image_paths import RepositoryDatabasePersonImagePathsFilters
 import uuid
 from entities.environment.storage import EntityEnvironmentStorage
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
-from database import Database
+from repositories.database import RepositoryDatabaseEngine
 import io
 
 class ApplicationPersonImages:
     def __init__(
         self,
-        module_database_person_image_paths: ModuleDatabasePersonImagePaths,
+        module_database_person_image_paths: RepositoryDatabasePersonImagePaths,
         storage_person_image: ModuleStoragePersonImage,
     ):
         self.module_database_person_image_paths = module_database_person_image_paths
@@ -23,7 +23,7 @@ class ApplicationPersonImages:
         environment_postgresql: EntityEnvironmentPostgreSQL,
     ) -> "ApplicationPersonImages":
         return cls(
-            module_database_person_image_paths=ModuleDatabasePersonImagePaths(Database(
+            module_database_person_image_paths=RepositoryDatabasePersonImagePaths(RepositoryDatabaseEngine(
                 host=environment_postgresql.host,
                 port=environment_postgresql.port,
                 user=environment_postgresql.user,
@@ -35,7 +35,9 @@ class ApplicationPersonImages:
 
     def search(self, image_id: uuid.UUID) -> io.BytesIO:
         img_buffer = io.BytesIO()
-        self.storage_person_image.search(
-            self.module_database_person_image_paths.select_by_image_id(image_id)).image.save(img_buffer, format="JPEG")
+        person_image = self.storage_person_image.search(
+            self.module_database_person_image_paths.find_first(filters=RepositoryDatabasePersonImagePathsFilters(image_ids=[image_id]))
+        )
+        person_image.image.save(img_buffer, format="JPEG")
         img_buffer.seek(0)
         return img_buffer

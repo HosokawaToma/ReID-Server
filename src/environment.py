@@ -1,4 +1,9 @@
 import os
+from dataclasses import dataclass
+
+@dataclass
+class EnvironmentHash:
+    secret: str
 
 class Environment:
 
@@ -16,6 +21,12 @@ class Environment:
             return int(value)
         except ValueError:
             raise ValueError("PORT is not a valid integer")
+
+    def hash_key(self) -> str:
+        value = os.getenv("HASH_KEY")
+        if value is None:
+            raise ValueError("HASH_KEY is not set")
+        return value
 
     def public_ip(self) -> str:
         value = os.getenv("PUBLIC_IP")

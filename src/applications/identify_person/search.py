@@ -1,20 +1,21 @@
-from modules.database.person_features import ModuleDatabasePersonFeatures
+from repositories.database.person_features import RepositoryDatabasePersonFeatures
 from modules.storage.person_image import ModuleStoragePersonImage
-from modules.database.person_image_paths import ModuleDatabasePersonImagePaths
+from repositories.database.person_image_paths import RepositoryDatabasePersonImagePaths
 from entities.application.identify_person.search.conditions import EntityApplicationIdentifyPersonSearchConditions
-from entities.database.where.person_image_paths import EntityDatabaseWherePersonImagePath
+from repositories.database.person_image_paths import RepositoryDatabasePersonImagePathsFilters
 from entities.database.where.person_features import EntityDatabaseWherePersonFeatures
 from entities.application.identify_person.search.return_value import EntityApplicationIdentifyPersonSearchReturnValue
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
-from database import Database
+from repositories.database import RepositoryDatabaseEngine
 from errors.modules.database import ErrorModuleDatabase
+from repositories.database.person_features import RepositoryDatabasePersonFeaturesFilters
 class ApplicationIdentifyPersonSearch:
     def __init__(
         self,
-        database_person_image_paths: ModuleDatabasePersonImagePaths,
+        database_person_image_paths: RepositoryDatabasePersonImagePaths,
         storage_person_image: ModuleStoragePersonImage,
-        database_person_features: ModuleDatabasePersonFeatures,
+        database_person_features: RepositoryDatabasePersonFeatures,
         ):
         self.database_person_image_paths = database_person_image_paths
         self.database_person_features = database_person_features
@@ -27,7 +28,7 @@ class ApplicationIdentifyPersonSearch:
         environment_storage: EntityEnvironmentStorage,
     ) -> "ApplicationIdentifyPersonSearch":
         return cls(
-            database_person_image_paths=ModuleDatabasePersonImagePaths(Database(
+            database_person_image_paths=RepositoryDatabasePersonImagePaths(RepositoryDatabaseEngine(
                 host=environment_postgresql.host,
                 port=environment_postgresql.port,
                 user=environment_postgresql.user,
@@ -35,8 +36,8 @@ class ApplicationIdentifyPersonSearch:
                 database=environment_postgresql.database,
             )),
             storage_person_image=ModuleStoragePersonImage(environment_storage.path),
-            database_person_features=ModuleDatabasePersonFeatures(
-                database=Database(
+            database_person_features=RepositoryDatabasePersonFeatures(
+                database=RepositoryDatabaseEngine(
                     host=environment_postgresql.host,
                     port=environment_postgresql.port,
                     user=environment_postgresql.user,
@@ -46,9 +47,9 @@ class ApplicationIdentifyPersonSearch:
             )
 
     def search(self, conditions: EntityApplicationIdentifyPersonSearchConditions) -> list[EntityApplicationIdentifyPersonSearchReturnValue]:
-        person_image_paths = self.database_person_image_paths.select(EntityDatabaseWherePersonImagePath(
-            after=conditions.after,
-            before=conditions.before,
+        person_image_paths = self.database_person_image_paths.find_all(filters=RepositoryDatabasePersonImagePathsFilters(
+            timestamp_after=conditions.after,
+            timestamp_before=conditions.before,
             view_ids=conditions.view_ids,
             camera_ids=conditions.camera_ids,
             image_ids=conditions.image_ids,
@@ -57,12 +58,13 @@ class ApplicationIdentifyPersonSearch:
         for person_image_path in person_image_paths:
             try:
                 return_values.append(EntityApplicationIdentifyPersonSearchReturnValue(
-                    image_id=person_image_path.image_id,
-                    person_id=self.database_person_features.select_by_image_id(person_image_path.image_id).person_id,
-                    camera_id=person_image_path.camera_id,
-                    view_id=person_image_path.view_id,
-                    timestamp=person_image_path.timestamp,
-                ))
+                        image_id=person_image_path.image_id,
+                        person_id=self.database_person_features.find_first(RepositoryDatabasePersonFeaturesFilters(image_id=person_image_path.image_id)).person_id,
+                        camera_id=person_image_path.camera_id,
+                        view_id=person_image_path.view_id,
+                        timestamp=person_image_path.timestamp,
+                    )
+                )
             except ErrorModuleDatabase:
                 continue
         return return_values

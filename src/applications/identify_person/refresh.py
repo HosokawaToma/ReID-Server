@@ -1,17 +1,17 @@
 from datetime import datetime
 from modules.storage.person_image import ModuleStoragePersonImage
-from modules.database.person_image_paths import ModuleDatabasePersonImagePaths
+from repositories.database.person_image_paths import RepositoryDatabasePersonImagePaths
 from collections.person_image_paths import CollectionPersonImagePaths, CollectionPersonImagePathsFilter
 from entities.person_image_path import EntityPersonImagePath
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
-from database import Database
+from repositories.database import RepositoryDatabaseEngine
 
 class ApplicationIdentifyPersonRefresh:
     def __init__(
         self,
         module_storage_person_image: ModuleStoragePersonImage,
-        module_database_person_image_paths: ModuleDatabasePersonImagePaths,
+        module_database_person_image_paths: RepositoryDatabasePersonImagePaths,
         ):
         self.module_storage_person_image = module_storage_person_image
         self.module_database_person_image_paths = module_database_person_image_paths
@@ -24,8 +24,8 @@ class ApplicationIdentifyPersonRefresh:
     ):
         return cls(
             module_storage_person_image=ModuleStoragePersonImage(environment_storage.path),
-            module_database_person_image_paths=ModuleDatabasePersonImagePaths(
-                database=Database(
+            module_database_person_image_paths=RepositoryDatabasePersonImagePaths(
+                database=RepositoryDatabaseEngine(
                     host=environment_postgresql.host,
                     port=environment_postgresql.port,
                     user=environment_postgresql.user,
@@ -52,5 +52,6 @@ class ApplicationIdentifyPersonRefresh:
                 view_ids=view_ids,
             )
         ).items
-        self.module_database_person_image_paths.update_all(person_image_paths)
+        for person_image_path in person_image_paths:
+            self.module_database_person_image_paths.merge(person_image_path)
         return person_image_paths

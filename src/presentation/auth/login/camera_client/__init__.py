@@ -2,7 +2,7 @@ import fastapi
 from fastapi.responses import JSONResponse
 from applications.auth.camera_client import ApplicationAuthCameraClient
 from presentation.auth.login.camera_client.request import PresentationAuthLoginCameraClientRequest
-
+from applications.auth.camera_client import ApplicationAuthLoginCameraClientParams
 class PresentationAuthLoginCameraClient():
     TOKEN_BODY_NAME = "token"
 
@@ -18,8 +18,10 @@ class PresentationAuthLoginCameraClient():
     def endpoint(self, request: PresentationAuthLoginCameraClientRequest):
         try:
             camera_client = self.application_token.login(
-                id=request.camera_client_id,
-                password=request.password
+                ApplicationAuthLoginCameraClientParams(
+                    id=request.camera_client_id,
+                    password=request.password
+                )
             )
             return JSONResponse(
                 status_code=200,
