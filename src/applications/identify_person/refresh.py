@@ -1,7 +1,7 @@
 from datetime import datetime
 from modules.storage.person_image import ModuleStoragePersonImage
 from modules.database.person_image_paths import ModuleDatabasePersonImagePaths
-from entity_collections.person_image_paths import EntityCollectionPersonImagePaths
+from collections.person_image_paths import CollectionPersonImagePaths, CollectionPersonImagePathsFilter
 from entities.person_image_path import EntityPersonImagePath
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
@@ -42,8 +42,15 @@ class ApplicationIdentifyPersonRefresh:
         camera_ids: list[int] | None,
         view_ids: list[int] | None,
     ) -> list[EntityPersonImagePath]:
-        person_image_paths = EntityCollectionPersonImagePaths(self.module_storage_person_image.get_all_paths()) \
-            .filter(after_timestamp, before_timestamp, camera_ids, view_ids) \
-            .items
+        person_image_paths = CollectionPersonImagePaths(
+            self.module_storage_person_image.get_all_paths()
+        ).filter(
+            CollectionPersonImagePathsFilter(
+                after_timestamp=after_timestamp,
+                before_timestamp=before_timestamp,
+                camera_ids=camera_ids,
+                view_ids=view_ids,
+            )
+        ).items
         self.module_database_person_image_paths.update_all(person_image_paths)
         return person_image_paths
