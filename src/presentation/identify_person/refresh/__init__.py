@@ -5,21 +5,23 @@ from typing import Annotated
 from fastapi import Header
 from fastapi.responses import JSONResponse
 from presentation.identify_person.refresh.request import PresentationIdentifyPersonRefreshRequest
-from applications.identify_person.background.identify.queue import ApplicationIdentifyPersonBackgroundIdentifyQueue
-from applications.identify_person.background.feature.queue import ApplicationIdentifyPersonBackgroundFeatureQueue
+from presentation.background.person.feature.create import PresentationBackgroundPersonFeatureCreateQueue
+from presentation.background.person.feature.create import PresentationBackgroundPersonFeatureCreateQueueItem
+from presentation.background.person.feature.identify import PresentationBackgroundPersonFeatureIdentifyQueue
+from presentation.background.person.feature.identify import PresentationBackgroundPersonFeatureIdentifyQueueItem
 
 class PresentationIdentifyPersonRefresh:
     def __init__(
         self,
         application_auth: ApplicationAuthAdminClient,
         application: ApplicationIdentifyPersonRefresh,
-        application_background_feature_queue: ApplicationIdentifyPersonBackgroundFeatureQueue,
-        application_background_identify_queue: ApplicationIdentifyPersonBackgroundIdentifyQueue,
+        person_feature_create_queue: PresentationBackgroundPersonFeatureCreateQueue,
+        person_feature_identify_queue: PresentationBackgroundPersonFeatureIdentifyQueue,
         ):
         self.application_auth = application_auth
         self.application = application
-        self.application_background_identify_queue = application_background_identify_queue
-        self.application_background_feature_queue = application_background_feature_queue
+        self.person_feature_create_queue = person_feature_create_queue
+        self.person_feature_identify_queue = person_feature_identify_queue
 
     def setup(self, app: fastapi.FastAPI):
         app.add_api_route("/identify_person/refresh", self.endpoint, methods=["POST"])
@@ -42,7 +44,16 @@ class PresentationIdentifyPersonRefresh:
                 view_ids=request.view_ids,
             )
             for person_image_path in person_image_paths:
-                await self.application_background_feature_queue.add(person_image_path.image_id, self.application_background_identify_queue.add)
+                self.person_feature_create_queue.put(
+                    PresentationBackgroundPersonFeatureCreateQueueItem(
+                        person_image_path.image_id,
+                        callback=lambda person_feature_id: self.person_feature_identify_queue.put(
+                            PresentationBackgroundPersonFeatureIdentifyQueueItem(
+                                person_feature_id,
+                            )
+                        ),
+                    )
+                )
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=400)
         return JSONResponse(content={"message": "Identify person refreshed successfully"}, status_code=200)

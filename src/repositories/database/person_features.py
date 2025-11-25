@@ -65,14 +65,14 @@ class RepositoryDatabasePersonFeaturesFilters:
 
 @dataclass
 class RepositoryDatabasePersonFeatureOrderings:
-    timestamp_descending: bool = False
-    timestamp_ascending: bool = False
+    timestamp_descending: bool | None = None
+    timestamp_ascending: bool | None = None
     feature_to_nearest: torch.Tensor | None = None
 
     def order_by(self, query: Query) -> Query:
-        if self.timestamp_descending:
+        if self.timestamp_descending is not None:
             query = query.order_by(RepositoryDatabasePersonFeatureModel.timestamp.desc())
-        if self.timestamp_ascending:
+        if self.timestamp_ascending is not None:
             query = query.order_by(RepositoryDatabasePersonFeatureModel.timestamp.asc())
         if self.feature_to_nearest is not None:
             query = query.order_by(RepositoryDatabasePersonFeatureModel.feature.op("<=>")(self.feature_to_nearest.cpu().numpy().tolist()))

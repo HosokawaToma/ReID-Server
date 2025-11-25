@@ -1,32 +1,28 @@
 import fastapi
 from typing import Annotated
-from fastapi import Form, Header, UploadFile
+from fastapi import Header, UploadFile
 from applications.identify_person import ApplicationIdentifyPerson
 from fastapi.responses import JSONResponse
 from applications.auth.camera_client import ApplicationAuthCameraClient
-from applications.identify_person.background.feature import ApplicationIdentifyPersonBackgroundFeature
-from applications.identify_person.background.identify import ApplicationIdentifyPersonBackgroundIdentify
-from datetime import datetime
-import asyncio
+from presentation.background.person.feature.create import PresentationBackgroundPersonFeatureCreateQueue
+from presentation.background.person.feature.create import PresentationBackgroundPersonFeatureCreateQueueItem
+from presentation.background.person.feature.identify import PresentationBackgroundPersonFeatureIdentifyQueue
+from presentation.background.person.feature.identify import PresentationBackgroundPersonFeatureIdentifyQueueItem
 class PresentationIdentifyPerson:
     def __init__(
         self,
         application_auth: ApplicationAuthCameraClient,
         application: ApplicationIdentifyPerson,
-        application_background_feature: ApplicationIdentifyPersonBackgroundFeature,
-        application_background_identify: ApplicationIdentifyPersonBackgroundIdentify,
+        person_feature_create_queue: PresentationBackgroundPersonFeatureCreateQueue,
+        person_feature_identify_queue: PresentationBackgroundPersonFeatureIdentifyQueue,
         ):
         self.application_auth = application_auth
         self.application = application
-        self.application_background_feature = application_background_feature
-        self.application_background_identify = application_background_identify
+        self.person_feature_create_queue = person_feature_create_queue
+        self.person_feature_identify_queue = person_feature_identify_queue
 
     def setup(self, app: fastapi.FastAPI):
         app.add_api_route("/identify_person", self.endpoint, methods=["POST"])
-        app.add_event_handler("startup", self.application_background_feature.start)
-        app.add_event_handler("shutdown", self.application_background_feature.stop)
-        app.add_event_handler("startup", self.application_background_identify.start)
-        app.add_event_handler("shutdown", self.application_background_identify.stop)
 
     async def endpoint(
         self,
@@ -41,7 +37,16 @@ class PresentationIdentifyPerson:
         try:
             person_images = await self.application.proses(camera_client.id, [await image.read() for image in images])
             for person_image in person_images:
-                await self.application_background_feature.queue.add(person_image.id, self.application_background_identify.queue.add)
+                self.person_feature_create_queue.put(
+                    PresentationBackgroundPersonFeatureCreateQueueItem(
+                        person_image.id,
+                        callback=lambda person_feature_id: self.person_feature_identify_queue.put(
+                            PresentationBackgroundPersonFeatureIdentifyQueueItem(
+                                person_feature_id,
+                            )
+                        ),
+                    )
+                )
         except Exception as e:
             return JSONResponse(content={"message": str(e)}, status_code=400)
         return JSONResponse(content={"message": "Person images saved successfully. Person identification will be processed in background."}, status_code=200)

@@ -21,11 +21,9 @@ from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
 from entities.environment.coturn import EntityEnvironmentCoturn
 from entities.environment.admin_client import EntityEnvironmentAdminClient
-from applications.identify_person.background.feature import ApplicationIdentifyPersonBackgroundFeature
-from applications.identify_person.background.identify import ApplicationIdentifyPersonBackgroundIdentify
 from presentation.identify_person.refresh import PresentationIdentifyPersonRefresh
-from applications.identify_person.background.feature.queue import ApplicationIdentifyPersonBackgroundFeatureQueue
-from applications.identify_person.background.identify.queue import ApplicationIdentifyPersonBackgroundIdentifyQueue
+from presentation.background.person.feature.create import PresentationBackgroundPersonFeatureCreateQueue
+from presentation.background.person.feature.identify import PresentationBackgroundPersonFeatureIdentifyQueue
 from applications.identify_person.refresh import ApplicationIdentifyPersonRefresh
 from presentation.person_path import PresentationPersonPath
 from applications.person_flow import ApplicationPersonFlow
@@ -158,13 +156,8 @@ class ServerApp:
                     environment_postgresql=environment_postgresql,
                     environment_storage=environment_storage,
                 ),
-                application_background_feature=ApplicationIdentifyPersonBackgroundFeature.create(
-                    environment_postgresql=environment_postgresql,
-                    environment_storage=environment_storage,
-                ),
-                application_background_identify=ApplicationIdentifyPersonBackgroundIdentify.create(
-                    environment_postgresql=environment_postgresql,
-                ),
+                person_feature_create_queue=PresentationBackgroundPersonFeatureCreateQueue(),
+                person_feature_identify_queue=PresentationBackgroundPersonFeatureIdentifyQueue(),
             ),
             identify_person_refresh=PresentationIdentifyPersonRefresh(
                 application_auth=ApplicationAuthAdminClient.create(
@@ -175,8 +168,8 @@ class ServerApp:
                     environment_postgresql=environment_postgresql,
                     environment_storage=environment_storage,
                 ),
-                application_background_feature_queue=ApplicationIdentifyPersonBackgroundFeatureQueue(),
-                application_background_identify_queue=ApplicationIdentifyPersonBackgroundIdentifyQueue(),
+                person_feature_create_queue=PresentationBackgroundPersonFeatureCreateQueue(),
+                person_feature_identify_queue=PresentationBackgroundPersonFeatureIdentifyQueue(),
             ),
             rtc_connection=PresentationRtcConnection(
                 application_auth=ApplicationAuthCameraClient.create(
