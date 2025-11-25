@@ -33,7 +33,9 @@ class ApplicationAuthCameraClient:
         self.generator = generator
 
     def login(self, params: ApplicationAuthLoginCameraClientParams) -> EntityCameraClient:
-        camera_client = self.database_camera_clients.find_first(filters=RepositoryDatabaseCameraClientsFilters(id=params.id))
+        camera_client = self.database_camera_clients.find_first(
+            RepositoryDatabaseCameraClientsFilters(ids=[params.id])
+        )
         self.hasher.matches(params.password, camera_client.hashed_password)
         return camera_client
 

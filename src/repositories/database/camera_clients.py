@@ -25,12 +25,11 @@ class RepositoryDatabaseCameraClientModel(MigrationModelCameraClient):
 
 @dataclass
 class RepositoryDatabaseCameraClientsFilters:
-    id: str | None = None
+    ids: list[str] | None = None
 
     def filter(self, query: Query) -> Query:
-        if self.id is not None:
-            query = query.filter(
-                RepositoryDatabaseCameraClientModel.id == self.id)
+        if self.ids is not None:
+            query = query.filter(RepositoryDatabaseCameraClientModel.id.in_(self.ids))
         return query
 
 class RepositoryDatabaseCameraClientError(Exception):

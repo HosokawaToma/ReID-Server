@@ -59,7 +59,7 @@ class ApplicationIdentifyPerson:
 
     async def proses(self, camera_client_id: str, binary_images: list[bytes]) -> list[EntityPersonImage]:
         camera_client = self.database_camera_clients.find_first(
-            RepositoryDatabaseCameraClientsFilters(id=camera_client_id)
+            RepositoryDatabaseCameraClientsFilters(ids=[camera_client_id])
         )
         person_images = []
         for binary_image in binary_images:
