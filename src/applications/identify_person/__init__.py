@@ -1,23 +1,23 @@
-from datetime import datetime
-from modules.database.camera_clients import ModuleDatabaseCameraClients
+from repositories.database.camera_clients import RepositoryDatabaseCameraClients
+from repositories.database.camera_clients import RepositoryDatabaseCameraClientsFilters
 from modules.datetime import ModuleDatetime
 from modules.image import ModuleImage
-from database import Database
+from repositories.database import RepositoryDatabaseEngine
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
 from modules.storage.person_image import ModuleStoragePersonImage
 from entities.person_image import EntityPersonImage
-from modules.database.person_image_paths import ModuleDatabasePersonImagePaths
+from repositories.database.person_image_paths import RepositoryDatabasePersonImagePaths
 from entities.person_image_path import EntityPersonImagePath
 
 class ApplicationIdentifyPerson:
     def __init__(
         self,
-        database_camera_clients: ModuleDatabaseCameraClients,
+        database_camera_clients: RepositoryDatabaseCameraClients,
         image_module: ModuleImage,
         datetime_module: ModuleDatetime,
         storage_person_image: ModuleStoragePersonImage,
-        database_person_image_paths: ModuleDatabasePersonImagePaths,
+        database_person_image_paths: RepositoryDatabasePersonImagePaths,
         ):
         self.database_camera_clients = database_camera_clients
         self.image_module = image_module
@@ -32,7 +32,7 @@ class ApplicationIdentifyPerson:
         environment_storage: EntityEnvironmentStorage,
         ) -> "ApplicationIdentifyPerson":
         return cls(
-            database_camera_clients=ModuleDatabaseCameraClients(Database(
+            database_camera_clients=RepositoryDatabaseCameraClients(RepositoryDatabaseEngine(
                 host=environment_postgresql.host,
                 port=environment_postgresql.port,
                 user=environment_postgresql.user,
@@ -42,7 +42,7 @@ class ApplicationIdentifyPerson:
             image_module=ModuleImage(),
             datetime_module=ModuleDatetime(),
             storage_person_image=ModuleStoragePersonImage(environment_storage.path),
-            database_person_image_paths=ModuleDatabasePersonImagePaths(Database(
+            database_person_image_paths=RepositoryDatabasePersonImagePaths(RepositoryDatabaseEngine(
                 host=environment_postgresql.host,
                 port=environment_postgresql.port,
                 user=environment_postgresql.user,
@@ -58,7 +58,9 @@ class ApplicationIdentifyPerson:
         pass
 
     async def proses(self, camera_client_id: str, binary_images: list[bytes]) -> list[EntityPersonImage]:
-        camera_client = self.database_camera_clients.select_by_id(camera_client_id)
+        camera_client = self.database_camera_clients.find_first(
+            RepositoryDatabaseCameraClientsFilters(ids=[camera_client_id])
+        )
         person_images = []
         for binary_image in binary_images:
             image = self.image_module.decode(binary_image)

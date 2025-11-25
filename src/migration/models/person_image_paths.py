@@ -3,11 +3,10 @@ from sqlalchemy.orm import declarative_base
 from datetime import datetime
 import uuid
 
-
 Base = declarative_base()
 
 
-class DatabaseModelPersonImagePath(Base):
+class MigrationModelPersonImagePath(Base):
     __tablename__ = "person_image_paths"
     image_id = Column[uuid.UUID](UUID(as_uuid=True), primary_key=True)
     camera_id = Column[int](Integer)

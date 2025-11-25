@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 import uuid
 from datetime import datetime
 from pathlib import Path
-from database.models.person_image_path import DatabaseModelPersonImagePath
 
 @dataclass
 class EntityPersonImagePath:
@@ -20,24 +19,6 @@ class EntityPersonImagePath:
             timestamp=self.timestamp.strftime("%Y%m%d%H%M%S"),
             id=self.image_id,
         ))
-
-    def to_database_model(self) -> DatabaseModelPersonImagePath:
-        return DatabaseModelPersonImagePath(
-            image_id=self.image_id,
-            camera_id=self.camera_id,
-            view_id=self.view_id,
-            timestamp=self.timestamp,
-            path=str(self.path),
-        )
-
-    @classmethod
-    def from_database_model(cls, model: DatabaseModelPersonImagePath) -> "EntityPersonImagePath":
-        return cls(
-            image_id=uuid.UUID(str(model.image_id)),
-            camera_id=int(str(model.camera_id)),
-            view_id=int(str(model.view_id)),
-            timestamp=datetime.fromisoformat(str(model.timestamp)),
-        )
 
     @classmethod
     def from_path(cls, path: Path) -> "EntityPersonImagePath":

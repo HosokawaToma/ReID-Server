@@ -20,7 +20,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./src/database/versions:/app/src/database/versions
+      - ./src/migration:/app/src/migration:rw
       - ./resources:/app/resources
       - app_storage:/app/storage
 

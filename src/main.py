@@ -33,6 +33,7 @@ from presentation.identify_person.search import PresentationIdentifyPersonSearch
 from applications.identify_person.search import ApplicationIdentifyPersonSearch
 from presentation.person_images import PresentationPersonImages
 from applications.person_images import ApplicationPersonImages
+from environment import EnvironmentHash
 class ServerApp:
     def __init__(
         self,
@@ -71,6 +72,9 @@ class ServerApp:
         cls,
         environment: Environment,
     ) -> "ServerApp":
+        environment_hash = EnvironmentHash(
+            secret=environment.hash_key(),
+        )
         environment_jwt = EntityEnvironmentJwt(
             secret_key=environment.jwt_secret_key(),
             algorithm=environment.jwt_algorithm(),
@@ -121,6 +125,7 @@ class ServerApp:
                 application_token=ApplicationAuthCameraClient.create(
                     environment_jwt=environment_jwt,
                     environment_postgresql=environment_postgresql,
+                    environment_hash=environment_hash,
                 ),
             ),
             refresh_admin_client=PresentationAuthRefreshAdminClient(
@@ -140,12 +145,14 @@ class ServerApp:
                 ),
                 application=ApplicationCameraClientsCreate.create(
                     environment_postgresql=environment_postgresql,
+                    environment_hash=environment_hash,
                 )
             ),
             identify_person=PresentationIdentifyPerson(
                 application_auth=ApplicationAuthCameraClient.create(
                     environment_jwt=environment_jwt,
                     environment_postgresql=environment_postgresql,
+                    environment_hash=environment_hash,
                 ),
                 application=ApplicationIdentifyPerson.create(
                     environment_postgresql=environment_postgresql,
@@ -175,6 +182,7 @@ class ServerApp:
                 application_auth=ApplicationAuthCameraClient.create(
                     environment_jwt=environment_jwt,
                     environment_postgresql=environment_postgresql,
+                    environment_hash=environment_hash,
                 ),
                 application=ApplicationRtcConnection.create(
                     environment_coturn=environment_coturn,
@@ -185,6 +193,7 @@ class ServerApp:
                 application_auth=ApplicationAuthCameraClient.create(
                     environment_jwt=environment_jwt,
                     environment_postgresql=environment_postgresql,
+                    environment_hash=environment_hash,
                 ),
                 application=ApplicationRtcIceServer.create(
                     environment_coturn=environment_coturn,

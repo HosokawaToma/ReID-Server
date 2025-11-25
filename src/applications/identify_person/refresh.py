@@ -1,17 +1,19 @@
 from datetime import datetime
 from modules.storage.person_image import ModuleStoragePersonImage
-from modules.database.person_image_paths import ModuleDatabasePersonImagePaths
-from collections.person_image_paths import CollectionPersonImagePaths, CollectionPersonImagePathsFilter
+from repositories.database.person_image_paths import RepositoryDatabasePersonImagePaths
+from repositories.database.person_image_paths import RepositoryDatabasePersonImagePathsFilters
+from sequences.person_image_paths import SequencePersonImagePaths, SequencePersonImagePathsFilter
 from entities.person_image_path import EntityPersonImagePath
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
-from database import Database
+from repositories.database import RepositoryDatabaseEngine
+
 
 class ApplicationIdentifyPersonRefresh:
     def __init__(
         self,
         module_storage_person_image: ModuleStoragePersonImage,
-        module_database_person_image_paths: ModuleDatabasePersonImagePaths,
+        module_database_person_image_paths: RepositoryDatabasePersonImagePaths,
         ):
         self.module_storage_person_image = module_storage_person_image
         self.module_database_person_image_paths = module_database_person_image_paths
@@ -24,8 +26,8 @@ class ApplicationIdentifyPersonRefresh:
     ):
         return cls(
             module_storage_person_image=ModuleStoragePersonImage(environment_storage.path),
-            module_database_person_image_paths=ModuleDatabasePersonImagePaths(
-                database=Database(
+            module_database_person_image_paths=RepositoryDatabasePersonImagePaths(
+                database=RepositoryDatabaseEngine(
                     host=environment_postgresql.host,
                     port=environment_postgresql.port,
                     user=environment_postgresql.user,
@@ -42,15 +44,20 @@ class ApplicationIdentifyPersonRefresh:
         camera_ids: list[int] | None,
         view_ids: list[int] | None,
     ) -> list[EntityPersonImagePath]:
-        person_image_paths = CollectionPersonImagePaths(
+        sequence_person_image_paths = SequencePersonImagePaths(
             self.module_storage_person_image.get_all_paths()
         ).filter(
-            CollectionPersonImagePathsFilter(
+            SequencePersonImagePathsFilter(
                 after_timestamp=after_timestamp,
                 before_timestamp=before_timestamp,
                 camera_ids=camera_ids,
                 view_ids=view_ids,
             )
-        ).items
-        self.module_database_person_image_paths.update_all(person_image_paths)
-        return person_image_paths
+        )
+        sequence_person_image_paths.each(
+            lambda person_image_path: self.module_database_person_image_paths.update(
+                person_image_path,
+                filters=RepositoryDatabasePersonImagePathsFilters(image_ids=[person_image_path.image_id])
+            )
+        )
+        return sequence_person_image_paths.items

@@ -1,20 +1,19 @@
-from sqlalchemy import Column, Integer, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, DateTime, UUID, ForeignKey
 from sqlalchemy.orm import declarative_base
-from pgvector.sqlalchemy import Vector
 from datetime import datetime
 import uuid
-from sqlalchemy.dialects.postgresql import UUID
-from .person_image_path import DatabaseModelPersonImagePath
+from pgvector.sqlalchemy import Vector
 
+from migration.models.person_image_paths import MigrationModelPersonImagePath
 
 Base = declarative_base()
 
 
-class DatabaseModelPersonFeature(Base):
+class MigrationModelPersonFeature(Base):
     __tablename__ = "person_features"
     id = Column[uuid.UUID](UUID(as_uuid=True), primary_key=True)
     image_id = Column[uuid.UUID](
-        UUID(as_uuid=True), ForeignKey(DatabaseModelPersonImagePath.image_id))
+        UUID(as_uuid=True), ForeignKey(MigrationModelPersonImagePath.image_id))
     person_id = Column[uuid.UUID](UUID(as_uuid=True))
     feature = Column[Vector](Vector(1280))
     camera_id = Column[int](Integer)
