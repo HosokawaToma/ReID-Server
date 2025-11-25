@@ -1,22 +1,10 @@
-from sqlalchemy import Column, String, Integer, DateTime
-from sqlalchemy.orm import Query, declarative_base
-from datetime import datetime
+from migration.models.camera_clients import MigrationModelCameraClient
+from sqlalchemy.orm import Query
 from dataclasses import dataclass
 from repositories.database import RepositoryDatabaseEngine
 from entities.camera_client import EntityCameraClient
 
-Base = declarative_base()
-
-class RepositoryDatabaseCameraClientModel(Base):
-    __tablename__ = "camera_clients"
-    id = Column[str](String(255), primary_key=True)
-    hashed_password = Column[str](String(255))
-    camera_id = Column[int](Integer)
-    view_id = Column[int](Integer)
-    created_at = Column[datetime](DateTime, default=datetime.now)
-    updated_at = Column[datetime](
-        DateTime, default=datetime.now, onupdate=datetime.now)
-
+class RepositoryDatabaseCameraClientModel(MigrationModelCameraClient):
     def to_entity(self) -> EntityCameraClient:
         return EntityCameraClient(
             id=str(self.id),

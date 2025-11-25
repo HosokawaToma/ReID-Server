@@ -1,11 +1,13 @@
 from datetime import datetime
 from modules.storage.person_image import ModuleStoragePersonImage
 from repositories.database.person_image_paths import RepositoryDatabasePersonImagePaths
-from collections.person_image_paths import CollectionPersonImagePaths, CollectionPersonImagePathsFilter
+from repositories.database.person_image_paths import RepositoryDatabasePersonImagePathsFilters
+from sequences.person_image_paths import SequencePersonImagePaths, SequencePersonImagePathsFilter
 from entities.person_image_path import EntityPersonImagePath
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
 from repositories.database import RepositoryDatabaseEngine
+
 
 class ApplicationIdentifyPersonRefresh:
     def __init__(
@@ -42,16 +44,20 @@ class ApplicationIdentifyPersonRefresh:
         camera_ids: list[int] | None,
         view_ids: list[int] | None,
     ) -> list[EntityPersonImagePath]:
-        person_image_paths = CollectionPersonImagePaths(
+        sequence_person_image_paths = SequencePersonImagePaths(
             self.module_storage_person_image.get_all_paths()
         ).filter(
-            CollectionPersonImagePathsFilter(
+            SequencePersonImagePathsFilter(
                 after_timestamp=after_timestamp,
                 before_timestamp=before_timestamp,
                 camera_ids=camera_ids,
                 view_ids=view_ids,
             )
-        ).items
-        for person_image_path in person_image_paths:
-            self.module_database_person_image_paths.merge(person_image_path)
-        return person_image_paths
+        )
+        sequence_person_image_paths.each(
+            lambda person_image_path: self.module_database_person_image_paths.update(
+                person_image_path,
+                filters=RepositoryDatabasePersonImagePathsFilters(image_ids=[person_image_path.image_id])
+            )
+        )
+        return sequence_person_image_paths.items

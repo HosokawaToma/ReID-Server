@@ -5,8 +5,10 @@ from sqlalchemy.exc import SQLAlchemyError
 from typing import Type
 from types import TracebackType
 
+
 class RepositoryDatabaseError(Exception):
     pass
+
 
 class RepositoryDatabaseEngine:
     ENGINE_URL_TEMPLATE = "postgresql://{user}:{password}@{host}:{port}/{database}"
@@ -18,7 +20,8 @@ class RepositoryDatabaseEngine:
                 user=user, password=password, host=host, port=port, database=database
             )
             RepositoryDatabaseEngine._engine = create_engine(engine_url)
-        self._session_maker = sessionmaker[Session](bind=RepositoryDatabaseEngine._engine)
+        self._session_maker = sessionmaker[Session](
+            bind=RepositoryDatabaseEngine._engine)
         self._session: Session | None = None
 
     def __enter__(self) -> Session:
@@ -54,4 +57,4 @@ class RepositoryDatabaseEngine:
         finally:
             if self._session:
                 self._session.close()
-                self._session = None
+            self._session = None

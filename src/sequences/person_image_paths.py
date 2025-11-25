@@ -1,22 +1,23 @@
 from dataclasses import dataclass
 from datetime import datetime
 from entities.person_image_path import EntityPersonImagePath
+from typing import Callable
 
 @dataclass
-class CollectionPersonImagePathsFilter:
+class SequencePersonImagePathsFilter:
     after_timestamp: datetime | None = None
     before_timestamp: datetime | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
 
-class CollectionPersonImagePaths:
+class SequencePersonImagePaths:
     def __init__(self, items: list[EntityPersonImagePath]):
         self.items = items
 
     def filter(
         self,
-        filter: CollectionPersonImagePathsFilter,
-    ) -> "CollectionPersonImagePaths":
+        filter: SequencePersonImagePathsFilter,
+    ) -> "SequencePersonImagePaths":
         if filter.after_timestamp is not None:
             self.items = [path for path in self.items if path.timestamp >= filter.after_timestamp]
         if filter.before_timestamp is not None:
@@ -25,4 +26,8 @@ class CollectionPersonImagePaths:
             self.items = [path for path in self.items if path.camera_id in filter.camera_ids]
         if filter.view_ids is not None:
             self.items = [path for path in self.items if path.view_id in filter.view_ids]
-        return self
+        return SequencePersonImagePaths(self.items)
+
+    def each(self, callback: Callable[[EntityPersonImagePath], None]) -> None:
+        for item in self.items:
+            callback(item)

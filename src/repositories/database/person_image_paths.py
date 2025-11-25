@@ -1,5 +1,3 @@
-from sqlalchemy import Column, Integer, DateTime, UUID, String
-from sqlalchemy.orm import declarative_base
 from datetime import datetime
 import uuid
 
@@ -9,19 +7,9 @@ from repositories.database import RepositoryDatabaseEngine
 from sqlalchemy.orm import Query
 from dataclasses import dataclass
 
-Base = declarative_base()
+from migration.models.person_image_paths import MigrationModelPersonImagePath
 
-class RepositoryDatabasePersonImagePathModel(Base):
-    __tablename__ = "person_image_paths"
-    image_id = Column[uuid.UUID](UUID(as_uuid=True), primary_key=True)
-    camera_id = Column[int](Integer)
-    view_id = Column[int](Integer)
-    timestamp = Column[datetime](DateTime)
-    path = Column[str](String(255))
-    created_at = Column[datetime](DateTime, default=datetime.now)
-    updated_at = Column[datetime](
-        DateTime, default=datetime.now, onupdate=datetime.now)
-
+class RepositoryDatabasePersonImagePathModel(MigrationModelPersonImagePath):
     def to_entity(self) -> EntityPersonImagePath:
         return EntityPersonImagePath(
             image_id=uuid.UUID(str(self.image_id)),
@@ -37,8 +25,17 @@ class RepositoryDatabasePersonImagePathModel(Base):
             camera_id=entity.camera_id,
             view_id=entity.view_id,
             timestamp=entity.timestamp,
-            path=entity.path,
+            path=str(entity.path),
         )
+
+    def to_dict(self) -> dict:
+        return {
+            "image_id": self.image_id,
+            "camera_id": self.camera_id,
+            "view_id": self.view_id,
+            "timestamp": self.timestamp,
+            "path": self.path,
+        }
 
 @dataclass
 class RepositoryDatabasePersonImagePathsFilters:
@@ -92,3 +89,14 @@ class RepositoryDatabasePersonImagePaths:
     def merge(self, person_image_path: EntityPersonImagePath) -> None:
         with self.database as db_session:
             db_session.merge(RepositoryDatabasePersonImagePathModel.from_entity(person_image_path))
+
+    def update(
+        self,
+        person_image_path: EntityPersonImagePath,
+        filters: RepositoryDatabasePersonImagePathsFilters | None = None,
+    ) -> None:
+        with self.database as db_session:
+            query = db_session.query(RepositoryDatabasePersonImagePathModel)
+            if filters is not None:
+                query = filters.filter(query)
+            query.update(RepositoryDatabasePersonImagePathModel.from_entity(person_image_path).to_dict())

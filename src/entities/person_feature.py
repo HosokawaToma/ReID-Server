@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 import uuid
 import torch
 from datetime import datetime
-from repositories.database.person_features import RepositoryDatabasePersonFeatureModel
 
 @dataclass
 class EntityPersonFeature:

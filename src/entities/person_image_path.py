@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 import uuid
 from datetime import datetime
 from pathlib import Path
-from repositories.database.person_image_paths import RepositoryDatabasePersonImagePathModel
 
 @dataclass
 class EntityPersonImagePath:

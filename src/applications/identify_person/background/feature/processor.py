@@ -13,6 +13,11 @@ from modules.storage.person_image import ModuleStoragePersonImage
 from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from entities.environment.storage import EntityEnvironmentStorage
 from repositories.database import RepositoryDatabaseEngine
+import logging
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
 class ApplicationIdentifyPersonBackgroundFeatureProcessor:
     def __init__(
         self,
@@ -81,6 +86,7 @@ class ApplicationIdentifyPersonBackgroundFeatureProcessor:
         if not self.yolo_pose_verification.verify(keypoints):
             raise ValueError("Pose verification failed")
         feature = self.reid_model.extract_feature(person_image.image, person_image.camera_id, person_image.view_id)
+        logger.info(f"Feature extracted for image {id}")
         person_feature = EntityPersonFeature(
             image_id=person_image.id,
             feature=feature,
@@ -88,8 +94,15 @@ class ApplicationIdentifyPersonBackgroundFeatureProcessor:
             view_id=person_image.view_id,
             timestamp=person_image.timestamp,
         )
+        logger.info(f"Feature created for image {id}")
         self.database_person_features.delete(
             filters=RepositoryDatabasePersonFeaturesFilters(image_id=person_image.id)
         )
-        self.database_person_features.add(person_feature)
+        logger.info(f"Feature deleted for image {id}")
+        try:
+            self.database_person_features.add(person_feature)
+            logger.info(f"Feature added for image {id}")
+        except Exception as e:
+            logger.error(f"Error adding feature for image {id}: {e}")
+            raise e
         return person_feature

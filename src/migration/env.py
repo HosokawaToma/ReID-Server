@@ -6,7 +6,8 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from .modules import ALEMBIC_MODELS
+# srcから読み込むことを想定
+from migration.models import ALEMBIC_MODELS
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

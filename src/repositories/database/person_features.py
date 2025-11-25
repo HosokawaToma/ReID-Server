@@ -4,27 +4,11 @@ import torch
 from datetime import datetime
 from typing import List
 import uuid
-from sqlalchemy import Column, Integer, DateTime, ForeignKey
-from sqlalchemy.orm import declarative_base
-from pgvector.sqlalchemy import Vector
-from datetime import datetime
-from sqlalchemy.dialects.postgresql import UUID
-from repositories.database.person_image_paths import RepositoryDatabasePersonImagePathModel
+from migration.models.person_features import MigrationModelPersonFeature
 from sqlalchemy.orm import Query
 from dataclasses import dataclass
 
-Base = declarative_base()
-
-class RepositoryDatabasePersonFeatureModel(Base):
-    __tablename__ = "person_features"
-    id = Column[uuid.UUID](UUID(as_uuid=True), primary_key=True)
-    image_id = Column[uuid.UUID](
-        UUID(as_uuid=True), ForeignKey(RepositoryDatabasePersonImagePathModel.image_id))
-    person_id = Column[uuid.UUID](UUID(as_uuid=True))
-    feature = Column[Vector](Vector(1280))
-    camera_id = Column[int](Integer)
-    view_id = Column[int](Integer)
-    timestamp = Column[datetime](DateTime)
+class RepositoryDatabasePersonFeatureModel(MigrationModelPersonFeature):
 
     def to_entity(self) -> EntityPersonFeature:
         return EntityPersonFeature(
@@ -43,7 +27,7 @@ class RepositoryDatabasePersonFeatureModel(Base):
             id=entity.id,
             image_id=entity.image_id,
             person_id=entity.person_id,
-            feature=entity.feature,
+            feature=entity.feature.cpu(),
             camera_id=entity.camera_id,
             view_id=entity.view_id,
             timestamp=entity.timestamp,
@@ -74,9 +58,9 @@ class RepositoryDatabasePersonFeaturesFilters:
         if self.view_ids is not None:
             query = query.filter(RepositoryDatabasePersonFeatureModel.view_id.in_(self.view_ids))
         if self.timestamp_after is not None:
-            query = query.filter(RepositoryDatabasePersonFeatureModel.timestamp > self.timestamp_after)
+            query = query.filter(RepositoryDatabasePersonFeatureModel.timestamp >= self.timestamp_after)
         if self.timestamp_before is not None:
-            query = query.filter(RepositoryDatabasePersonFeatureModel.timestamp < self.timestamp_before)
+            query = query.filter(RepositoryDatabasePersonFeatureModel.timestamp <= self.timestamp_before)
         return query
 
 @dataclass
