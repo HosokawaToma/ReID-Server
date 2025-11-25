@@ -35,9 +35,9 @@ class RepositoryDatabasePersonFeatureModel(MigrationModelPersonFeature):
 
 @dataclass
 class RepositoryDatabasePersonFeaturesFilters:
-    id: uuid.UUID | None = None
-    image_id: uuid.UUID | None = None
-    person_id: uuid.UUID | None = None
+    ids: list[uuid.UUID] | None = None
+    image_ids: list[uuid.UUID] | None = None
+    person_ids: list[uuid.UUID] | None = None
     feature: torch.Tensor | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
@@ -45,12 +45,12 @@ class RepositoryDatabasePersonFeaturesFilters:
     timestamp_before: datetime | None = None
 
     def filter(self, query: Query) -> Query:
-        if self.id is not None:
-            query = query.filter(RepositoryDatabasePersonFeatureModel.id == self.id)
-        if self.image_id is not None:
-            query = query.filter(RepositoryDatabasePersonFeatureModel.image_id == self.image_id)
-        if self.person_id is not None:
-            query = query.filter(RepositoryDatabasePersonFeatureModel.person_id == self.person_id)
+        if self.ids is not None:
+            query = query.filter(RepositoryDatabasePersonFeatureModel.id.in_(self.ids))
+        if self.image_ids is not None:
+            query = query.filter(RepositoryDatabasePersonFeatureModel.image_id.in_(self.image_ids))
+        if self.person_ids is not None:
+            query = query.filter(RepositoryDatabasePersonFeatureModel.person_id.in_(self.person_ids))
         if self.feature is not None:
             query = query.filter(RepositoryDatabasePersonFeatureModel.feature == self.feature)
         if self.camera_ids is not None:

@@ -63,7 +63,7 @@ class ApplicationIdentifyPersonSearch:
                         image_id=person_image_path.image_id,
                         person_id=self.database_person_features.find_first(
                             RepositoryDatabasePersonFeaturesFilters(
-                                image_id=person_image_path.image_id
+                                image_ids=[person_image_path.image_id]
                             )
                         ).person_id,
                         camera_id=person_image_path.camera_id,

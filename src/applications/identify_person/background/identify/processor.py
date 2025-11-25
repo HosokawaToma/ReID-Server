@@ -35,7 +35,7 @@ class ApplicationIdentifyPersonBackgroundIdentifyProcessor:
 
     async def process(self, id: uuid.UUID):
         query_person_feature = self.database_person_features.find_first(
-            RepositoryDatabasePersonFeaturesFilters(id=id)
+            RepositoryDatabasePersonFeaturesFilters(ids=[id])
         )
         gallery_person_feature = self.database_person_features.find_first(
             RepositoryDatabasePersonFeaturesFilters(

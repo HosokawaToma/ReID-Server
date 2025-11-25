@@ -96,7 +96,7 @@ class ApplicationIdentifyPersonBackgroundFeatureProcessor:
         )
         logger.info(f"Feature created for image {id}")
         self.database_person_features.delete(
-            filters=RepositoryDatabasePersonFeaturesFilters(image_id=person_image.id)
+            filters=RepositoryDatabasePersonFeaturesFilters(image_ids=[person_image.id])
         )
         logger.info(f"Feature deleted for image {id}")
         try:
