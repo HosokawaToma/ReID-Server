@@ -1,7 +1,8 @@
 import logging
-from asyncio import Queue, Task
+from asyncio import Task
 import asyncio
 import abc
+import fastapi
 
 class BackgroundLogger:
     def __init__(self):
@@ -22,62 +23,46 @@ class BackgroundLogger:
     def debug(self, message: str):
         self.logger.debug(message)
 
+class BackgroundJobError(Exception):
+    pass
 
-class BackgroundJob:
+class Background:
+    def __init__(
+        self,
+        logger: BackgroundLogger,
+    ):
+        self.logger = logger
+        self.task: Task | None = None
+
     @property
     @abc.abstractmethod
     def name(self) -> str:
         pass
 
-    @abc.abstractmethod
-    async def execute(self) -> str:
-        pass
-
-
-class BackgroundJobError(Exception):
-    pass
-
-
-class BackgroundQueue:
-    _queue: Queue[BackgroundJob] = Queue()
-
-    async def get(self) -> BackgroundJob:
-        return await BackgroundQueue._queue.get()
-
-    async def put(self, job: BackgroundJob) -> None:
-        await BackgroundQueue._queue.put(job)
-
-
-class BackgroundWorker:
-    def __init__(
-        self,
-        logger: BackgroundLogger,
-        queue: BackgroundQueue,
-    ):
-        self.logger = logger
-        self.queue = queue
-        self.task: Task | None = None
+    def setup(self, app: fastapi.FastAPI):
+        app.add_event_handler("startup", self.start)
+        app.add_event_handler("shutdown", self.stop)
 
     async def start(self) -> None:
-        self.task = asyncio.create_task(self.process())
+        self.task = asyncio.create_task(self.run())
 
     async def stop(self) -> None:
         if self.task:
             self.task.cancel()
             await self.task
 
-    async def process(self) -> None:
+    async def run(self) -> None:
         while True:
             try:
-                job = await self.queue.get()
-            except asyncio.CancelledError:
-                break
-            try:
-                message = await job.execute()
-                self.logger.info(f"Background job executed successfully: {job.name}: {message}")
+                await self.process()
+                self.logger.info(f"Background {self.name} executed successfully")
             except BackgroundJobError as e:
-                self.logger.error(f"Background job error: {job.name}: {e}. Skipping job.")
+                self.logger.error(f"Background {self.name} error: {e}. Skipping job.")
                 continue
             except Exception as e:
-                self.logger.error(f"Unexpected error processing background job: {job.name}: {e}")
+                self.logger.error(f"Unexpected error processing background {self.name}: {e}")
                 continue
+
+    @abc.abstractmethod
+    async def process(self) -> None:
+        pass

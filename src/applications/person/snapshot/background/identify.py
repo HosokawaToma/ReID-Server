@@ -1,3 +1,5 @@
+from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentify
+from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentifyError
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFindOneParams
 from repositories.person.snapshot import RepositoryPersonSnapshotFindOneFilters
@@ -10,44 +12,56 @@ from environment import Environment
 from dataclasses import dataclass
 import uuid
 
+
 @dataclass
-class ApplicationPersonSnapshotIdentifyParams:
+class ApplicationPersonSnapshotBackgroundIdentifyParams:
     person_snapshot_id: uuid.UUID
 
-class ApplicationPersonSnapshotIdentifyError(Exception):
+
+class ApplicationPersonSnapshotBackgroundIdentifyError(Exception):
     pass
 
-class ApplicationPersonSnapshotMissingFeatureError(ApplicationPersonSnapshotIdentifyError):
+
+class ApplicationPersonSnapshotMissingFeatureError(ApplicationPersonSnapshotBackgroundIdentifyError):
     pass
 
-class ApplicationPersonSnapshotNotFoundError(ApplicationPersonSnapshotIdentifyError):
+
+class ApplicationPersonSnapshotNotFoundError(ApplicationPersonSnapshotBackgroundIdentifyError):
     pass
 
-class ApplicationPersonSnapshotThresholdError(ApplicationPersonSnapshotIdentifyError):
+
+class ApplicationPersonSnapshotThresholdError(ApplicationPersonSnapshotBackgroundIdentifyError):
     pass
 
-class ApplicationPersonSnapshotIdentify:
+
+class ApplicationPersonSnapshotBackgroundIdentify:
     def __init__(
         self,
+        repository_queue_person_snapshot_identify: RepositoryQueuePersonSnapshotIdentify,
         repository_person_snapshot: RepositoryPersonSnapshot,
         reid_identifier: ModuleReIDIdentifier,
     ):
+        self.repository_queue_person_snapshot_identify = repository_queue_person_snapshot_identify
         self.repository_person_snapshot = repository_person_snapshot
         self.reid_identifier = reid_identifier
 
     @classmethod
-    def create(cls, environment: Environment) -> "ApplicationPersonSnapshotIdentify":
+    def create(cls, environment: Environment) -> "ApplicationPersonSnapshotBackgroundIdentify":
         return cls(
-            repository_person_snapshot=RepositoryPersonSnapshot.create(environment),
+            repository_queue_person_snapshot_identify=RepositoryQueuePersonSnapshotIdentify.create(
+                environment),
+            repository_person_snapshot=RepositoryPersonSnapshot.create(
+                environment),
             reid_identifier=ModuleReIDIdentifier(threshold=0.895),
         )
 
-    def identify(self, params: ApplicationPersonSnapshotIdentifyParams) -> None:
+    async def identify(self) -> None:
         try:
+            item = await self.repository_queue_person_snapshot_identify.dequeue()
             person_snapshot = self.repository_person_snapshot.find_first(
                 RepositoryPersonSnapshotFindOneParams(
                     filters=RepositoryPersonSnapshotFindOneFilters(
-                        ids=[params.person_snapshot_id],
+                        ids=[item.id],
                     ),
                 )
             )
@@ -68,6 +82,8 @@ class ApplicationPersonSnapshotIdentify:
             )
             person_snapshot.person_id = nearest_person_snapshot.person_id
             self.repository_person_snapshot.update(person_snapshot)
+        except RepositoryQueuePersonSnapshotIdentifyError:
+            raise ApplicationPersonSnapshotBackgroundIdentifyError
         except ApplicationPersonSnapshotMissingFeatureError:
             raise ApplicationPersonSnapshotMissingFeatureError
         except PersonSnapshotNotFoundError:
