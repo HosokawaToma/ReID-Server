@@ -1,8 +1,7 @@
 from background import BackgroundJob, BackgroundJobError
-from applications.person.snapshot.feature_extraction import ApplicationPersonSnapshotFeatureExtraction
-from applications.person.snapshot.feature_extraction import ApplicationPersonSnapshotFeatureExtractionParams
-from applications.person.snapshot.feature_extraction import ApplicationPersonSnapshotNotFoundError
-from applications.person.snapshot.feature_extraction import ApplicationPersonSnapshotImageNotFoundError
+from applications.person.snapshot.background.feature_extraction import ApplicationPersonSnapshotBackgroundFeatureExtraction
+from applications.person.snapshot.background.feature_extraction import ApplicationPersonSnapshotNotFoundError
+from applications.person.snapshot.background.feature_extraction import ApplicationPersonSnapshotImageNotFoundError
 from environment import Environment
 
 from dataclasses import dataclass
@@ -13,25 +12,15 @@ class BackgroundPersonSnapshotFeatureExtraction(BackgroundJob):
     def name(self) -> str:
         return "person_snapshot_feature_extraction"
 
-    @property
-    def id(self) -> uuid.UUID:
-        return self.params.person_snapshot_id
-
     def __init__(
         self,
-        application: ApplicationPersonSnapshotFeatureExtraction,
-        params: ApplicationPersonSnapshotFeatureExtractionParams,
+        application: ApplicationPersonSnapshotBackgroundFeatureExtraction,
     ):
         self.application = application
-        self.params = params
 
-    async def execute(self) -> None:
+    async def execute(self) -> str:
         try:
-            self.application.extract(
-                ApplicationPersonSnapshotFeatureExtractionParams(
-                    person_snapshot_id=self.params.person_snapshot_id,
-                )
-            )
+            return await self.application.extract()
         except ApplicationPersonSnapshotNotFoundError:
             raise BackgroundJobError("person snapshot not found")
         except ApplicationPersonSnapshotImageNotFoundError:
@@ -47,8 +36,5 @@ class BackgroundPersonSnapshotFeatureExtractionFactory:
 
     def create(self, params: BackgroundPersonSnapshotFeatureExtractionFactoryParams) -> BackgroundPersonSnapshotFeatureExtraction:
         return BackgroundPersonSnapshotFeatureExtraction(
-            application=ApplicationPersonSnapshotFeatureExtraction.create(self.environment),
-            params=ApplicationPersonSnapshotFeatureExtractionParams(
-                person_snapshot_id=params.person_snapshot_id,
-            ),
+            application=ApplicationPersonSnapshotBackgroundFeatureExtraction.create(self.environment),
         )
