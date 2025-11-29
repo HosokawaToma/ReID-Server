@@ -13,6 +13,9 @@ class Environment:
     database_user: str = field(init=False)
     database_password: str = field(init=False)
     storage_directory: Path = field(init=False)
+    redis_host: str = field(init=False)
+    redis_port: int = field(init=False)
+    redis_db: int = field(init=False)
 
     def __post_init__(self):
         self.database_host = self.postgresql_host()
@@ -21,6 +24,24 @@ class Environment:
         self.database_user = self.postgresql_user()
         self.database_password = self.postgresql_password()
         self.storage_directory = Path(self.storage_path())
+        self.redis_host = self._get_string("REDIS_HOST")
+        self.redis_port = self._get_int("REDIS_PORT")
+        self.redis_db = self._get_int("REDIS_DB")
+
+    def _get_string(self, key: str) -> str:
+        value = os.getenv(key)
+        if value is None:
+            raise ValueError(f"{key} is not set")
+        return value
+
+    def _get_int(self, key: str) -> int:
+        value = os.getenv(key)
+        if value is None:
+            raise ValueError(f"{key} is not set")
+        try:
+            return int(value)
+        except ValueError:
+            raise ValueError(f"{key} is not a valid integer")
 
     def host(self) -> str:
         value = os.getenv("HOST")
