@@ -58,6 +58,18 @@ class RepositoryDatabasePersonImagePathsFilters:
             query = query.filter(RepositoryDatabasePersonImagePathModel.timestamp <= self.timestamp_before)
         return query
 
+@dataclass
+class RepositoryDatabasePersonImagePathsOrderings:
+    timestamp_descending: bool | None = None
+    timestamp_ascending: bool | None = None
+
+    def order(self, query: Query) -> Query:
+        if self.timestamp_descending is not None:
+            query = query.order_by(RepositoryDatabasePersonImagePathModel.timestamp.desc())
+        elif self.timestamp_ascending is not None:
+            query = query.order_by(RepositoryDatabasePersonImagePathModel.timestamp.asc())
+        return query
+
 class RepositoryDatabasePersonImagePathsError(Exception):
     pass
 
@@ -69,21 +81,33 @@ class RepositoryDatabasePersonImagePaths:
         with self.database as db_session:
             db_session.add(RepositoryDatabasePersonImagePathModel.from_entity(person_image_path))
 
-    def find_first(self, filters: RepositoryDatabasePersonImagePathsFilters | None = None) -> EntityPersonImagePath:
+    def find_first(
+        self,
+        filters: RepositoryDatabasePersonImagePathsFilters | None = None,
+        orderings: RepositoryDatabasePersonImagePathsOrderings | None = None,
+    ) -> EntityPersonImagePath:
         with self.database as db_session:
             query = db_session.query(RepositoryDatabasePersonImagePathModel)
             if filters is not None:
                 query = filters.filter(query)
+            if orderings is not None:
+                query = orderings.order(query)
             model = query.first()
             if model is None:
                 raise RepositoryDatabasePersonImagePathsError("Person image path not found")
             return model.to_entity()
 
-    def find_all(self, filters: RepositoryDatabasePersonImagePathsFilters | None = None) -> list[EntityPersonImagePath]:
+    def find_all(
+        self,
+        filters: RepositoryDatabasePersonImagePathsFilters | None = None,
+        orderings: RepositoryDatabasePersonImagePathsOrderings | None = None,
+    ) -> list[EntityPersonImagePath]:
         with self.database as db_session:
             query = db_session.query(RepositoryDatabasePersonImagePathModel)
             if filters is not None:
                 query = filters.filter(query)
+            if orderings is not None:
+                query = orderings.order(query)
             return [model.to_entity() for model in query.all()]
 
     def merge(self, person_image_path: EntityPersonImagePath) -> None:

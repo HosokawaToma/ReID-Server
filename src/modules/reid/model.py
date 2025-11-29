@@ -3,12 +3,10 @@ from typing import Optional
 import torch
 from PIL import Image
 from torchvision import transforms
+from yacs.config import CfgNode
 
 from modules.reid.clip_reid.config import cfg
 from modules.reid.clip_reid.model.make_model_clipreid import make_model
-from modules.reid.clip_reid.datasets.make_dataloader_clipreid import make_dataloader
-
-from errors.modules.reid.model import ErrorModuleReidModel
 
 CONFIG_FILE_PATH = os.path.join(os.path.dirname(
     __file__), "clip_reid/configs/person/vit_clipreid.yml")
@@ -30,50 +28,56 @@ OPTIONS = [
 ]
 
 
-class ModuleReIDModel:
-    def __init__(self):
-        cfg.merge_from_file(CONFIG_FILE_PATH)
-        cfg.merge_from_list(OPTIONS)
-        cfg.freeze()
-        self.config = cfg
-        os.environ['CUDA_VISIBLE_DEVICES'] = cfg.MODEL.DEVICE_ID
-        # _, _, _, _, num_classes, camera_num, view_num = make_dataloader(self.config)
-        num_classes = torch.tensor(751, dtype=torch.int64).to(self.config.MODEL.DEVICE)
-        camera_num = torch.tensor(6, dtype=torch.int64).to(self.config.MODEL.DEVICE)
-        view_num = torch.tensor(1, dtype=torch.int64).to(self.config.MODEL.DEVICE)
-        model = make_model(self.config, num_classes, camera_num, view_num)
-        model.load_param(self.config.TEST.WEIGHT)
-        model.eval()
-        model.to(self.config.MODEL.DEVICE)
-        self.model = model
+class ModuleReIDModelError(Exception):
+    pass
 
-        self.transform: transforms.Compose = transforms.Compose(
-            [
-                transforms.Resize(self.config.INPUT.SIZE_TEST),
-                transforms.ToTensor(),
-                transforms.Normalize(
-                    mean=self.config.INPUT.PIXEL_MEAN,
-                    std=self.config.INPUT.PIXEL_STD
-                )
-            ]
-        )
+class ModuleReIDModel:
+    _model: torch.nn.Module | None = None
+    _transform: transforms.Compose | None = None
+    _config: CfgNode | None = None
+
+    def __init__(self):
+        if ModuleReIDModel._model is None:
+            cfg.merge_from_file(CONFIG_FILE_PATH)
+            cfg.merge_from_list(OPTIONS)
+            cfg.freeze()
+            ModuleReIDModel._config = cfg
+            os.environ['CUDA_VISIBLE_DEVICES'] = cfg.MODEL.DEVICE_ID
+            num_classes = torch.tensor(751, dtype=torch.int64).to(ModuleReIDModel._config.MODEL.DEVICE)
+            camera_num = torch.tensor(6, dtype=torch.int64).to(ModuleReIDModel._config.MODEL.DEVICE)
+            view_num = torch.tensor(1, dtype=torch.int64).to(ModuleReIDModel._config.MODEL.DEVICE)
+            model = make_model(ModuleReIDModel._config, num_classes, camera_num, view_num)
+            model.load_param(ModuleReIDModel._config.TEST.WEIGHT)
+            model.eval()
+            model.to(ModuleReIDModel._config.MODEL.DEVICE)
+            ModuleReIDModel._model = model
+
+            ModuleReIDModel._transform = transforms.Compose(
+                [
+                    transforms.Resize(ModuleReIDModel._config.INPUT.SIZE_TEST),
+                    transforms.ToTensor(),
+                    transforms.Normalize(
+                        mean=ModuleReIDModel._config.INPUT.PIXEL_MEAN,
+                        std=ModuleReIDModel._config.INPUT.PIXEL_STD
+                    )
+                ]
+            )
 
     def extract_feature(self, image: Image.Image, camera_id: int, view_id: int) -> torch.Tensor:
-        try:
-            image_tensor: torch.Tensor = self.transform(image)  # pyright: ignore[reportAssignmentType]
-            image_tensor = image_tensor.unsqueeze(0).to(self.config.MODEL.DEVICE)
-            camera_id_tensor: Optional[torch.Tensor] = None
-            view_id_tensor: Optional[torch.Tensor] = None
+        if ModuleReIDModel._model is None or ModuleReIDModel._transform is None or ModuleReIDModel._config is None:
+            raise ModuleReIDModelError
 
-            if self.config.MODEL.SIE_CAMERA:
-                camera_id_tensor = torch.tensor(
-                    camera_id, dtype=torch.long).to(self.config.MODEL.DEVICE)
+        image_tensor: torch.Tensor = ModuleReIDModel._transform(image)  # pyright: ignore[reportAssignmentType]
+        image_tensor = image_tensor.unsqueeze(0).to(ModuleReIDModel._config.MODEL.DEVICE)
+        camera_id_tensor: Optional[torch.Tensor] = None
 
-            if self.config.MODEL.SIE_VIEW:
-                view_id_tensor = torch.tensor(
-                    view_id, dtype=torch.long).to(self.config.MODEL.DEVICE)
+        if ModuleReIDModel._config.MODEL.SIE_CAMERA:
+            camera_id_tensor = torch.tensor(
+                camera_id, dtype=torch.long).to(ModuleReIDModel._config.MODEL.DEVICE)
+        view_id_tensor: Optional[torch.Tensor] = None
 
-            with torch.no_grad():
-                return self.model(image_tensor, cam_label=camera_id_tensor, view_label=view_id_tensor).squeeze()
-        except Exception as e:
-            raise ErrorModuleReidModel(f"Failed to extract feature: {e}")
+        if ModuleReIDModel._config.MODEL.SIE_VIEW:
+            view_id_tensor = torch.tensor(
+                view_id, dtype=torch.long).to(ModuleReIDModel._config.MODEL.DEVICE)
+        with torch.no_grad():
+            return ModuleReIDModel._model(image_tensor, cam_label=camera_id_tensor, view_label=view_id_tensor).squeeze()

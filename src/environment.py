@@ -1,11 +1,26 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from pathlib import Path
 
 @dataclass
 class EnvironmentHash:
     secret: str
-
+@dataclass
 class Environment:
+    database_host: str = field(init=False)
+    database_port: str = field(init=False)
+    database_database: str = field(init=False)
+    database_user: str = field(init=False)
+    database_password: str = field(init=False)
+    storage_directory: Path = field(init=False)
+
+    def __post_init__(self):
+        self.database_host = self.postgresql_host()
+        self.database_port = self.postgresql_port()
+        self.database_database = self.postgresql_database()
+        self.database_user = self.postgresql_user()
+        self.database_password = self.postgresql_password()
+        self.storage_directory = Path(self.storage_path())
 
     def host(self) -> str:
         value = os.getenv("HOST")
