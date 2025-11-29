@@ -1,9 +1,7 @@
 import logging
-from typing import Any
 from asyncio import Queue, Task
 import asyncio
 import abc
-import uuid
 
 class BackgroundLogger:
     def __init__(self):
@@ -31,12 +29,8 @@ class BackgroundJob:
     def name(self) -> str:
         pass
 
-    @property
     @abc.abstractmethod
-    def id(self) -> uuid.UUID:
-        pass
-
-    async def execute(self) -> Any:
+    async def execute(self) -> str:
         pass
 
 
@@ -79,11 +73,11 @@ class BackgroundWorker:
             except asyncio.CancelledError:
                 break
             try:
-                await job.execute()
+                message = await job.execute()
+                self.logger.info(f"Background job executed successfully: {job.name}: {message}")
             except BackgroundJobError as e:
-                self.logger.error(f"Background job error: {job.name}: {job.id}: {e}. Skipping job.")
+                self.logger.error(f"Background job error: {job.name}: {e}. Skipping job.")
                 continue
             except Exception as e:
-                self.logger.error(f"Unexpected error processing background job: {job.name}: {job.id}: {e}")
+                self.logger.error(f"Unexpected error processing background job: {job.name}: {e}")
                 continue
-            self.logger.info(f"Background job executed successfully: {job.name}: {job.id}")

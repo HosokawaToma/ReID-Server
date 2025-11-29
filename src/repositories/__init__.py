@@ -8,6 +8,7 @@ from types import TracebackType
 import glob
 import io
 import redis
+import json
 
 from environment import Environment
 
@@ -137,13 +138,22 @@ class RepositoryRedis:
             db=environment.redis_db,
         )
 
-    def push(self, value: str) -> None:
-        self.redis.rpush(self.key, value)
+    def _push(self, value: dict[str, str]) -> None:
+        self.redis.rpush(self.key, json.dumps(value))
 
-    async def dequeue(self, timeout: int = 0) -> list[Any]:
+    async def _dequeue(self, timeout: int = 0) -> dict[str, str]:
         result = self.redis.blpop([self.key], timeout=timeout)
-        if isinstance(result, list):
-            return result
         if isinstance(result, Awaitable):
-            return await result
-        raise RepositoryRedisError
+            result= await result
+        if len(result) != 2:
+            raise RepositoryRedisError
+        value = result[1]
+        if not isinstance(value, str):
+            raise RepositoryRedisError
+        try:
+            data = json.loads(value)
+        except json.JSONDecodeError:
+            raise RepositoryRedisError
+        if not isinstance(data, dict):
+            raise RepositoryRedisError
+        return data

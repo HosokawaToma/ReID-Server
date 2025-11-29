@@ -27,9 +27,10 @@ class BackgroundPersonSnapshotIdentify(BackgroundJob):
         self.application = application
         self.params = params
 
-    async def execute(self) -> None:
+    async def execute(self) -> str:
         try:
             self.application.identify(self.params)
+            return f"person snapshot id: {self.params.person_snapshot_id}"
         except ApplicationPersonSnapshotMissingFeatureError:
             raise BackgroundJobError(f"Person snapshot missing feature")
         except ApplicationPersonSnapshotNotFoundError:
