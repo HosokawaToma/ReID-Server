@@ -6,12 +6,12 @@ from PIL.Image import Image
 
 
 @dataclass
-class PersonSnapshotImage:
+class EntityPersonSnapshotImage:
     image: Image
     id: uuid.UUID = field(default_factory=uuid.uuid4)
 
 @dataclass
-class PersonSnapshot:
+class EntityPersonSnapshot:
     image_id: uuid.UUID
     camera_id: int
     view_id: int

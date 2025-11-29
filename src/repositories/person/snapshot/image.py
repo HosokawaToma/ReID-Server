@@ -4,7 +4,7 @@ from repositories import StorageImageNotFoundError
 from repositories import StorageImageMultipleError
 from repositories import StorageImageInvalidError
 from repositories import RepositoryStorageImageFindOneParams
-from entities.person.snapshot import PersonSnapshotImage
+from entities.person.snapshot import EntityPersonSnapshotImage
 from dataclasses import dataclass
 import uuid
 from environment import Environment
@@ -35,20 +35,20 @@ class RepositoryPersonSnapshotImage:
             storage=RepositoryStorage(environment),
         )
 
-    def save(self, image: PersonSnapshotImage) -> None:
+    def save(self, image: EntityPersonSnapshotImage) -> None:
         self.storage.image_save(RepositoryStorageImage(
             name=str(image.id),
             image=image.image,
         ))
 
-    def find_one(self, params: RepositoryPersonSnapshotImageFindOneParams) -> PersonSnapshotImage:
+    def find_one(self, params: RepositoryPersonSnapshotImageFindOneParams) -> EntityPersonSnapshotImage:
         try:
             image = self.storage.image_find_one(
                 RepositoryStorageImageFindOneParams(
                         name=str(params.id),
                     )
                 )
-            return PersonSnapshotImage(
+            return EntityPersonSnapshotImage(
                 id=params.id,
                 image=image.image,
             )

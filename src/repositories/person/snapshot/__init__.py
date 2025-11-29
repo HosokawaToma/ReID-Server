@@ -1,5 +1,5 @@
 from repositories import RepositoryDatabase
-from entities.person.snapshot import PersonSnapshot
+from entities.person.snapshot import EntityPersonSnapshot
 from migration.models.person_snapshots import MigrationModelPersonSnapshot
 import torch
 from dataclasses import dataclass
@@ -43,7 +43,7 @@ class RepositoryPersonSnapshot:
             database=RepositoryDatabase(environment),
         )
 
-    def save(self, snapshot: PersonSnapshot) -> None:
+    def save(self, snapshot: EntityPersonSnapshot) -> None:
         with self.database as session:
             session.add(MigrationModelPersonSnapshot(
                 id=snapshot.id,
@@ -55,7 +55,7 @@ class RepositoryPersonSnapshot:
                 feature=snapshot.feature.cpu().numpy().tolist() if snapshot.feature is not None else None
             ))
 
-    def find_first(self, params: RepositoryPersonSnapshotFindOneParams) -> PersonSnapshot:
+    def find_first(self, params: RepositoryPersonSnapshotFindOneParams) -> EntityPersonSnapshot:
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
             if params.filters is not None and params.filters.ids is not None:
@@ -65,7 +65,7 @@ class RepositoryPersonSnapshot:
             model = query.first()
             if model is None:
                 raise PersonSnapshotNotFoundError
-            return PersonSnapshot(
+            return EntityPersonSnapshot(
                 id=uuid.UUID(str(model.id)),
                 image_id=uuid.UUID(str(model.image_id)),
                 camera_id=int(str(model.camera_id)),
@@ -75,7 +75,7 @@ class RepositoryPersonSnapshot:
                 feature=torch.tensor(model.feature) if model.feature is not None else None,
             )
 
-    def update(self, person_snapshot: PersonSnapshot) -> None:
+    def update(self, person_snapshot: EntityPersonSnapshot) -> None:
         with self.database as session:
             session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id == person_snapshot.id).update(
                 {
