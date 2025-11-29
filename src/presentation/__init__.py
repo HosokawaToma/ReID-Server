@@ -1,6 +1,7 @@
 import logging
 import fastapi
 from fastapi import Depends, UploadFile, Form
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 import abc
 from typing import Any, Annotated
@@ -8,6 +9,7 @@ from enum import Enum
 from PIL import Image
 import io
 from datetime import datetime
+from pydantic import BaseModel
 
 class PresentationLogger:
     def __init__(self):
@@ -59,6 +61,13 @@ class PresentationBase:
     @abc.abstractmethod
     async def handle(self, *args, **kwargs) -> Any:
         pass
+
+class PresentationRequest(BaseModel):
+    pass
+
+class PresentationResponse(JSONResponse):
+    def __init__(self, status: int, content: dict[str, Any]):
+        super().__init__(content=content, status_code=status)
 
 PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
 

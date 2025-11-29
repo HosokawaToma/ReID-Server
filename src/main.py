@@ -29,6 +29,7 @@ from presentation.person.snapshot.create import PresentationPersonSnapshotCreate
 from applications.person.snapshot.create import ApplicationPersonSnapshotCreate
 from background.person.snapshot.feature_extraction import BackgroundPersonSnapshotFeatureExtraction
 from background.person.snapshot.identify import BackgroundPersonSnapshotIdentify
+from presentation.person.snapshot.refresh import PresentationPersonSnapshotRefresh
 from environment import EnvironmentHash
 class ServerApp:
     def __init__(
@@ -43,6 +44,7 @@ class ServerApp:
         refresh_admin_client: PresentationAuthRefreshAdminClient,
         camera_clients_create: PresentationCameraClientsCreate,
         person_snapshot_create: PresentationPersonSnapshotCreate,
+        person_snapshot_refresh: PresentationPersonSnapshotRefresh,
         rtc_connection: PresentationRtcConnection,
         rtc_ice_server: PresentationRtcIceServer,
         person_path: PresentationPersonPath,
@@ -59,6 +61,7 @@ class ServerApp:
         self.refresh_admin_client = refresh_admin_client
         self.camera_clients_create = camera_clients_create
         self.person_snapshot_create = person_snapshot_create
+        self.person_snapshot_refresh = person_snapshot_refresh
         self.rtc_connection = rtc_connection
         self.rtc_ice_server = rtc_ice_server
         self.person_path = person_path
@@ -162,6 +165,9 @@ class ServerApp:
                     environment=environment,
                 ),
             ),
+            person_snapshot_refresh=PresentationPersonSnapshotRefresh.create(
+                environment=environment,
+            ),
             rtc_connection=PresentationRtcConnection(
                 application_auth=ApplicationAuthCameraClient.create(
                     environment_jwt=environment_jwt,
@@ -225,6 +231,7 @@ class ServerApp:
         self.refresh_admin_client.setup(self.fastapi_app)
         self.camera_clients_create.setup(self.fastapi_app)
         self.person_snapshot_create.setup(self.fastapi_app)
+        self.person_snapshot_refresh.setup(self.fastapi_app)
         self.rtc_connection.setup(self.fastapi_app)
         self.rtc_ice_server.setup(self.fastapi_app)
         self.person_path.setup(self.fastapi_app)

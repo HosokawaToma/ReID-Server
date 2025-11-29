@@ -21,6 +21,18 @@ class RepositoryPersonSnapshotFindOneParams:
     ordering: RepositoryPersonSnapshotFindOneOrdering | None = None
 
 @dataclass
+class RepositoryPersonSnapshotFindFilters:
+    ids: list[uuid.UUID] | None = None
+    after_timestamp: datetime | None = None
+    before_timestamp: datetime | None = None
+    camera_ids: list[int] | None = None
+    view_ids: list[int] | None = None
+
+@dataclass
+class RepositoryPersonSnapshotFindParams:
+    filters: RepositoryPersonSnapshotFindFilters | None = None
+
+@dataclass
 class RepositoryPersonSnapshotUpdateParams:
     ids: list[uuid.UUID]
 
@@ -74,6 +86,30 @@ class RepositoryPersonSnapshot:
                 person_id=uuid.UUID(str(model.person_id)),
                 feature=torch.tensor(model.feature) if model.feature is not None else None,
             )
+
+    def find(self, params: RepositoryPersonSnapshotFindParams) -> list[EntityPersonSnapshot]:
+        with self.database as session:
+            query = session.query(MigrationModelPersonSnapshot)
+            if params.filters is not None and params.filters.ids is not None:
+                query = query.filter(MigrationModelPersonSnapshot.id.in_(params.filters.ids))
+            if params.filters is not None and params.filters.after_timestamp is not None:
+                query = query.filter(MigrationModelPersonSnapshot.timestamp >= params.filters.after_timestamp)
+            if params.filters is not None and params.filters.before_timestamp is not None:
+                query = query.filter(MigrationModelPersonSnapshot.timestamp <= params.filters.before_timestamp)
+            if params.filters is not None and params.filters.camera_ids is not None:
+                query = query.filter(MigrationModelPersonSnapshot.camera_id.in_(params.filters.camera_ids))
+            if params.filters is not None and params.filters.view_ids is not None:
+                query = query.filter(MigrationModelPersonSnapshot.view_id.in_(params.filters.view_ids))
+            models = query.all()
+            return [EntityPersonSnapshot(
+                id=uuid.UUID(str(model.id)),
+                image_id=uuid.UUID(str(model.image_id)),
+                camera_id=int(str(model.camera_id)),
+                view_id=int(str(model.view_id)),
+                timestamp=datetime.fromisoformat(str(model.timestamp)),
+                person_id=uuid.UUID(str(model.person_id)),
+                feature=torch.tensor(model.feature) if model.feature is not None else None,
+            ) for model in models]
 
     def update(self, person_snapshot: EntityPersonSnapshot) -> None:
         with self.database as session:
