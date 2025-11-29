@@ -1,10 +1,8 @@
 from sqlalchemy import create_engine, Engine
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.exc import SQLAlchemyError
 from typing import Type
 from types import TracebackType
-
 
 class RepositoryDatabaseError(Exception):
     pass
