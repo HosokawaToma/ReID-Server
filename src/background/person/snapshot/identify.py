@@ -1,57 +1,38 @@
-from background import BackgroundJob, BackgroundJobError
-from applications.person.snapshot.identify import ApplicationPersonSnapshotIdentify
-from applications.person.snapshot.identify import ApplicationPersonSnapshotIdentifyParams
-from applications.person.snapshot.identify import ApplicationPersonSnapshotIdentifyError
-from applications.person.snapshot.identify import ApplicationPersonSnapshotMissingFeatureError
-from applications.person.snapshot.identify import ApplicationPersonSnapshotNotFoundError
-from applications.person.snapshot.identify import ApplicationPersonSnapshotThresholdError
+from background import Background, BackgroundJobError, BackgroundLogger
+from applications.person.snapshot.background.identify import ApplicationPersonSnapshotBackgroundIdentify
+from applications.person.snapshot.background.identify import ApplicationPersonSnapshotBackgroundIdentifyError
+from applications.person.snapshot.background.identify import ApplicationPersonSnapshotMissingFeatureError
+from applications.person.snapshot.background.identify import ApplicationPersonSnapshotNotFoundError
+from applications.person.snapshot.background.identify import ApplicationPersonSnapshotThresholdError
 from environment import Environment
 
-from dataclasses import dataclass
-import uuid
-
-class BackgroundPersonSnapshotIdentify(BackgroundJob):
+class BackgroundPersonSnapshotIdentify(Background):
     @property
     def name(self) -> str:
-        return "person_snapshot_identify"
-
-    @property
-    def id(self) -> uuid.UUID:
-        return self.params.person_snapshot_id
+        return "person snapshot identify"
 
     def __init__(
         self,
-        application: ApplicationPersonSnapshotIdentify,
-        params: ApplicationPersonSnapshotIdentifyParams,
+        application: ApplicationPersonSnapshotBackgroundIdentify,
+        *args,
+        **kwargs,
     ):
+        super().__init__(*args, **kwargs)
         self.application = application
-        self.params = params
 
-    async def execute(self) -> str:
+    @classmethod
+    def create(cls, environment: Environment) -> "BackgroundPersonSnapshotIdentify":
+        return cls(
+            application=ApplicationPersonSnapshotBackgroundIdentify.create(environment),
+            logger=BackgroundLogger(),
+        )
+
+    async def process(self) -> None:
         try:
-            self.application.identify(self.params)
-            return f"person snapshot id: {self.params.person_snapshot_id}"
+            await self.application.identify()
         except ApplicationPersonSnapshotMissingFeatureError:
             raise BackgroundJobError(f"Person snapshot missing feature")
         except ApplicationPersonSnapshotNotFoundError:
             raise BackgroundJobError(f"Person snapshot not found")
         except ApplicationPersonSnapshotThresholdError:
             raise BackgroundJobError(f"No matching people found")
-        except ApplicationPersonSnapshotIdentifyError:
-            raise BackgroundJobError
-
-@dataclass
-class BackgroundPersonSnapshotIdentifyFactoryParams:
-    person_snapshot_id: uuid.UUID
-
-class BackgroundPersonSnapshotIdentifyFactory:
-    def __init__(self, environment: Environment):
-        self.environment = environment
-
-    def create(self, params: BackgroundPersonSnapshotIdentifyFactoryParams) -> BackgroundPersonSnapshotIdentify:
-        return BackgroundPersonSnapshotIdentify(
-            application=ApplicationPersonSnapshotIdentify.create(self.environment),
-            params=ApplicationPersonSnapshotIdentifyParams(
-                person_snapshot_id=params.person_snapshot_id,
-            ),
-        )

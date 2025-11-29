@@ -3,17 +3,19 @@ from sqlalchemy import Engine, create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from PIL import Image
 from dataclasses import dataclass
-from typing import Type, Any, Awaitable
+from typing import Type, Awaitable
 from types import TracebackType
 import glob
 import io
-import redis
+from redis.asyncio import Redis
 import json
 
 from environment import Environment
 
+
 class RepositoryDatabaseError(Exception):
     pass
+
 
 class RepositoryDatabase:
     ENGINE_URL_TEMPLATE = "postgresql://{user}:{password}@{host}:{port}/{database}"
@@ -66,31 +68,39 @@ class RepositoryDatabase:
             self._session.close()
             self._session = None
 
+
 @dataclass
 class RepositoryStorageImage:
     name: str
     image: Image.Image
 
+
 class RepositoryStorageImageError(Exception):
     pass
+
 
 @dataclass
 class RepositoryStorageImageFindOneParams:
     name: str
+
 
 @dataclass
 class RepositoryStorageImageFindOneResult:
     name: str
     image: Image.Image
 
+
 class StorageImageNotFoundError(RepositoryStorageImageError):
     pass
+
 
 class StorageImageMultipleError(RepositoryStorageImageError):
     pass
 
+
 class StorageImageInvalidError(RepositoryStorageImageError):
     pass
+
 
 class RepositoryStorage:
     def __init__(self, environment: Environment):
@@ -107,7 +117,8 @@ class RepositoryStorage:
         image.image.save(self.images_directory / f"{image.name}.{extension}")
 
     def image_find_one(self, params: RepositoryStorageImageFindOneParams) -> RepositoryStorageImageFindOneResult:
-        image_names = glob.glob(str(self.images_directory / f"{params.name}.*"))
+        image_names = glob.glob(
+            str(self.images_directory / f"{params.name}.*"))
         if len(image_names) == 0:
             raise StorageImageNotFoundError
         if len(image_names) > 1:
@@ -132,23 +143,33 @@ class RepositoryRedis:
     key: str
 
     def __init__(self, environment: Environment):
-        self.redis = redis.Redis(
+        self.redis = Redis(
             host=environment.redis_host,
             port=environment.redis_port,
             db=environment.redis_db,
         )
 
-    def _push(self, value: dict[str, str]) -> None:
-        self.redis.rpush(self.key, json.dumps(value))
+    async def _push(self, value: dict[str, str]) -> None:
+        result = self.redis.rpush(self.key, json.dumps(value))
+        if result is None:
+            raise RepositoryRedisError
+        if isinstance(result, Awaitable):
+            result = await result
 
     async def _dequeue(self, timeout: int = 0) -> dict[str, str]:
         result = self.redis.blpop([self.key], timeout=timeout)
+        if result is None:
+            raise RepositoryRedisError
         if isinstance(result, Awaitable):
-            result= await result
+            result = await result
         if len(result) != 2:
             raise RepositoryRedisError
         value = result[1]
-        if not isinstance(value, str):
+        if isinstance(value, str):
+            pass
+        elif isinstance(value, bytes):
+            value = value.decode("utf-8")
+        else:
             raise RepositoryRedisError
         try:
             data = json.loads(value)

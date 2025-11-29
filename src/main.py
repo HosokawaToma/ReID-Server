@@ -27,10 +27,8 @@ from presentation.person_images import PresentationPersonImages
 from applications.person_images import ApplicationPersonImages
 from presentation.person.snapshot.create import PresentationPersonSnapshotCreate
 from applications.person.snapshot.create import ApplicationPersonSnapshotCreate
-from background.person.snapshot.feature_extraction import BackgroundPersonSnapshotFeatureExtractionFactory
-from background.person.snapshot.identify import BackgroundPersonSnapshotIdentifyFactory
-from background import BackgroundQueue, BackgroundWorker, BackgroundLogger
-from presentation import PresentationBackground
+from background.person.snapshot.feature_extraction import BackgroundPersonSnapshotFeatureExtraction
+from background.person.snapshot.identify import BackgroundPersonSnapshotIdentify
 from environment import EnvironmentHash
 class ServerApp:
     def __init__(
@@ -38,7 +36,8 @@ class ServerApp:
         host: str,
         port: int,
         fastapi_app: fastapi.FastAPI,
-        background: PresentationBackground,
+        background_person_snapshot_feature_extraction: BackgroundPersonSnapshotFeatureExtraction,
+        background_person_snapshot_identify: BackgroundPersonSnapshotIdentify,
         login_admin_client: PresentationAuthLoginAdminClient,
         login_camera_client: PresentationAuthLoginCameraClient,
         refresh_admin_client: PresentationAuthRefreshAdminClient,
@@ -53,7 +52,8 @@ class ServerApp:
         self.host = host
         self.port = port
         self.fastapi_app = fastapi_app
-        self.background = background
+        self.background_person_snapshot_feature_extraction = background_person_snapshot_feature_extraction
+        self.background_person_snapshot_identify = background_person_snapshot_identify
         self.login_admin_client = login_admin_client
         self.login_camera_client = login_camera_client
         self.refresh_admin_client = refresh_admin_client
@@ -109,11 +109,11 @@ class ServerApp:
             host=environment.host(),
             port=environment.port(),
             fastapi_app=fastapi.FastAPI(),
-            background=PresentationBackground(
-                background=BackgroundWorker(
-                    logger=BackgroundLogger(),
-                    queue=BackgroundQueue(),
-                ),
+            background_person_snapshot_feature_extraction=BackgroundPersonSnapshotFeatureExtraction.create(
+                environment=environment,
+            ),
+            background_person_snapshot_identify=BackgroundPersonSnapshotIdentify.create(
+                environment=environment,
             ),
             login_admin_client=PresentationAuthLoginAdminClient(
                 application_token=ApplicationAuthAdminClient.create(
@@ -161,9 +161,6 @@ class ServerApp:
                 application=ApplicationPersonSnapshotCreate.create(
                     environment=environment,
                 ),
-                background_queue=BackgroundQueue(),
-                background_person_snapshot_feature_extraction_factory=BackgroundPersonSnapshotFeatureExtractionFactory(environment),
-                background_person_snapshot_identify_factory=BackgroundPersonSnapshotIdentifyFactory(environment),
             ),
             rtc_connection=PresentationRtcConnection(
                 application_auth=ApplicationAuthCameraClient.create(
@@ -221,7 +218,8 @@ class ServerApp:
             allow_methods=["*"],
             allow_headers=["*"],
         )
-        self.background.setup(self.fastapi_app)
+        self.background_person_snapshot_feature_extraction.setup(self.fastapi_app)
+        self.background_person_snapshot_identify.setup(self.fastapi_app)
         self.login_admin_client.setup(self.fastapi_app)
         self.login_camera_client.setup(self.fastapi_app)
         self.refresh_admin_client.setup(self.fastapi_app)

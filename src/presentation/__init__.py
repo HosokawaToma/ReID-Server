@@ -9,8 +9,6 @@ from PIL import Image
 import io
 from datetime import datetime
 
-from background import BackgroundWorker
-
 class PresentationLogger:
     def __init__(self):
         self.logger = logging.getLogger("presentation")
@@ -61,14 +59,6 @@ class PresentationBase:
     @abc.abstractmethod
     async def handle(self, *args, **kwargs) -> Any:
         pass
-
-class PresentationBackground:
-    def __init__(self, background: BackgroundWorker):
-        self.background = background
-
-    def setup(self, app: fastapi.FastAPI):
-        app.add_event_handler("startup", self.background.start)
-        app.add_event_handler("shutdown", self.background.stop)
 
 PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
 
