@@ -17,6 +17,7 @@ services:
               capabilities: [gpu]
     networks:
       - app_network
+      - redis-network
     env_file:
       - .env
     volumes:
@@ -94,11 +95,21 @@ services:
       - app_network
     restart: unless-stopped
 
+  redis:
+    image: redis:8.4.0
+    command: redis-server --appendonly yes
+    volumes:
+      - ./redis-data:/data
+    networks:
+      - redis-network
+
 networks:
   app_network:
   web_app_network:
+  redis-network:
 volumes:
   app_storage:
   postgresql_data:
   caddy_data:
   caddy_config:
+  redis_data:
