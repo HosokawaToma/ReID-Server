@@ -23,7 +23,7 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
     def methods(self) -> list[str]:
         return ["POST"]
 
-    tags = ["person", "snapshot"]
+    tags = ["Person Snapshot"]
     summary = "Refresh person snapshots"
     description = "Refresh person snapshots"
     responses = {
