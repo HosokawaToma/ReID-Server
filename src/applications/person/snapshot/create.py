@@ -4,7 +4,7 @@ from repositories.queue.person_snapshot.feature_extraction import RepositoryQueu
 from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtractionQueueItem
 from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentify
 from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentifyQueueItem
-from entities.person.snapshot import PersonSnapshot, PersonSnapshotImage
+from entities.person.snapshot import EntityPersonSnapshot, EntityPersonSnapshotImage
 from PIL import Image
 from datetime import datetime
 from dataclasses import dataclass
@@ -46,11 +46,11 @@ class ApplicationPersonSnapshotCreate:
         )
 
     async def save(self, params: ApplicationPersonSnapshotCreateParams) -> None:
-        image = PersonSnapshotImage(
+        image = EntityPersonSnapshotImage(
             image=params.image,
         )
         self.repository_person_snapshot_image.save(image)
-        person_snapshot = PersonSnapshot(
+        person_snapshot = EntityPersonSnapshot(
             image_id=image.id,
             camera_id=params.camera_id,
             view_id=params.view_id,
