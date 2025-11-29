@@ -3,10 +3,11 @@ from sqlalchemy import Engine, create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from PIL import Image
 from dataclasses import dataclass
-from typing import Type
+from typing import Type, Any, Awaitable
 from types import TracebackType
 import glob
 import io
+import redis
 
 from environment import Environment
 
@@ -121,3 +122,28 @@ class RepositoryStorage:
                 )
         except FileNotFoundError:
             raise StorageImageNotFoundError
+
+
+class RepositoryRedisError(Exception):
+    pass
+
+class RepositoryRedis:
+    key: str
+
+    def __init__(self, environment: Environment):
+        self.redis = redis.Redis(
+            host=environment.redis_host,
+            port=environment.redis_port,
+            db=environment.redis_db,
+        )
+
+    def push(self, value: str) -> None:
+        self.redis.rpush(self.key, value)
+
+    async def dequeue(self, timeout: int = 0) -> list[Any]:
+        result = self.redis.blpop([self.key], timeout=timeout)
+        if isinstance(result, list):
+            return result
+        if isinstance(result, Awaitable):
+            return await result
+        raise RepositoryRedisError
