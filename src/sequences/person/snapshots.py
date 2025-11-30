@@ -12,13 +12,22 @@ class SequencePersonSnapshotsLessThanTwoSnapshotsError(SequencePersonSnapshotsEr
     pass
 
 class SequencePersonSnapshots:
+    @property
+    def person_id(self) -> uuid.UUID | None:
+        if len(self.person_snapshots) == 0:
+            return None
+        for i in range(len(self.person_snapshots)):
+            if i == 0:
+                continue
+            if self.person_snapshots[i].person_id != self.person_snapshots[i - 1].person_id:
+                return None
+        return self.person_snapshots[0].person_id
+
     def __init__(
         self,
         person_snapshots: list[EntityPersonSnapshot],
-        person_id: uuid.UUID | None = None,
     ):
         self.person_snapshots = person_snapshots
-        self.person_id = person_id
 
     def group_by_person_id(self) -> list["SequencePersonSnapshots"]:
         person_snapshots_by_person_id: dict[uuid.UUID, list[EntityPersonSnapshot]] = {}
@@ -27,12 +36,12 @@ class SequencePersonSnapshots:
                 person_snapshots_by_person_id[person_snapshot.person_id] = []
             person_snapshots_by_person_id[person_snapshot.person_id].append(person_snapshot)
         return [
-            SequencePersonSnapshots(person_snapshots=person_snapshots, person_id=person_id)
+            SequencePersonSnapshots(person_snapshots=person_snapshots)
             for person_id, person_snapshots in person_snapshots_by_person_id.items()
         ]
 
     def sorted_by_timestamp(self) -> "SequencePersonSnapshots":
-        return SequencePersonSnapshots(person_snapshots=sorted(self.person_snapshots, key=lambda x: x.timestamp), person_id=self.person_id)
+        return SequencePersonSnapshots(person_snapshots=sorted(self.person_snapshots, key=lambda x: x.timestamp))
 
     def is_convertible_to_flows(self) -> bool:
         return self.person_id is not None and len(self.person_snapshots) >= 2
