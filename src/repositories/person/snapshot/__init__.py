@@ -23,14 +23,23 @@ class RepositoryPersonSnapshotFindOneParams:
 @dataclass
 class RepositoryPersonSnapshotFindFilters:
     ids: list[uuid.UUID] | None = None
-    after_timestamp: datetime | None = None
-    before_timestamp: datetime | None = None
+    image_ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
+    person_ids: list[uuid.UUID] | None = None
+    after_timestamp: datetime | None = None
+    before_timestamp: datetime | None = None
+
+@dataclass
+class RepositoryPersonSnapshotFindOrdering:
+    feature_to_nearest: torch.Tensor | None = None
+    timestamp_asc: bool | None = None
+    timestamp_desc: bool | None = None
 
 @dataclass
 class RepositoryPersonSnapshotFindParams:
     filters: RepositoryPersonSnapshotFindFilters | None = None
+    ordering: RepositoryPersonSnapshotFindOrdering | None = None
 
 @dataclass
 class RepositoryPersonSnapshotUpdateParams:
@@ -91,15 +100,41 @@ class RepositoryPersonSnapshot:
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
             if params.filters is not None and params.filters.ids is not None:
-                query = query.filter(MigrationModelPersonSnapshot.id.in_(params.filters.ids))
-            if params.filters is not None and params.filters.after_timestamp is not None:
-                query = query.filter(MigrationModelPersonSnapshot.timestamp >= params.filters.after_timestamp)
-            if params.filters is not None and params.filters.before_timestamp is not None:
-                query = query.filter(MigrationModelPersonSnapshot.timestamp <= params.filters.before_timestamp)
+                query = query.filter(
+                    MigrationModelPersonSnapshot.id.in_(params.filters.ids)
+                )
+            if params.filters is not None and params.filters.image_ids is not None:
+                query = query.filter(
+                    MigrationModelPersonSnapshot.image_id.in_(params.filters.image_ids)
+                )
             if params.filters is not None and params.filters.camera_ids is not None:
-                query = query.filter(MigrationModelPersonSnapshot.camera_id.in_(params.filters.camera_ids))
+                query = query.filter(
+                    MigrationModelPersonSnapshot.camera_id.in_(params.filters.camera_ids)
+                )
             if params.filters is not None and params.filters.view_ids is not None:
-                query = query.filter(MigrationModelPersonSnapshot.view_id.in_(params.filters.view_ids))
+                query = query.filter(
+                    MigrationModelPersonSnapshot.view_id.in_(params.filters.view_ids)
+                )
+            if params.filters is not None and params.filters.person_ids is not None:
+                query = query.filter(
+                    MigrationModelPersonSnapshot.person_id.in_(params.filters.person_ids)
+                )
+            if params.filters is not None and params.filters.after_timestamp is not None:
+                query = query.filter(
+                    MigrationModelPersonSnapshot.timestamp >= params.filters.after_timestamp
+                )
+            if params.filters is not None and params.filters.before_timestamp is not None:
+                query = query.filter(
+                    MigrationModelPersonSnapshot.timestamp <= params.filters.before_timestamp
+                )
+            if params.ordering is not None and params.ordering.feature_to_nearest is not None:
+                query = query.order_by(
+                    MigrationModelPersonSnapshot.feature.op("<=>")(params.ordering.feature_to_nearest.cpu().numpy().tolist())
+                )
+            if params.ordering is not None and params.ordering.timestamp_asc is not None:
+                query = query.order_by(MigrationModelPersonSnapshot.timestamp.asc())
+            if params.ordering is not None and params.ordering.timestamp_desc is not None:
+                query = query.order_by(MigrationModelPersonSnapshot.timestamp.desc())
             models = query.all()
             return [EntityPersonSnapshot(
                 id=uuid.UUID(str(model.id)),
