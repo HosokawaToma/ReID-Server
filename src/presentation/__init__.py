@@ -2,6 +2,7 @@ import logging
 import fastapi
 from fastapi import Depends, UploadFile, Form
 from fastapi.responses import JSONResponse
+from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
 import abc
 from typing import Any, Annotated
@@ -68,6 +69,18 @@ class PresentationRequest(BaseModel):
 class PresentationResponse(JSONResponse):
     def __init__(self, status: int, content: dict[str, Any]):
         super().__init__(content=content, status_code=status)
+
+class PresentationImageResponseError(Exception):
+    pass
+
+class PresentationImageResponse(StreamingResponse):
+    def __init__(self, status: int, image: Image.Image):
+        if image.format is None:
+            raise PresentationImageResponseError
+        img_buffer = io.BytesIO()
+        image.save(img_buffer, format=image.format)
+        img_buffer.seek(0)
+        super().__init__(content=img_buffer, media_type=f"image/{image.format.lower()}", status_code=status)
 
 PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
 
