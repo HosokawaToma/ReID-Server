@@ -1,4 +1,3 @@
-from re import S
 from presentation import PresentationBase
 from presentation import PresentationLogger
 from presentation import PresentationRequest
