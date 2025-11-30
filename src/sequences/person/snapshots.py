@@ -47,7 +47,8 @@ class SequencePersonSnapshots:
         for i in range(len(person_snapshots.person_snapshots)):
             if i == 0:
                 continue
-            if person_snapshots.person_snapshots[i].timestamp - person_snapshots.person_snapshots[i - 1].timestamp > interval:
+            if person_snapshots.person_snapshots[i].camera_id == person_snapshots.person_snapshots[i - 1].camera_id \
+            and person_snapshots.person_snapshots[i].timestamp - person_snapshots.person_snapshots[i - 1].timestamp > interval:
                 continue
             person_flows.append(
                 EntityPersonFlow(
