@@ -28,6 +28,7 @@ from presentation.person.snapshot.search import PresentationPersonSnapshotSearch
 from environment import EnvironmentHash
 from presentation.person.flow.search import PresentationPersonFlowSearch
 from presentation.person.flow.weight.search import PresentationPersonFlowWeightSearch
+from presentation.person.snapshot.image.search import PresentationPersonSnapshotImageSearch
 
 class ServerApp:
     def __init__(
@@ -46,6 +47,7 @@ class ServerApp:
         person_snapshot_search: PresentationPersonSnapshotSearch,
         person_flow_search: PresentationPersonFlowSearch,
         person_flow_weight_search: PresentationPersonFlowWeightSearch,
+        person_snapshot_image_search: PresentationPersonSnapshotImageSearch,
         rtc_connection: PresentationRtcConnection,
         rtc_ice_server: PresentationRtcIceServer,
     ):
@@ -63,6 +65,7 @@ class ServerApp:
         self.person_snapshot_search = person_snapshot_search
         self.person_flow_search = person_flow_search
         self.person_flow_weight_search = person_flow_weight_search
+        self.person_snapshot_image_search = person_snapshot_image_search
         self.rtc_connection = rtc_connection
         self.rtc_ice_server = rtc_ice_server
 
@@ -175,6 +178,9 @@ class ServerApp:
             person_flow_weight_search=PresentationPersonFlowWeightSearch.create(
                 environment=environment,
             ),
+            person_snapshot_image_search=PresentationPersonSnapshotImageSearch.create(
+                environment=environment,
+            ),
             rtc_connection=PresentationRtcConnection(
                 application_auth=ApplicationAuthCameraClient.create(
                     environment_jwt=environment_jwt,
@@ -217,6 +223,7 @@ class ServerApp:
         self.person_snapshot_search.setup(self.fastapi_app)
         self.person_flow_search.setup(self.fastapi_app)
         self.person_flow_weight_search.setup(self.fastapi_app)
+        self.person_snapshot_image_search.setup(self.fastapi_app)
         self.rtc_connection.setup(self.fastapi_app)
         self.rtc_ice_server.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.host, port=self.port)
