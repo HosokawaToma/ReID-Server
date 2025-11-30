@@ -3,7 +3,6 @@ from repositories.person.snapshot import RepositoryPersonSnapshotFindParams
 from repositories.person.snapshot import RepositoryPersonSnapshotFindFilters
 from sequences.person.flows import SequencePersonFlows
 from sequences.person.snapshots import SequencePersonSnapshots
-from modules.person.flow.calculator import ModulePersonFlowCalculator
 from environment import Environment
 from datetime import datetime, timedelta
 import uuid
@@ -16,22 +15,19 @@ class ApplicationPersonFlowSearchParams:
     person_ids: list[uuid.UUID] | None = None
 
 class ApplicationPersonFlowSearch:
+    INTERVAL = timedelta(seconds=10)
+
     def __init__(
         self,
         repository_person_snapshot: RepositoryPersonSnapshot,
-        module_person_flow_calculator: ModulePersonFlowCalculator,
     ):
         self.repository_person_snapshot = repository_person_snapshot
-        self.module_person_flow_calculator = module_person_flow_calculator
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationPersonFlowSearch":
         return cls(
             repository_person_snapshot=RepositoryPersonSnapshot.create(
                 environment=environment,
-            ),
-            module_person_flow_calculator=ModulePersonFlowCalculator(
-                interval=timedelta(seconds=10),
             ),
         )
 
@@ -49,6 +45,6 @@ class ApplicationPersonFlowSearch:
             )
         )
         return [
-            self.module_person_flow_calculator.calculate(item)
-            for item in person_snapshots.group_by_person_id()
-            ]
+            person_snapshots.convert_to_flows(interval=self.INTERVAL)
+            for person_snapshots in person_snapshots.group_by_person_id() if person_snapshots.is_convertible_to_flows()
+        ]
