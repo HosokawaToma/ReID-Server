@@ -1,0 +1,6 @@
+{$DOMAIN} {
+  handle_path /api/v1/* {
+    reverse_proxy app:{$APP_PORT}
+  }
+  reverse_proxy * reid-server-web-app:3000
+}

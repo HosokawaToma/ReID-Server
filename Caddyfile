@@ -1,3 +1,2 @@
-{$DOMAIN} {
-    reverse_proxy {$REVERSE_PROXY}:{$REVERSE_PROXY_PORT}
-}
+import dev.Caddyfile
+# import prod.Caddyfile

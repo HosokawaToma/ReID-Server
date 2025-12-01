@@ -1,0 +1,12 @@
+:443, :80 {
+  tls internal
+  log {
+    output stdout
+    format json
+    level DEBUG
+  }
+  handle_path /api/v1/* {
+    reverse_proxy app:{$APP_PORT}
+  }
+  reverse_proxy * {DOMAIN}
+}
