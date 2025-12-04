@@ -14,6 +14,8 @@ jobs:
   lint-and-type-check:
     name: Lint and Type Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
       SOURCE_DIR: src/
     steps:
@@ -43,6 +45,8 @@ jobs:
   docker-build:
     name: Docker Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
