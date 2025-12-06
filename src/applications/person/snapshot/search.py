@@ -1,6 +1,7 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
-from repositories.person.snapshot import RepositoryPersonSnapshotFilters
-from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
+from repositories.person.snapshot import RepositoryPersonSnapshotFindParams
+from repositories.person.snapshot import RepositoryPersonSnapshotFindFilters
+from repositories.person.snapshot import RepositoryPersonSnapshotFindOrdering
 from entities.person.snapshot import EntityPersonSnapshot
 from environment import Environment
 from dataclasses import dataclass
@@ -48,7 +49,7 @@ class ApplicationPersonSnapshotSearch:
     ) -> list[EntityPersonSnapshot]:
         filters = None
         if params.filters:
-            filters = RepositoryPersonSnapshotFilters(
+            filters = RepositoryPersonSnapshotFindFilters(
                 ids=params.filters.ids,
                 image_ids=params.filters.image_ids,
                 camera_ids=params.filters.camera_ids,
@@ -59,11 +60,13 @@ class ApplicationPersonSnapshotSearch:
             )
         ordering = None
         if params.ordering:
-            ordering = RepositoryPersonSnapshotOrdering(
+            ordering = RepositoryPersonSnapshotFindOrdering(
                 timestamp_asc=params.ordering.timestamp_asc,
                 timestamp_desc=params.ordering.timestamp_desc,
             )
         return self.person_snapshot_repository.find(
-            filters=filters,
-            ordering=ordering,
+            params=RepositoryPersonSnapshotFindParams(
+                filters=filters,
+                ordering=ordering,
+            ),
         )

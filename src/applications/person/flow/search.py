@@ -1,5 +1,6 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
-from repositories.person.snapshot import RepositoryPersonSnapshotFilters
+from repositories.person.snapshot import RepositoryPersonSnapshotFindParams
+from repositories.person.snapshot import RepositoryPersonSnapshotFindFilters
 from sequences.person.flows import SequencePersonFlows
 from sequences.person.snapshots import SequencePersonSnapshots
 from environment import Environment
@@ -33,14 +34,14 @@ class ApplicationPersonFlowSearch:
     def search(self, params: ApplicationPersonFlowSearchParams | None = None) -> list[SequencePersonFlows]:
         filters = None
         if params is not None:
-            filters = RepositoryPersonSnapshotFilters(
+            filters = RepositoryPersonSnapshotFindFilters(
                 after_timestamp=params.after_timestamp,
                 before_timestamp=params.before_timestamp,
                 person_ids=params.person_ids,
             )
         person_snapshots = SequencePersonSnapshots(
             person_snapshots=self.repository_person_snapshot.find(
-                filters=filters,
+                params=RepositoryPersonSnapshotFindParams(filters=filters),
             )
         )
         return [

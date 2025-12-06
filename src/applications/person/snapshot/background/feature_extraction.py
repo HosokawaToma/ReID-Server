@@ -1,7 +1,8 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot.image import RepositoryPersonSnapshotImage
 from repositories.person.snapshot.image import RepositoryPersonSnapshotImageFindOneParams
-from repositories.person.snapshot import RepositoryPersonSnapshotFilters
+from repositories.person.snapshot import RepositoryPersonSnapshotFindOneParams
+from repositories.person.snapshot import RepositoryPersonSnapshotFindOneFilters
 from repositories.person.snapshot import PersonSnapshotNotFoundError
 from repositories.person.snapshot.image import PersonSnapshotImageNotFoundError
 from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtraction
@@ -54,9 +55,11 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
         try:
             queue_item = await self.repository_queue_person_snapshot_feature_extraction.dequeue()
             person_snapshot = self.repository_person_snapshot.find_first(
-                filters=RepositoryPersonSnapshotFilters(
-                    ids=[queue_item.id],
-                ),
+                RepositoryPersonSnapshotFindOneParams(
+                    filters=RepositoryPersonSnapshotFindOneFilters(
+                        ids=[queue_item.id],
+                    ),
+                )
             )
             image = self.repository_person_snapshot_image.find_one(
                 RepositoryPersonSnapshotImageFindOneParams(

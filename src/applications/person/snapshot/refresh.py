@@ -1,6 +1,6 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
-from repositories.person.snapshot import RepositoryPersonSnapshotFilters
-from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
+from repositories.person.snapshot import RepositoryPersonSnapshotFindParams
+from repositories.person.snapshot import RepositoryPersonSnapshotFindFilters
 from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtraction
 from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtractionQueueItem
 from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtractionError
@@ -48,17 +48,14 @@ class ApplicationPersonSnapshotRefresh:
 
     async def refresh(self, params: ApplicationPersonSnapshotRefreshParams) -> None:
         try:
-            person_snapshots = self.repository_person_snapshot.find(
-                filters=RepositoryPersonSnapshotFilters(
+            person_snapshots = self.repository_person_snapshot.find(RepositoryPersonSnapshotFindParams(
+                filters=RepositoryPersonSnapshotFindFilters(
                     after_timestamp=params.after_timestamp,
                     before_timestamp=params.before_timestamp,
                     camera_ids=params.camera_ids,
                     view_ids=params.view_ids,
                 ),
-                ordering=RepositoryPersonSnapshotOrdering(
-                    timestamp_asc=True,
-                )
-            )
+            ))
             for person_snapshot in person_snapshots:
                 await self.repository_queue_person_snapshot_feature_extraction.push(
                     RepositoryQueuePersonSnapshotFeatureExtractionQueueItem(
