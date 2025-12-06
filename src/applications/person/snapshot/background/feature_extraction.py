@@ -1,6 +1,5 @@
-import asyncio
-
 from repositories.person.snapshot import RepositoryPersonSnapshot
+from entities.person.snapshot import EntityPersonSnapshot
 from repositories.person.snapshot.image import RepositoryPersonSnapshotImage
 from repositories.person.snapshot.image import RepositoryPersonSnapshotImageFindOneParams
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
@@ -92,76 +91,64 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
                 environment),
         )
 
-    async def extract(self) -> str:
+    async def extract(self) -> EntityPersonSnapshot:
         try:
             queue_item = await self.repository_queue_person_snapshot_feature_extraction.dequeue()
-            person_snapshot = await asyncio.to_thread(
-                self.repository_person_snapshot.find_first,
+            person_snapshot = self.repository_person_snapshot.find_first(
                 filters=RepositoryPersonSnapshotFilters(
                     ids=[queue_item.id],
-                ),
+                )
             )
-            image = await asyncio.to_thread(
-                self.repository_person_snapshot_image.find_one,
+            image = self.repository_person_snapshot_image.find_one(
                 RepositoryPersonSnapshotImageFindOneParams(
                     id=person_snapshot.image_id,
-                ),
+                )
             )
-            yolo_pose = await asyncio.to_thread(
-                self.yolo_pose_model.extract,
+            yolo_pose = self.yolo_pose_model.extract(
                 image.image,
             )
-            yolo_segmentation = await asyncio.to_thread(
-                self.yolo_segmentation_model.extract,
+            yolo_segmentation = self.yolo_segmentation_model.extract(
                 image.image,
             )
             if yolo_pose is None:
-                await asyncio.to_thread(
-                    self.repository_person_snapshot.delete,
+                self.repository_person_snapshot.delete(
                     filters=RepositoryPersonSnapshotFilters(
                         ids=[person_snapshot.id],
                     ),
                 )
                 raise ApplicationPersonSnapshotYoloPoseNotFoundError
-            if not await asyncio.to_thread(
-                self.yolo_pose_verification.verify,
+            if not self.yolo_pose_verification.verify(
                 yolo_pose,
             ):
-                await asyncio.to_thread(
-                    self.repository_person_snapshot.delete,
+                self.repository_person_snapshot.delete(
                     filters=RepositoryPersonSnapshotFilters(
                         ids=[person_snapshot.id],
                     ),
                 )
                 raise ApplicationPersonSnapshotYoloPoseVerificationError
             if yolo_segmentation is None:
-                await asyncio.to_thread(
-                    self.repository_person_snapshot.delete,
+                self.repository_person_snapshot.delete(
                     filters=RepositoryPersonSnapshotFilters(
                         ids=[person_snapshot.id],
                     ),
                 )
                 raise ApplicationPersonSnapshotYoloSegmentationNotFoundError
-            if not await asyncio.to_thread(
-                self.yolo_segmentation_verification.verify,
+            if not self.yolo_segmentation_verification.verify(
                 yolo_segmentation,
             ):
-                await asyncio.to_thread(
-                    self.repository_person_snapshot.delete,
+                self.repository_person_snapshot.delete(
                     filters=RepositoryPersonSnapshotFilters(
                         ids=[person_snapshot.id],
-                    ),
+                    )
                 )
                 raise ApplicationPersonSnapshotYoloSegmentationVerificationError
-            person_snapshots_feature = await asyncio.to_thread(
-                self.reid_model.extract_feature,
+            person_snapshots_feature = self.reid_model.extract_feature(
                 image.image,
                 person_snapshot.camera_id,
                 person_snapshot.view_id,
             )
             person_snapshot.feature = person_snapshots_feature
-            await asyncio.to_thread(
-                self.repository_person_snapshot.update,
+            self.repository_person_snapshot.update(
                 person_snapshot,
                 filters=RepositoryPersonSnapshotFilters(
                     ids=[person_snapshot.id],
@@ -172,7 +159,7 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
                     id=person_snapshot.id,
                 )
             )
-            return f"person snapshot id: {person_snapshot.id}"
+            return person_snapshot
         except RepositoryQueuePersonSnapshotFeatureExtractionError:
             raise ApplicationPersonSnapshotBackgroundFeatureExtractionError
         except PersonSnapshotNotFoundError:

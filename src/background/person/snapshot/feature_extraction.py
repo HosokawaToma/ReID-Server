@@ -31,7 +31,8 @@ class BackgroundPersonSnapshotFeatureExtraction(Background):
 
     async def process(self) -> str:
         try:
-            return await self.application.extract()
+            person_snapshot = await self.application.extract()
+            return f"person snapshot id: {person_snapshot.id} extracted"
         except ApplicationPersonSnapshotNotFoundError:
             raise BackgroundJobError("person snapshot not found")
         except ApplicationPersonSnapshotImageNotFoundError:
