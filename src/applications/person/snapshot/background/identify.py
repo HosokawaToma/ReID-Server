@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 
 from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentify
 from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentifyError
@@ -75,6 +76,7 @@ class ApplicationPersonSnapshotBackgroundIdentify:
                 RepositoryPersonSnapshotFindOneParams(
                     filters=RepositoryPersonSnapshotFindOneFilters(
                         not_ids=[person_snapshot.id],
+                        after_timestamp=person_snapshot.timestamp.replace(hour=0, minute=0, second=0, microsecond=0),
                         before_timestamp=person_snapshot.timestamp,
                     ),
                     ordering=RepositoryPersonSnapshotFindOneOrdering(
