@@ -10,10 +10,14 @@ from environment import Environment
 @dataclass
 class RepositoryPersonSnapshotFindOneFilters:
     ids: list[uuid.UUID] | None = None
+    not_ids: list[uuid.UUID] | None = None
+    after_timestamp: datetime | None = None
+    before_timestamp: datetime | None = None
 
 @dataclass
 class RepositoryPersonSnapshotFindOneOrdering:
     feature_to_nearest: torch.Tensor | None = None
+    timestamp_desc: bool | None = None
 
 @dataclass
 class RepositoryPersonSnapshotFindOneParams:
@@ -81,8 +85,16 @@ class RepositoryPersonSnapshot:
             query = session.query(MigrationModelPersonSnapshot)
             if params.filters is not None and params.filters.ids is not None:
                 query = query.filter(MigrationModelPersonSnapshot.id.in_(params.filters.ids))
+            if params.filters is not None and params.filters.not_ids is not None:
+                query = query.filter(MigrationModelPersonSnapshot.id.notin_(params.filters.not_ids))
+            if params.filters is not None and params.filters.after_timestamp is not None:
+                query = query.filter(MigrationModelPersonSnapshot.timestamp >= params.filters.after_timestamp)
+            if params.filters is not None and params.filters.before_timestamp is not None:
+                query = query.filter(MigrationModelPersonSnapshot.timestamp <= params.filters.before_timestamp)
             if params.ordering is not None and params.ordering.feature_to_nearest is not None:
                 query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(params.ordering.feature_to_nearest.cpu().numpy().tolist()))
+            if params.ordering is not None and params.ordering.timestamp_desc is not None:
+                query = query.order_by(MigrationModelPersonSnapshot.timestamp.desc())
             model = query.first()
             if model is None:
                 raise PersonSnapshotNotFoundError
@@ -158,3 +170,7 @@ class RepositoryPersonSnapshot:
                     MigrationModelPersonSnapshot.feature: person_snapshot.feature.cpu().numpy().tolist() if person_snapshot.feature is not None else None,
                 }
             )
+
+    def delete(self, person_snapshot: EntityPersonSnapshot) -> None:
+        with self.database as session:
+            session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id == person_snapshot.id).delete()

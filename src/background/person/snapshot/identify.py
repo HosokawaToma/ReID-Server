@@ -27,9 +27,9 @@ class BackgroundPersonSnapshotIdentify(Background):
             logger=BackgroundLogger(),
         )
 
-    async def process(self) -> None:
+    async def process(self) -> str:
         try:
-            await self.application.identify()
+            return await self.application.identify()
         except ApplicationPersonSnapshotMissingFeatureError:
             raise BackgroundJobError(f"Person snapshot missing feature")
         except ApplicationPersonSnapshotNotFoundError:

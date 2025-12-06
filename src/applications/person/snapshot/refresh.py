@@ -1,6 +1,7 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFindParams
 from repositories.person.snapshot import RepositoryPersonSnapshotFindFilters
+from repositories.person.snapshot import RepositoryPersonSnapshotFindOrdering
 from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtraction
 from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtractionQueueItem
 from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtractionError
@@ -55,15 +56,13 @@ class ApplicationPersonSnapshotRefresh:
                     camera_ids=params.camera_ids,
                     view_ids=params.view_ids,
                 ),
+                ordering=RepositoryPersonSnapshotFindOrdering(
+                    timestamp_asc=True,
+                ),
             ))
             for person_snapshot in person_snapshots:
                 await self.repository_queue_person_snapshot_feature_extraction.push(
                     RepositoryQueuePersonSnapshotFeatureExtractionQueueItem(
-                        id=person_snapshot.id,
-                    )
-                )
-                await self.repository_queue_person_snapshot_identify.push(
-                    RepositoryQueuePersonSnapshotIdentifyQueueItem(
                         id=person_snapshot.id,
                     )
                 )

@@ -55,7 +55,7 @@ class ApplicationPersonSnapshotBackgroundIdentify:
             reid_identifier=ModuleReIDIdentifier(threshold=0.895),
         )
 
-    async def identify(self) -> None:
+    async def identify(self) -> str:
         try:
             item = await self.repository_queue_person_snapshot_identify.dequeue()
             person_snapshot = self.repository_person_snapshot.find_first(
@@ -69,7 +69,12 @@ class ApplicationPersonSnapshotBackgroundIdentify:
                 raise ApplicationPersonSnapshotMissingFeatureError
             nearest_person_snapshot = self.repository_person_snapshot.find_first(
                 RepositoryPersonSnapshotFindOneParams(
+                    filters=RepositoryPersonSnapshotFindOneFilters(
+                        not_ids=[person_snapshot.id],
+                        before_timestamp=person_snapshot.timestamp,
+                    ),
                     ordering=RepositoryPersonSnapshotFindOneOrdering(
+                        timestamp_desc=True,
                         feature_to_nearest=person_snapshot.feature,
                     ),
                 )
@@ -82,6 +87,7 @@ class ApplicationPersonSnapshotBackgroundIdentify:
             )
             person_snapshot.person_id = nearest_person_snapshot.person_id
             self.repository_person_snapshot.update(person_snapshot)
+            return f"person snapshot id: {person_snapshot.id} identified as person id: {person_snapshot.person_id}"
         except RepositoryQueuePersonSnapshotIdentifyError:
             raise ApplicationPersonSnapshotBackgroundIdentifyError
         except ApplicationPersonSnapshotMissingFeatureError:

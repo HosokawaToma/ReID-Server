@@ -1,5 +1,6 @@
 import logging
 from asyncio import Task
+from typing import Any
 import asyncio
 import abc
 import fastapi
@@ -54,8 +55,8 @@ class Background:
     async def run(self) -> None:
         while True:
             try:
-                await self.process()
-                self.logger.info(f"Background {self.name} executed successfully")
+                message = await self.process()
+                self.logger.info(f"Background {self.name} executed successfully: {message}")
             except BackgroundJobError as e:
                 self.logger.error(f"Background {self.name} error: {e}. Skipping job.")
                 continue
@@ -64,5 +65,5 @@ class Background:
                 continue
 
     @abc.abstractmethod
-    async def process(self) -> None:
+    async def process(self) -> Any:
         pass
