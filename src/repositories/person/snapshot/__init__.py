@@ -7,6 +7,8 @@ import uuid
 from datetime import datetime
 from environment import Environment
 from sqlalchemy.orm import Query
+from typing import Annotated
+from typing import Literal
 @dataclass
 class RepositoryPersonSnapshotFilters:
     ids: list[uuid.UUID] | None = None
@@ -20,9 +22,9 @@ class RepositoryPersonSnapshotFilters:
 
 @dataclass
 class RepositoryPersonSnapshotOrdering:
-    feature_to_nearest: torch.Tensor | None = None
-    timestamp_asc: bool | None = None
-    timestamp_desc: bool | None = None
+    KEY_TIMESTAMP_ASC = "timestamp_asc"
+    KEY_TIMESTAMP_DESC = "timestamp_desc"
+    ordering: list[Literal["timestamp_asc", "timestamp_desc"] | torch.Tensor]
 
 class RepositoryPersonSnapshotError(Exception):
     pass
@@ -47,7 +49,7 @@ class RepositoryPersonSnapshot:
         if filters is not None and filters.ids is not None:
             query = query.filter(MigrationModelPersonSnapshot.id.in_(filters.ids))
         if filters is not None and filters.not_ids is not None:
-            query = query.filter(MigrationModelPersonSnapshot.id.not_in(filters.not_ids))
+            query = query.filter(MigrationModelPersonSnapshot.id.notin_(filters.not_ids))
         if filters is not None and filters.image_ids is not None:
             query = query.filter(MigrationModelPersonSnapshot.image_id.in_(filters.image_ids))
         if filters is not None and filters.camera_ids is not None:
@@ -64,12 +66,13 @@ class RepositoryPersonSnapshot:
 
     def _build_ordering(self, query: Query, ordering: RepositoryPersonSnapshotOrdering) -> Query:
         order_by = []
-        if ordering is not None and ordering.feature_to_nearest is not None:
-            order_by.append(MigrationModelPersonSnapshot.feature.op("<=>")(ordering.feature_to_nearest.cpu().numpy().tolist()))
-        if ordering is not None and ordering.timestamp_asc is not None:
-            order_by.append(MigrationModelPersonSnapshot.timestamp.asc())
-        if ordering is not None and ordering.timestamp_desc is not None:
-            order_by.append(MigrationModelPersonSnapshot.timestamp.desc())
+        for order in ordering.ordering:
+            if isinstance(order, torch.Tensor):
+                order_by.append(MigrationModelPersonSnapshot.feature.op("<=>")(order.cpu().numpy().tolist()))
+            elif order == RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_ASC:
+                order_by.append(MigrationModelPersonSnapshot.timestamp.asc())
+            elif order == RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_DESC:
+                order_by.append(MigrationModelPersonSnapshot.timestamp.desc())
         if len(order_by) > 0:
             query = query.order_by(*order_by)
         return query
@@ -130,12 +133,11 @@ class RepositoryPersonSnapshot:
     def update(
         self,
         person_snapshot: EntityPersonSnapshot,
-        filters: RepositoryPersonSnapshotFilters | None = None,
+        filters: RepositoryPersonSnapshotFilters,
     ) -> None:
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
-            if filters is not None:
-                query = self._build_filters(query, filters)
+            query = self._build_filters(query, filters)
             query.update(
                 {
                     MigrationModelPersonSnapshot.image_id: person_snapshot.image_id,
@@ -144,15 +146,15 @@ class RepositoryPersonSnapshot:
                     MigrationModelPersonSnapshot.timestamp: person_snapshot.timestamp,
                     MigrationModelPersonSnapshot.person_id: person_snapshot.person_id,
                     MigrationModelPersonSnapshot.feature: person_snapshot.feature.cpu().numpy().tolist() if person_snapshot.feature is not None else None,
-                }
+                },
+                synchronize_session=False
             )
 
     def delete(
         self,
-        filters: RepositoryPersonSnapshotFilters | None = None,
+        filters: RepositoryPersonSnapshotFilters,
     ) -> None:
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
-            if filters is not None:
-                query = self._build_filters(query, filters)
-            query.delete()
+            query = self._build_filters(query, filters)
+            query.delete(synchronize_session=False)

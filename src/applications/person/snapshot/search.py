@@ -59,9 +59,13 @@ class ApplicationPersonSnapshotSearch:
             )
         ordering = None
         if params.ordering:
+            ordering_list = []
+            if params.ordering.timestamp_asc:
+                ordering_list.append(RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_ASC)
+            if params.ordering.timestamp_desc:
+                ordering_list.append(RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_DESC)
             ordering = RepositoryPersonSnapshotOrdering(
-                timestamp_asc=params.ordering.timestamp_asc,
-                timestamp_desc=params.ordering.timestamp_desc,
+                ordering=ordering_list,
             )
         return self.person_snapshot_repository.find(
                 filters=filters,

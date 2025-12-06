@@ -72,16 +72,20 @@ class ApplicationPersonSnapshotBackgroundIdentify:
                 self.repository_person_snapshot.find_first,
                 filters=RepositoryPersonSnapshotFilters(
                     not_ids=[person_snapshot.id],
-                    after_timestamp=person_snapshot.timestamp.replace(hour=0, minute=0, second=0, microsecond=0),
+                    after_timestamp=datetime.combine(
+                        person_snapshot.timestamp.date(), datetime.min.time()
+                    ),
                     before_timestamp=person_snapshot.timestamp,
                 ),
                 ordering=RepositoryPersonSnapshotOrdering(
-                    timestamp_desc=True,
-                    feature_to_nearest=person_snapshot.feature,
+                    ordering=[
+                        person_snapshot.feature,
+                        RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_DESC,
+                    ],
                 ),
             )
             if nearest_person_snapshot.feature is None:
-                raise ApplicationPersonSnapshotMissingFeatureError
+                return f"person snapshot id: {person_snapshot.id} not identified"
             await asyncio.to_thread(
                 self.reid_identifier.guarantee,
                 person_snapshot.feature,
@@ -91,6 +95,9 @@ class ApplicationPersonSnapshotBackgroundIdentify:
             await asyncio.to_thread(
                 self.repository_person_snapshot.update,
                 person_snapshot,
+                filters=RepositoryPersonSnapshotFilters(
+                    ids=[person_snapshot.id],
+                ),
             )
             return f"person snapshot id: {person_snapshot.id} identified as person id: {person_snapshot.person_id}"
         except RepositoryQueuePersonSnapshotIdentifyError:

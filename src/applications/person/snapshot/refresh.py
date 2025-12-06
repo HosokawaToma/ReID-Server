@@ -56,7 +56,7 @@ class ApplicationPersonSnapshotRefresh:
                     view_ids=params.view_ids,
                 ),
                 ordering=RepositoryPersonSnapshotOrdering(
-                    timestamp_asc=True,
+                    ordering=[RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_ASC],
                 ),
             )
             for person_snapshot in person_snapshots:
