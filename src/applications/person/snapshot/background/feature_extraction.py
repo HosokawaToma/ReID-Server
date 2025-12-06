@@ -3,14 +3,14 @@ import asyncio
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot.image import RepositoryPersonSnapshotImage
 from repositories.person.snapshot.image import RepositoryPersonSnapshotImageFindOneParams
-from repositories.person.snapshot import RepositoryPersonSnapshotFindOneParams
-from repositories.person.snapshot import RepositoryPersonSnapshotFindOneFilters
+from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from repositories.person.snapshot import PersonSnapshotNotFoundError
 from repositories.person.snapshot.image import PersonSnapshotImageNotFoundError
 from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtraction
 from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtractionError
 from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentify
 from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentifyQueueItem
+from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentifyError
 from modules.reid.model import ModuleReIDModel
 from modules.yolo.pose import ModuleYoloPose
 from modules.yolo.pose.verification import ModuleYoloPoseVerification
@@ -41,6 +41,13 @@ class ApplicationPersonSnapshotYoloSegmentationNotFoundError(ApplicationPersonSn
 
 class ApplicationPersonSnapshotYoloSegmentationVerificationError(ApplicationPersonSnapshotBackgroundFeatureExtractionError):
     pass
+
+class ApplicationPersonSnapshotIdentifyQueueError(ApplicationPersonSnapshotBackgroundFeatureExtractionError):
+    pass
+
+class ApplicationPersonSnapshotRepositoryError(ApplicationPersonSnapshotBackgroundFeatureExtractionError):
+    pass
+
 class ApplicationPersonSnapshotBackgroundFeatureExtraction:
     def __init__(
         self,
@@ -90,11 +97,9 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
             queue_item = await self.repository_queue_person_snapshot_feature_extraction.dequeue()
             person_snapshot = await asyncio.to_thread(
                 self.repository_person_snapshot.find_first,
-                RepositoryPersonSnapshotFindOneParams(
-                    filters=RepositoryPersonSnapshotFindOneFilters(
-                        ids=[queue_item.id],
-                    ),
-                )
+                filters=RepositoryPersonSnapshotFilters(
+                    ids=[queue_item.id],
+                ),
             )
             image = await asyncio.to_thread(
                 self.repository_person_snapshot_image.find_one,
@@ -113,7 +118,9 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
             if yolo_pose is None:
                 await asyncio.to_thread(
                     self.repository_person_snapshot.delete,
-                    person_snapshot,
+                    filters=RepositoryPersonSnapshotFilters(
+                        ids=[person_snapshot.id],
+                    ),
                 )
                 raise ApplicationPersonSnapshotYoloPoseNotFoundError
             if not await asyncio.to_thread(
@@ -122,13 +129,17 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
             ):
                 await asyncio.to_thread(
                     self.repository_person_snapshot.delete,
-                    person_snapshot,
+                    filters=RepositoryPersonSnapshotFilters(
+                        ids=[person_snapshot.id],
+                    ),
                 )
                 raise ApplicationPersonSnapshotYoloPoseVerificationError
             if yolo_segmentation is None:
                 await asyncio.to_thread(
                     self.repository_person_snapshot.delete,
-                    person_snapshot,
+                    filters=RepositoryPersonSnapshotFilters(
+                        ids=[person_snapshot.id],
+                    ),
                 )
                 raise ApplicationPersonSnapshotYoloSegmentationNotFoundError
             if not await asyncio.to_thread(
@@ -137,7 +148,9 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
             ):
                 await asyncio.to_thread(
                     self.repository_person_snapshot.delete,
-                    person_snapshot,
+                    filters=RepositoryPersonSnapshotFilters(
+                        ids=[person_snapshot.id],
+                    ),
                 )
                 raise ApplicationPersonSnapshotYoloSegmentationVerificationError
             person_snapshots_feature = await asyncio.to_thread(
@@ -150,6 +163,9 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
             await asyncio.to_thread(
                 self.repository_person_snapshot.update,
                 person_snapshot,
+                filters=RepositoryPersonSnapshotFilters(
+                    ids=[person_snapshot.id],
+                ),
             )
             await self.repository_queue_person_snapshot_identify.push(
                 RepositoryQueuePersonSnapshotIdentifyQueueItem(
@@ -163,3 +179,13 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
             raise ApplicationPersonSnapshotNotFoundError
         except PersonSnapshotImageNotFoundError:
             raise ApplicationPersonSnapshotImageNotFoundError
+        except ApplicationPersonSnapshotYoloPoseNotFoundError:
+            raise ApplicationPersonSnapshotYoloPoseNotFoundError
+        except ApplicationPersonSnapshotYoloPoseVerificationError:
+            raise ApplicationPersonSnapshotYoloPoseVerificationError
+        except ApplicationPersonSnapshotYoloSegmentationNotFoundError:
+            raise ApplicationPersonSnapshotYoloSegmentationNotFoundError
+        except ApplicationPersonSnapshotYoloSegmentationVerificationError:
+            raise ApplicationPersonSnapshotYoloSegmentationVerificationError
+        except RepositoryQueuePersonSnapshotIdentifyError:
+            raise ApplicationPersonSnapshotIdentifyQueueError

@@ -4,9 +4,8 @@ from datetime import datetime
 from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentify
 from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentifyError
 from repositories.person.snapshot import RepositoryPersonSnapshot
-from repositories.person.snapshot import RepositoryPersonSnapshotFindOneParams
-from repositories.person.snapshot import RepositoryPersonSnapshotFindOneFilters
-from repositories.person.snapshot import RepositoryPersonSnapshotFindOneOrdering
+from repositories.person.snapshot import RepositoryPersonSnapshotFilters
+from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
 from repositories.person.snapshot import PersonSnapshotNotFoundError
 from modules.reid.identifier import ModuleReIDIdentifier
 from modules.reid.identifier import ReIDIdentifierThresholdError
@@ -63,27 +62,23 @@ class ApplicationPersonSnapshotBackgroundIdentify:
             item = await self.repository_queue_person_snapshot_identify.dequeue()
             person_snapshot = await asyncio.to_thread(
                 self.repository_person_snapshot.find_first,
-                RepositoryPersonSnapshotFindOneParams(
-                    filters=RepositoryPersonSnapshotFindOneFilters(
-                        ids=[item.id],
-                    ),
+                filters=RepositoryPersonSnapshotFilters(
+                    ids=[item.id],
                 ),
             )
             if person_snapshot.feature is None:
                 raise ApplicationPersonSnapshotMissingFeatureError
             nearest_person_snapshot = await asyncio.to_thread(
                 self.repository_person_snapshot.find_first,
-                RepositoryPersonSnapshotFindOneParams(
-                    filters=RepositoryPersonSnapshotFindOneFilters(
-                        not_ids=[person_snapshot.id],
-                        after_timestamp=person_snapshot.timestamp.replace(hour=0, minute=0, second=0, microsecond=0),
-                        before_timestamp=person_snapshot.timestamp,
-                    ),
-                    ordering=RepositoryPersonSnapshotFindOneOrdering(
-                        timestamp_desc=True,
-                        feature_to_nearest=person_snapshot.feature,
-                    ),
-                )
+                filters=RepositoryPersonSnapshotFilters(
+                    not_ids=[person_snapshot.id],
+                    after_timestamp=person_snapshot.timestamp.replace(hour=0, minute=0, second=0, microsecond=0),
+                    before_timestamp=person_snapshot.timestamp,
+                ),
+                ordering=RepositoryPersonSnapshotOrdering(
+                    timestamp_desc=True,
+                    feature_to_nearest=person_snapshot.feature,
+                ),
             )
             if nearest_person_snapshot.feature is None:
                 raise ApplicationPersonSnapshotMissingFeatureError
