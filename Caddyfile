@@ -1,2 +1,1 @@
-import dev.Caddyfile
-# import prod.Caddyfile
+import {$ENV}.Caddyfile

@@ -68,6 +68,7 @@ services:
   caddy:
     image: caddy:2.10.2
     environment:
+      - ENV=${ENV}
       - DOMAIN=${DOMAIN}
       - APP_PORT=${APP_PORT}
     ports:
@@ -81,7 +82,6 @@ services:
       - caddy_config:/config
     networks:
       - app-network
-      - coturn-network
     restart: unless-stopped
     depends_on:
       - app
