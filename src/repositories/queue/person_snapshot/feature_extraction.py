@@ -4,6 +4,7 @@ from environment import Environment
 import uuid
 from repositories import RepositoryRedisError
 
+
 @dataclass
 class RepositoryQueuePersonSnapshotFeatureExtractionQueueItem:
     id: uuid.UUID
@@ -23,8 +24,8 @@ class RepositoryQueuePersonSnapshotFeatureExtraction(RepositoryRedis):
     async def push(self, value: RepositoryQueuePersonSnapshotFeatureExtractionQueueItem) -> None:
         try:
             await self._push({
-                    "id": str(value.id),
-                })
+                "id": str(value.id),
+            })
         except RepositoryRedisError:
             raise RepositoryQueuePersonSnapshotFeatureExtractionError
 

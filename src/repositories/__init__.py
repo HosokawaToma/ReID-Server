@@ -139,6 +139,7 @@ class RepositoryStorage:
 class RepositoryRedisError(Exception):
     pass
 
+
 class RepositoryRedis:
     key: str
 

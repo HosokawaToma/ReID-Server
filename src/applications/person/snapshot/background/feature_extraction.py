@@ -1,3 +1,5 @@
+import asyncio
+
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot.image import RepositoryPersonSnapshotImage
 from repositories.person.snapshot.image import RepositoryPersonSnapshotImageFindOneParams
@@ -86,39 +88,69 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
     async def extract(self) -> str:
         try:
             queue_item = await self.repository_queue_person_snapshot_feature_extraction.dequeue()
-            person_snapshot = self.repository_person_snapshot.find_first(
+            person_snapshot = await asyncio.to_thread(
+                self.repository_person_snapshot.find_first,
                 RepositoryPersonSnapshotFindOneParams(
                     filters=RepositoryPersonSnapshotFindOneFilters(
                         ids=[queue_item.id],
                     ),
                 )
             )
-            image = self.repository_person_snapshot_image.find_one(
+            image = await asyncio.to_thread(
+                self.repository_person_snapshot_image.find_one,
                 RepositoryPersonSnapshotImageFindOneParams(
                     id=person_snapshot.image_id,
                 ),
             )
-            yolo_pose = self.yolo_pose_model.extract(image.image)
-            yolo_segmentation = self.yolo_segmentation_model.extract(image.image)
+            yolo_pose = await asyncio.to_thread(
+                self.yolo_pose_model.extract,
+                image.image,
+            )
+            yolo_segmentation = await asyncio.to_thread(
+                self.yolo_segmentation_model.extract,
+                image.image,
+            )
             if yolo_pose is None:
-                self.repository_person_snapshot.delete(person_snapshot)
+                await asyncio.to_thread(
+                    self.repository_person_snapshot.delete,
+                    person_snapshot,
+                )
                 raise ApplicationPersonSnapshotYoloPoseNotFoundError
-            if not self.yolo_pose_verification.verify(yolo_pose):
-                self.repository_person_snapshot.delete(person_snapshot)
+            if not await asyncio.to_thread(
+                self.yolo_pose_verification.verify,
+                yolo_pose,
+            ):
+                await asyncio.to_thread(
+                    self.repository_person_snapshot.delete,
+                    person_snapshot,
+                )
                 raise ApplicationPersonSnapshotYoloPoseVerificationError
             if yolo_segmentation is None:
-                self.repository_person_snapshot.delete(person_snapshot)
+                await asyncio.to_thread(
+                    self.repository_person_snapshot.delete,
+                    person_snapshot,
+                )
                 raise ApplicationPersonSnapshotYoloSegmentationNotFoundError
-            if not self.yolo_segmentation_verification.verify(yolo_segmentation):
-                self.repository_person_snapshot.delete(person_snapshot)
+            if not await asyncio.to_thread(
+                self.yolo_segmentation_verification.verify,
+                yolo_segmentation,
+            ):
+                await asyncio.to_thread(
+                    self.repository_person_snapshot.delete,
+                    person_snapshot,
+                )
                 raise ApplicationPersonSnapshotYoloSegmentationVerificationError
-            person_snapshots_feature = self.reid_model.extract_feature(
+            person_snapshots_feature = await asyncio.to_thread(
+                self.reid_model.extract_feature,
                 image.image,
                 person_snapshot.camera_id,
                 person_snapshot.view_id,
             )
             person_snapshot.feature = person_snapshots_feature
-            self.repository_person_snapshot.update(person_snapshot)
+            await asyncio.to_thread(
+                self.repository_person_snapshot.update,
+                person_snapshot,
+            )
             await self.repository_queue_person_snapshot_identify.push(
                 RepositoryQueuePersonSnapshotIdentifyQueueItem(
                     id=person_snapshot.id,

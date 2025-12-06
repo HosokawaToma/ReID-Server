@@ -1,3 +1,5 @@
+import asyncio
+
 from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentify
 from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentifyError
 from repositories.person.snapshot import RepositoryPersonSnapshot
@@ -58,16 +60,18 @@ class ApplicationPersonSnapshotBackgroundIdentify:
     async def identify(self) -> str:
         try:
             item = await self.repository_queue_person_snapshot_identify.dequeue()
-            person_snapshot = self.repository_person_snapshot.find_first(
+            person_snapshot = await asyncio.to_thread(
+                self.repository_person_snapshot.find_first,
                 RepositoryPersonSnapshotFindOneParams(
                     filters=RepositoryPersonSnapshotFindOneFilters(
                         ids=[item.id],
                     ),
-                )
+                ),
             )
             if person_snapshot.feature is None:
                 raise ApplicationPersonSnapshotMissingFeatureError
-            nearest_person_snapshot = self.repository_person_snapshot.find_first(
+            nearest_person_snapshot = await asyncio.to_thread(
+                self.repository_person_snapshot.find_first,
                 RepositoryPersonSnapshotFindOneParams(
                     filters=RepositoryPersonSnapshotFindOneFilters(
                         not_ids=[person_snapshot.id],
@@ -81,12 +85,16 @@ class ApplicationPersonSnapshotBackgroundIdentify:
             )
             if nearest_person_snapshot.feature is None:
                 raise ApplicationPersonSnapshotMissingFeatureError
-            self.reid_identifier.guarantee(
+            await asyncio.to_thread(
+                self.reid_identifier.guarantee,
                 person_snapshot.feature,
                 nearest_person_snapshot.feature,
             )
             person_snapshot.person_id = nearest_person_snapshot.person_id
-            self.repository_person_snapshot.update(person_snapshot)
+            await asyncio.to_thread(
+                self.repository_person_snapshot.update,
+                person_snapshot,
+            )
             return f"person snapshot id: {person_snapshot.id} identified as person id: {person_snapshot.person_id}"
         except RepositoryQueuePersonSnapshotIdentifyError:
             raise ApplicationPersonSnapshotBackgroundIdentifyError
