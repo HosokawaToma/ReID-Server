@@ -3,8 +3,8 @@ from entities.person.snapshot import EntityPersonSnapshot
 from repositories.person.snapshot.image import RepositoryPersonSnapshotImage
 from repositories.person.snapshot.image import RepositoryPersonSnapshotImageFindOneParams
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
-from repositories.person.snapshot import PersonSnapshotNotFoundError
-from repositories.person.snapshot.image import PersonSnapshotImageNotFoundError
+from repositories.person.snapshot import RepositoryPersonSnapshotError
+from repositories.person.snapshot.image import RepositoryPersonSnapshotImageError
 from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtraction
 from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtractionError
 from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentify
@@ -12,40 +12,18 @@ from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSna
 from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentifyError
 from modules.reid.model import ModuleReIDModel
 from modules.yolo.pose import ModuleYoloPose
+from modules.yolo.pose import ModuleYoloPoseError
 from modules.yolo.pose.verification import ModuleYoloPoseVerification
 from modules.yolo.segmentation import ModuleYoloSegmentation
+from modules.yolo.segmentation import ModuleYoloSegmentationError
 from modules.yolo.segmentation.verification import ModuleYoloSegmentationVerification
 from environment import Environment
+from error import Error
 
 
-class ApplicationPersonSnapshotBackgroundFeatureExtractionError(Exception):
+class ApplicationPersonSnapshotBackgroundFeatureExtractionError(Error):
     pass
 
-
-class ApplicationPersonSnapshotNotFoundError(ApplicationPersonSnapshotBackgroundFeatureExtractionError):
-    pass
-
-
-class ApplicationPersonSnapshotImageNotFoundError(ApplicationPersonSnapshotBackgroundFeatureExtractionError):
-    pass
-
-class ApplicationPersonSnapshotYoloPoseNotFoundError(ApplicationPersonSnapshotBackgroundFeatureExtractionError):
-    pass
-
-class ApplicationPersonSnapshotYoloPoseVerificationError(ApplicationPersonSnapshotBackgroundFeatureExtractionError):
-    pass
-
-class ApplicationPersonSnapshotYoloSegmentationNotFoundError(ApplicationPersonSnapshotBackgroundFeatureExtractionError):
-    pass
-
-class ApplicationPersonSnapshotYoloSegmentationVerificationError(ApplicationPersonSnapshotBackgroundFeatureExtractionError):
-    pass
-
-class ApplicationPersonSnapshotIdentifyQueueError(ApplicationPersonSnapshotBackgroundFeatureExtractionError):
-    pass
-
-class ApplicationPersonSnapshotRepositoryError(ApplicationPersonSnapshotBackgroundFeatureExtractionError):
-    pass
 
 class ApplicationPersonSnapshotBackgroundFeatureExtraction:
     def __init__(
@@ -110,38 +88,24 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
             yolo_segmentation = self.yolo_segmentation_model.extract(
                 image.image,
             )
-            if yolo_pose is None:
+            if not self.yolo_pose_verification.verify(yolo_pose):
                 self.repository_person_snapshot.delete(
                     filters=RepositoryPersonSnapshotFilters(
                         ids=[person_snapshot.id],
                     ),
                 )
-                raise ApplicationPersonSnapshotYoloPoseNotFoundError
-            if not self.yolo_pose_verification.verify(
-                yolo_pose,
-            ):
+                raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(
+                    "yolo pose verification failed"
+                )
+            if not self.yolo_segmentation_verification.verify(yolo_segmentation):
                 self.repository_person_snapshot.delete(
                     filters=RepositoryPersonSnapshotFilters(
                         ids=[person_snapshot.id],
                     ),
                 )
-                raise ApplicationPersonSnapshotYoloPoseVerificationError
-            if yolo_segmentation is None:
-                self.repository_person_snapshot.delete(
-                    filters=RepositoryPersonSnapshotFilters(
-                        ids=[person_snapshot.id],
-                    ),
+                raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(
+                    "yolo segmentation verification failed"
                 )
-                raise ApplicationPersonSnapshotYoloSegmentationNotFoundError
-            if not self.yolo_segmentation_verification.verify(
-                yolo_segmentation,
-            ):
-                self.repository_person_snapshot.delete(
-                    filters=RepositoryPersonSnapshotFilters(
-                        ids=[person_snapshot.id],
-                    )
-                )
-                raise ApplicationPersonSnapshotYoloSegmentationVerificationError
             person_snapshots_feature = self.reid_model.extract_feature(
                 image.image,
                 person_snapshot.camera_id,
@@ -160,19 +124,15 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
                 )
             )
             return person_snapshot
-        except RepositoryQueuePersonSnapshotFeatureExtractionError:
-            raise ApplicationPersonSnapshotBackgroundFeatureExtractionError
-        except PersonSnapshotNotFoundError:
-            raise ApplicationPersonSnapshotNotFoundError
-        except PersonSnapshotImageNotFoundError:
-            raise ApplicationPersonSnapshotImageNotFoundError
-        except ApplicationPersonSnapshotYoloPoseNotFoundError:
-            raise ApplicationPersonSnapshotYoloPoseNotFoundError
-        except ApplicationPersonSnapshotYoloPoseVerificationError:
-            raise ApplicationPersonSnapshotYoloPoseVerificationError
-        except ApplicationPersonSnapshotYoloSegmentationNotFoundError:
-            raise ApplicationPersonSnapshotYoloSegmentationNotFoundError
-        except ApplicationPersonSnapshotYoloSegmentationVerificationError:
-            raise ApplicationPersonSnapshotYoloSegmentationVerificationError
-        except RepositoryQueuePersonSnapshotIdentifyError:
-            raise ApplicationPersonSnapshotIdentifyQueueError
+        except RepositoryQueuePersonSnapshotFeatureExtractionError as e:
+            raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(e.message)
+        except RepositoryPersonSnapshotError as e:
+            raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(e.message)
+        except RepositoryPersonSnapshotImageError as e:
+            raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(e.message)
+        except ModuleYoloPoseError as e:
+            raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(e.message)
+        except ModuleYoloSegmentationError as e:
+            raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(e.message)
+        except RepositoryQueuePersonSnapshotIdentifyError as e:
+            raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(e.message)

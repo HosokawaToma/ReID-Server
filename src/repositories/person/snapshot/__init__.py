@@ -7,8 +7,8 @@ import uuid
 from datetime import datetime
 from environment import Environment
 from sqlalchemy.orm import Query
-from typing import Annotated
 from typing import Literal
+from error import Error
 @dataclass
 class RepositoryPersonSnapshotFilters:
     ids: list[uuid.UUID] | None = None
@@ -20,16 +20,16 @@ class RepositoryPersonSnapshotFilters:
     after_timestamp: datetime | None = None
     before_timestamp: datetime | None = None
 
+    def __str__(self) -> str:
+        return f"ids: {self.ids}, not_ids: {self.not_ids}, image_ids: {self.image_ids}, camera_ids: {self.camera_ids}, view_ids: {self.view_ids}, person_ids: {self.person_ids}, after_timestamp: {self.after_timestamp}, before_timestamp: {self.before_timestamp}"
+
 @dataclass
 class RepositoryPersonSnapshotOrdering:
     KEY_TIMESTAMP_ASC = "timestamp_asc"
     KEY_TIMESTAMP_DESC = "timestamp_desc"
     ordering: list[Literal["timestamp_asc", "timestamp_desc"] | torch.Tensor]
 
-class RepositoryPersonSnapshotError(Exception):
-    pass
-
-class PersonSnapshotNotFoundError(RepositoryPersonSnapshotError):
+class RepositoryPersonSnapshotError(Error):
     pass
 
 class RepositoryPersonSnapshot:
@@ -113,7 +113,7 @@ class RepositoryPersonSnapshot:
                 query = self._build_ordering(query, ordering)
             model = query.first()
             if model is None:
-                raise PersonSnapshotNotFoundError
+                raise RepositoryPersonSnapshotError(f"person snapshot not found: {filters}")
             return self.model_to_entity(model)
 
     def find(

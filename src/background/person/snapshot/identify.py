@@ -1,9 +1,6 @@
 from background import Background, BackgroundJobError, BackgroundLogger
 from applications.person.snapshot.background.identify import ApplicationPersonSnapshotBackgroundIdentify
 from applications.person.snapshot.background.identify import ApplicationPersonSnapshotBackgroundIdentifyError
-from applications.person.snapshot.background.identify import ApplicationPersonSnapshotMissingFeatureError
-from applications.person.snapshot.background.identify import ApplicationPersonSnapshotNotFoundError
-from applications.person.snapshot.background.identify import ApplicationPersonSnapshotThresholdError
 from environment import Environment
 
 class BackgroundPersonSnapshotIdentify(Background):
@@ -31,9 +28,5 @@ class BackgroundPersonSnapshotIdentify(Background):
         try:
             person_snapshot = await self.application.identify()
             return f"person snapshot id: {person_snapshot.id} identified as person id: {person_snapshot.person_id}"
-        except ApplicationPersonSnapshotMissingFeatureError:
-            raise BackgroundJobError(f"Person snapshot missing feature")
-        except ApplicationPersonSnapshotNotFoundError:
-            raise BackgroundJobError(f"Person snapshot not found")
-        except ApplicationPersonSnapshotThresholdError:
-            raise BackgroundJobError(f"No matching people found")
+        except ApplicationPersonSnapshotBackgroundIdentifyError as e:
+            raise BackgroundJobError(e.message)

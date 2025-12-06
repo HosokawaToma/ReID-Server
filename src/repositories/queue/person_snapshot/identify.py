@@ -3,13 +3,14 @@ from environment import Environment
 from dataclasses import dataclass
 import uuid
 from repositories import RepositoryRedisError
+from error import Error
 
 @dataclass
 class RepositoryQueuePersonSnapshotIdentifyQueueItem:
     id: uuid.UUID
 
 
-class RepositoryQueuePersonSnapshotIdentifyError(Exception):
+class RepositoryQueuePersonSnapshotIdentifyError(Error):
     pass
 
 
@@ -25,16 +26,16 @@ class RepositoryQueuePersonSnapshotIdentify(RepositoryRedis):
             await self._push({
                 "id": str(value.id),
             })
-        except RepositoryRedisError:
-            raise RepositoryQueuePersonSnapshotIdentifyError
+        except RepositoryRedisError as e:
+            raise RepositoryQueuePersonSnapshotIdentifyError(str(e))
 
     async def dequeue(self, timeout: int = 0) -> RepositoryQueuePersonSnapshotIdentifyQueueItem:
         try:
             data = await self._dequeue(timeout)
-        except RepositoryRedisError:
-            raise RepositoryQueuePersonSnapshotIdentifyError
+        except RepositoryRedisError as e:
+            raise RepositoryQueuePersonSnapshotIdentifyError(str(e))
         if "id" not in data:
-            raise RepositoryQueuePersonSnapshotIdentifyError
+            raise RepositoryQueuePersonSnapshotIdentifyError("id not found")
         return RepositoryQueuePersonSnapshotIdentifyQueueItem(
             id=uuid.UUID(data["id"]),
         )

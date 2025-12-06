@@ -2,15 +2,16 @@ import logging
 import asyncio
 import abc
 import fastapi
-import time
-
+from error import Error
 
 class BackgroundLogger:
     def __init__(self):
         self.logger = logging.getLogger("background")
         self.logger.setLevel(logging.INFO)
-        self.logger.addHandler(logging.StreamHandler())
-        self.logger.addHandler(logging.FileHandler("background.log"))
+        if not self.logger.handlers:
+            self.logger.addHandler(logging.StreamHandler())
+            self.logger.addHandler(logging.FileHandler("background.log"))
+
 
     def error(self, message: str):
         self.logger.error(message)
@@ -25,7 +26,7 @@ class BackgroundLogger:
         self.logger.debug(message)
 
 
-class BackgroundJobError(Exception):
+class BackgroundJobError(Error):
     pass
 
 
@@ -69,8 +70,7 @@ class Background:
                 self.logger.info(
                     f"Background {self.name} executed successfully: {message}")
             except BackgroundJobError as e:
-                self.logger.error(
-                    f"Background {self.name} error: {e}. Skipping job.")
+                self.logger.error(f"Background {self.name} error: {e.message}")
                 continue
             except Exception as e:
                 self.logger.error(

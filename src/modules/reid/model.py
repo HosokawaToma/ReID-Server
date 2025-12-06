@@ -65,7 +65,7 @@ class ModuleReIDModel:
 
     def extract_feature(self, image: Image.Image, camera_id: int, view_id: int) -> torch.Tensor:
         if ModuleReIDModel._model is None or ModuleReIDModel._transform is None or ModuleReIDModel._config is None:
-            raise ModuleReIDModelError
+            raise ModuleReIDModelError("model is not initialized")
 
         image_tensor: torch.Tensor = ModuleReIDModel._transform(image)  # pyright: ignore[reportAssignmentType]
         image_tensor = image_tensor.unsqueeze(0).to(ModuleReIDModel._config.MODEL.DEVICE)

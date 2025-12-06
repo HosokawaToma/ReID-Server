@@ -8,21 +8,13 @@ from entities.person.snapshot import EntityPersonSnapshotImage
 from dataclasses import dataclass
 import uuid
 from environment import Environment
+from error import Error
 
 @dataclass
 class RepositoryPersonSnapshotImageFindOneParams:
     id: uuid.UUID
 
-class RepositoryPersonSnapshotImageError(Exception):
-    pass
-
-class PersonSnapshotImageNotFoundError(RepositoryPersonSnapshotImageError):
-    pass
-
-class PersonSnapshotImageMultipleError(RepositoryPersonSnapshotImageError):
-    pass
-
-class PersonSnapshotImageInvalidError(RepositoryPersonSnapshotImageError):
+class RepositoryPersonSnapshotImageError(Error):
     pass
 
 class RepositoryPersonSnapshotImage:
@@ -53,8 +45,8 @@ class RepositoryPersonSnapshotImage:
                 image=image.image,
             )
         except StorageImageNotFoundError:
-            raise PersonSnapshotImageNotFoundError
+            raise RepositoryPersonSnapshotImageError("storage image not found")
         except StorageImageMultipleError:
-            raise PersonSnapshotImageMultipleError
+            raise RepositoryPersonSnapshotImageError("storage image multiple error")
         except StorageImageInvalidError:
-            raise PersonSnapshotImageInvalidError
+            raise RepositoryPersonSnapshotImageError("storage image invalid error")
