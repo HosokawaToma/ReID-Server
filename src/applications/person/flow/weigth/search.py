@@ -1,6 +1,5 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
-from repositories.person.snapshot import RepositoryPersonSnapshotFindParams
-from repositories.person.snapshot import RepositoryPersonSnapshotFindFilters
+from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from sequences.person.snapshots import SequencePersonSnapshots
 from sequences.person.flows import SequencePersonFlows
 from sequences.person.flow_weights import SequencePersonFlowWeights
@@ -31,13 +30,15 @@ class ApplicationPersonFlowWeightSearch:
     def search(self, params: ApplicationPersonFlowWeightSearchParams | None = None) -> SequencePersonFlowWeights:
         filters = None
         if params is not None:
-            filters = RepositoryPersonSnapshotFindFilters(
+            filters = RepositoryPersonSnapshotFilters(
                 after_timestamp=params.after_timestamp,
                 before_timestamp=params.before_timestamp,
                 person_ids=params.person_ids,
             )
         person_snapshots = SequencePersonSnapshots(
-            person_snapshots=self.repository_person_snapshot.find(params=RepositoryPersonSnapshotFindParams(filters=filters)),
+            person_snapshots=self.repository_person_snapshot.find(
+                filters=filters,
+            ),
         )
         sequences = [
             person_snapshots.convert_to_flows(interval=self.INTERVAL)
