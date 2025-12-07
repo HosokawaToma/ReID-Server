@@ -65,7 +65,7 @@ class ApplicationPersonSnapshotRefresh:
                         id=person_snapshot.id,
                     )
                 )
-        except RepositoryQueuePersonSnapshotFeatureExtractionError:
-            raise ApplicationPersonSnapshotFeatureExtractionQueueError
-        except RepositoryQueuePersonSnapshotIdentifyError:
-            raise ApplicationPersonSnapshotIdentifyQueueError
+        except RepositoryQueuePersonSnapshotFeatureExtractionError as e:
+            raise ApplicationPersonSnapshotFeatureExtractionQueueError(e.message)
+        except RepositoryQueuePersonSnapshotIdentifyError as e:
+            raise ApplicationPersonSnapshotIdentifyQueueError(e.message)

@@ -73,59 +73,40 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
             queue_item = self.repository_queue_person_snapshot_feature_extraction.dequeue()
             person_snapshot = self.repository_person_snapshot.find_first(
                 filters=RepositoryPersonSnapshotFilters(
-                    ids=[queue_item.id],
-                )
-            )
+                    ids=[queue_item.id],))
             if person_snapshot is None:
-                raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(f"person snapshot not found: {queue_item.id}")
+                raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(
+                    f"person snapshot not found: {queue_item.id}")
             image = self.repository_person_snapshot_image.find_one(
                 RepositoryPersonSnapshotImageFindOneParams(
-                    id=person_snapshot.image_id,
-                )
-            )
+                    id=person_snapshot.image_id,))
             yolo_pose = self.yolo_pose_model.extract(
-                image.image,
-            )
+                image.image)
             yolo_segmentation = self.yolo_segmentation_model.extract(
-                image.image,
-            )
-            if yolo_pose is not None and not self.yolo_pose_verification.verify(yolo_pose):
+                image.image)
+            yolo_pose_verification_failed = yolo_pose is not None and not self.yolo_pose_verification.verify(yolo_pose)
+            yolo_segmentation_verification_failed = not self.yolo_segmentation_verification.verify(yolo_segmentation)
+            if yolo_pose_verification_failed or yolo_segmentation_verification_failed:
                 self.repository_person_snapshot.delete(
                     filters=RepositoryPersonSnapshotFilters(
-                        ids=[person_snapshot.id],
-                    ),
-                )
+                        ids=[person_snapshot.id]))
                 self.repository_person_snapshot_image.delete(
                     RepositoryPersonSnapshotImageDeleteParams(
-                        id=person_snapshot.image_id,
-                    ),
-                )
+                        id=person_snapshot.image_id))
+            if yolo_pose_verification_failed:
                 raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(
-                    "yolo pose verification failed"
-                )
-            if not self.yolo_segmentation_verification.verify(yolo_segmentation):
-                self.repository_person_snapshot.delete(
-                    filters=RepositoryPersonSnapshotFilters(
-                        ids=[person_snapshot.id],
-                    ),
-                )
+                    "yolo pose verification failed")
+            if yolo_segmentation_verification_failed:
                 raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(
-                    "yolo segmentation verification failed"
-                )
+                    "yolo segmentation verification failed")
             person_snapshots_feature = self.reid_model.extract_feature(
                 image.image,
                 person_snapshot.camera_id,
-                person_snapshot.view_id,
-            )
+                person_snapshot.view_id)
             person_snapshot.feature = person_snapshots_feature
-            self.repository_person_snapshot.update(
-                person_snapshot,
-            )
+            self.repository_person_snapshot.update(person_snapshot)
             self.repository_queue_person_snapshot_identify.push(
-                RepositoryQueuePersonSnapshotIdentifyQueueItem(
-                    id=person_snapshot.id,
-                )
-            )
+                RepositoryQueuePersonSnapshotIdentifyQueueItem(id=person_snapshot.id))
             return person_snapshot
         except RepositoryQueuePersonSnapshotFeatureExtractionError as e:
             raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(e.message)

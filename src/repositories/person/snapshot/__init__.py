@@ -63,21 +63,21 @@ class RepositoryPersonSnapshot:
         )
 
     def _build_filters(self, query: Query, filters: RepositoryPersonSnapshotFilters) -> Query:
-        if filters is not None and filters.ids is not None:
+        if filters.ids is not None:
             query = query.filter(MigrationModelPersonSnapshot.id.in_(filters.ids))
-        if filters is not None and filters.not_ids is not None:
+        if filters.not_ids is not None:
             query = query.filter(MigrationModelPersonSnapshot.id.notin_(filters.not_ids))
-        if filters is not None and filters.image_ids is not None:
+        if filters.image_ids is not None:
             query = query.filter(MigrationModelPersonSnapshot.image_id.in_(filters.image_ids))
-        if filters is not None and filters.camera_ids is not None:
+        if filters.camera_ids is not None:
             query = query.filter(MigrationModelPersonSnapshot.camera_id.in_(filters.camera_ids))
-        if filters is not None and filters.view_ids is not None:
+        if filters.view_ids is not None:
             query = query.filter(MigrationModelPersonSnapshot.view_id.in_(filters.view_ids))
-        if filters is not None and filters.person_ids is not None:
+        if filters.person_ids is not None:
             query = query.filter(MigrationModelPersonSnapshot.person_id.in_(filters.person_ids))
-        if filters is not None and filters.after_timestamp is not None:
+        if filters.after_timestamp is not None:
             query = query.filter(MigrationModelPersonSnapshot.timestamp >= filters.after_timestamp)
-        if filters is not None and filters.before_timestamp is not None:
+        if filters.before_timestamp is not None:
             query = query.filter(MigrationModelPersonSnapshot.timestamp <= filters.before_timestamp)
         return query
 

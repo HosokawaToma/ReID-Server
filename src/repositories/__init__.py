@@ -161,7 +161,7 @@ class RepositoryRedis:
         if isinstance(result, Awaitable):
             raise RepositoryRedisError("result is Awaitable")
 
-    def _dequeue(self, timeout: int = 0) -> dict[str, str]:
+    def _dequeue(self, timeout: int = 1) -> dict[str, str]:
         result = self.redis.blpop([self.key], timeout=timeout)
         if result is None:
             raise RepositoryRedisError("result is None")
