@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from environment import Environment
 from sqlalchemy.orm import Query
-from typing import Literal
+from typing import Literal, ClassVar
 from error import Error
 @dataclass
 class RepositoryPersonSnapshotFilters:
@@ -42,8 +42,8 @@ class RepositoryPersonSnapshotFilters:
 
 @dataclass
 class RepositoryPersonSnapshotOrdering:
-    KEY_TIMESTAMP_ASC = "timestamp_asc"
-    KEY_TIMESTAMP_DESC = "timestamp_desc"
+    KEY_TIMESTAMP_ASC: ClassVar[str] = "timestamp_asc"
+    KEY_TIMESTAMP_DESC: ClassVar[str] = "timestamp_desc"
     ordering: list[Literal["timestamp_asc", "timestamp_desc"] | torch.Tensor]
 
 class RepositoryPersonSnapshotError(Error):
