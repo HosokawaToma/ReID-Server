@@ -42,8 +42,8 @@ class RepositoryPersonSnapshotFilters:
 
 @dataclass
 class RepositoryPersonSnapshotOrdering:
-    KEY_TIMESTAMP_ASC: ClassVar[str] = "timestamp_asc"
-    KEY_TIMESTAMP_DESC: ClassVar[str] = "timestamp_desc"
+    KEY_TIMESTAMP_ASC: ClassVar[Literal["timestamp_asc"]] = "timestamp_asc"
+    KEY_TIMESTAMP_DESC: ClassVar[Literal["timestamp_desc"]] = "timestamp_desc"
     ordering: list[Literal["timestamp_asc", "timestamp_desc"] | torch.Tensor]
 
 class RepositoryPersonSnapshotError(Error):
