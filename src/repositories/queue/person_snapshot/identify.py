@@ -27,13 +27,13 @@ class RepositoryQueuePersonSnapshotIdentify(RepositoryRedis):
                 "id": str(value.id),
             })
         except RepositoryRedisError as e:
-            raise RepositoryQueuePersonSnapshotIdentifyError(str(e))
+            raise RepositoryQueuePersonSnapshotIdentifyError(e.message)
 
     def dequeue(self, timeout: int = 0) -> RepositoryQueuePersonSnapshotIdentifyQueueItem:
         try:
             data = self._dequeue(timeout)
         except RepositoryRedisError as e:
-            raise RepositoryQueuePersonSnapshotIdentifyError(str(e))
+            raise RepositoryQueuePersonSnapshotIdentifyError(e.message)
         if "id" not in data:
             raise RepositoryQueuePersonSnapshotIdentifyError("id not found")
         return RepositoryQueuePersonSnapshotIdentifyQueueItem(

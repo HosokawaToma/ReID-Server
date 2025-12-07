@@ -2,6 +2,7 @@ from repositories.person.snapshot import RepositoryPersonSnapshot
 from entities.person.snapshot import EntityPersonSnapshot
 from repositories.person.snapshot.image import RepositoryPersonSnapshotImage
 from repositories.person.snapshot.image import RepositoryPersonSnapshotImageFindOneParams
+from repositories.person.snapshot.image import RepositoryPersonSnapshotImageDeleteParams
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from repositories.person.snapshot import RepositoryPersonSnapshotError
 from repositories.person.snapshot.image import RepositoryPersonSnapshotImageError
@@ -92,6 +93,11 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
                 self.repository_person_snapshot.delete(
                     filters=RepositoryPersonSnapshotFilters(
                         ids=[person_snapshot.id],
+                    ),
+                )
+                self.repository_person_snapshot_image.delete(
+                    RepositoryPersonSnapshotImageDeleteParams(
+                        id=person_snapshot.image_id,
                     ),
                 )
                 raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(
