@@ -1,15 +1,17 @@
 import logging
-from asyncio import Task
 import asyncio
 import abc
 import fastapi
-
+from error import Error
+import threading
 class BackgroundLogger:
     def __init__(self):
         self.logger = logging.getLogger("background")
         self.logger.setLevel(logging.INFO)
-        self.logger.addHandler(logging.StreamHandler())
-        self.logger.addHandler(logging.FileHandler("background.log"))
+        if not self.logger.handlers:
+            self.logger.addHandler(logging.StreamHandler())
+            self.logger.addHandler(logging.FileHandler("background.log"))
+
 
     def error(self, message: str):
         self.logger.error(message)
@@ -23,8 +25,10 @@ class BackgroundLogger:
     def debug(self, message: str):
         self.logger.debug(message)
 
-class BackgroundJobError(Exception):
+
+class BackgroundJobError(Error):
     pass
+
 
 class Background:
     def __init__(
@@ -32,8 +36,8 @@ class Background:
         logger: BackgroundLogger,
     ):
         self.logger = logger
-        self.task: Task | None = None
-
+        self.task: asyncio.Task | None = None
+        self.event = threading.Event()
     @property
     @abc.abstractmethod
     def name(self) -> str:
@@ -45,24 +49,34 @@ class Background:
 
     async def start(self) -> None:
         self.task = asyncio.create_task(self.run())
+        self.event.clear()
 
     async def stop(self) -> None:
         if self.task:
+            self.event.set()
             self.task.cancel()
-            await self.task
+            try:
+                await self.task
+            except asyncio.CancelledError:
+                pass
+            except Exception as e:
+                self.logger.error(
+                    f"Unexpected error stopping background {self.name}: {e}")
 
     async def run(self) -> None:
-        while True:
+        while not self.event.is_set():
             try:
-                await self.process()
-                self.logger.info(f"Background {self.name} executed successfully")
+                message = await asyncio.to_thread(self.handle)
+                self.logger.info(
+                    f"Background {self.name} executed successfully: {message}")
             except BackgroundJobError as e:
-                self.logger.error(f"Background {self.name} error: {e}. Skipping job.")
+                self.logger.error(f"Background {self.name} error: {e.message}")
                 continue
             except Exception as e:
-                self.logger.error(f"Unexpected error processing background {self.name}: {e}")
+                self.logger.error(
+                    f"Unexpected error processing background {self.name}: {e}")
                 continue
 
     @abc.abstractmethod
-    async def process(self) -> None:
+    def handle(self) -> str:
         pass

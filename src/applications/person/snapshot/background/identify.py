@@ -1,14 +1,15 @@
+from datetime import datetime
+
+from entities.person.snapshot import EntityPersonSnapshot
 from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentify
 from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentifyError
 from repositories.person.snapshot import RepositoryPersonSnapshot
-from repositories.person.snapshot import RepositoryPersonSnapshotFindOneParams
-from repositories.person.snapshot import RepositoryPersonSnapshotFindOneFilters
-from repositories.person.snapshot import RepositoryPersonSnapshotFindOneOrdering
-from repositories.person.snapshot import PersonSnapshotNotFoundError
+from repositories.person.snapshot import RepositoryPersonSnapshotFilters
+from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
+from repositories.person.snapshot import RepositoryPersonSnapshotError
 from modules.reid.identifier import ModuleReIDIdentifier
-from modules.reid.identifier import ReIDIdentifierThresholdError
 from environment import Environment
-
+from error import Error
 from dataclasses import dataclass
 import uuid
 
@@ -18,19 +19,7 @@ class ApplicationPersonSnapshotBackgroundIdentifyParams:
     person_snapshot_id: uuid.UUID
 
 
-class ApplicationPersonSnapshotBackgroundIdentifyError(Exception):
-    pass
-
-
-class ApplicationPersonSnapshotMissingFeatureError(ApplicationPersonSnapshotBackgroundIdentifyError):
-    pass
-
-
-class ApplicationPersonSnapshotNotFoundError(ApplicationPersonSnapshotBackgroundIdentifyError):
-    pass
-
-
-class ApplicationPersonSnapshotThresholdError(ApplicationPersonSnapshotBackgroundIdentifyError):
+class ApplicationPersonSnapshotBackgroundIdentifyError(Error):
     pass
 
 
@@ -55,38 +44,34 @@ class ApplicationPersonSnapshotBackgroundIdentify:
             reid_identifier=ModuleReIDIdentifier(threshold=0.895),
         )
 
-    async def identify(self) -> None:
+    def identify(self) -> EntityPersonSnapshot:
         try:
-            item = await self.repository_queue_person_snapshot_identify.dequeue()
+            item = self.repository_queue_person_snapshot_identify.dequeue()
             person_snapshot = self.repository_person_snapshot.find_first(
-                RepositoryPersonSnapshotFindOneParams(
-                    filters=RepositoryPersonSnapshotFindOneFilters(
-                        ids=[item.id],
-                    ),
-                )
-            )
+                filters=RepositoryPersonSnapshotFilters(ids=[item.id]))
+            if person_snapshot is None:
+                raise ApplicationPersonSnapshotBackgroundIdentifyError(
+                    f"person snapshot not found: {item.id}")
             if person_snapshot.feature is None:
-                raise ApplicationPersonSnapshotMissingFeatureError
+                raise ApplicationPersonSnapshotBackgroundIdentifyError(
+                    f"person snapshot feature is None: {person_snapshot.id}")
             nearest_person_snapshot = self.repository_person_snapshot.find_first(
-                RepositoryPersonSnapshotFindOneParams(
-                    ordering=RepositoryPersonSnapshotFindOneOrdering(
-                        feature_to_nearest=person_snapshot.feature,
-                    ),
-                )
-            )
-            if nearest_person_snapshot.feature is None:
-                raise ApplicationPersonSnapshotMissingFeatureError
-            self.reid_identifier.guarantee(
-                person_snapshot.feature,
-                nearest_person_snapshot.feature,
-            )
+                filters=RepositoryPersonSnapshotFilters(
+                    not_ids=[person_snapshot.id],
+                    after_timestamp=datetime.combine(
+                        person_snapshot.timestamp.date(), datetime.min.time()),
+                    before_timestamp=person_snapshot.timestamp),
+                ordering=RepositoryPersonSnapshotOrdering([
+                        person_snapshot.feature,
+                        RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_DESC]))
+            if nearest_person_snapshot is None or nearest_person_snapshot.feature is None:
+                return person_snapshot
+            if not self.reid_identifier.identify(person_snapshot.feature, nearest_person_snapshot.feature):
+                return person_snapshot
             person_snapshot.person_id = nearest_person_snapshot.person_id
             self.repository_person_snapshot.update(person_snapshot)
-        except RepositoryQueuePersonSnapshotIdentifyError:
-            raise ApplicationPersonSnapshotBackgroundIdentifyError
-        except ApplicationPersonSnapshotMissingFeatureError:
-            raise ApplicationPersonSnapshotMissingFeatureError
-        except PersonSnapshotNotFoundError:
-            raise ApplicationPersonSnapshotNotFoundError
-        except ReIDIdentifierThresholdError:
-            raise ApplicationPersonSnapshotThresholdError
+            return person_snapshot
+        except RepositoryQueuePersonSnapshotIdentifyError as e:
+            raise ApplicationPersonSnapshotBackgroundIdentifyError(e.message)
+        except RepositoryPersonSnapshotError as e:
+            raise ApplicationPersonSnapshotBackgroundIdentifyError(e.message)

@@ -1,6 +1,6 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
-from repositories.person.snapshot import RepositoryPersonSnapshotFindParams
-from repositories.person.snapshot import RepositoryPersonSnapshotFindFilters
+from repositories.person.snapshot import RepositoryPersonSnapshotFilters
+from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
 from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtraction
 from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtractionQueueItem
 from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtractionError
@@ -46,28 +46,26 @@ class ApplicationPersonSnapshotRefresh:
             repository_queue_person_snapshot_identify=RepositoryQueuePersonSnapshotIdentify.create(environment),
         )
 
-    async def refresh(self, params: ApplicationPersonSnapshotRefreshParams) -> None:
+    def refresh(self, params: ApplicationPersonSnapshotRefreshParams) -> None:
         try:
-            person_snapshots = self.repository_person_snapshot.find(RepositoryPersonSnapshotFindParams(
-                filters=RepositoryPersonSnapshotFindFilters(
+            person_snapshots = self.repository_person_snapshot.find(
+                filters=RepositoryPersonSnapshotFilters(
                     after_timestamp=params.after_timestamp,
                     before_timestamp=params.before_timestamp,
                     camera_ids=params.camera_ids,
                     view_ids=params.view_ids,
                 ),
-            ))
+                ordering=RepositoryPersonSnapshotOrdering(
+                    ordering=[RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_ASC],
+                ),
+            )
             for person_snapshot in person_snapshots:
-                await self.repository_queue_person_snapshot_feature_extraction.push(
+                self.repository_queue_person_snapshot_feature_extraction.push(
                     RepositoryQueuePersonSnapshotFeatureExtractionQueueItem(
                         id=person_snapshot.id,
                     )
                 )
-                await self.repository_queue_person_snapshot_identify.push(
-                    RepositoryQueuePersonSnapshotIdentifyQueueItem(
-                        id=person_snapshot.id,
-                    )
-                )
-        except RepositoryQueuePersonSnapshotFeatureExtractionError:
-            raise ApplicationPersonSnapshotFeatureExtractionQueueError
-        except RepositoryQueuePersonSnapshotIdentifyError:
-            raise ApplicationPersonSnapshotIdentifyQueueError
+        except RepositoryQueuePersonSnapshotFeatureExtractionError as e:
+            raise ApplicationPersonSnapshotFeatureExtractionQueueError(e.message)
+        except RepositoryQueuePersonSnapshotIdentifyError as e:
+            raise ApplicationPersonSnapshotIdentifyQueueError(e.message)
