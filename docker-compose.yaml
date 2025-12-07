@@ -16,7 +16,8 @@ services:
               count: 1
               capabilities: [gpu]
     networks:
-      - app_network
+      - app-network
+      - database-network
       - redis-network
     env_file:
       - .env
@@ -35,7 +36,7 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
       - postgresql_data:/var/lib/postgresql/data
     networks:
-      - app_network
+      - database-network
 
   coturn:
     image: coturn/coturn:4.7
@@ -62,38 +63,28 @@ services:
       - "--cert=/etc/coturn/certs/fullchain.pem"
       - "--pkey=/etc/coturn/certs/privkey.pem"
     networks:
-      - app_network
+      - coturn-network
 
   caddy:
     image: caddy:2.10.2
     environment:
+      - ENV=${ENV}
       - DOMAIN=${DOMAIN}
-      - REVERSE_PROXY=${CADDY_REVERSE_PROXY}
-      - REVERSE_PROXY_PORT=${CADDY_REVERSE_PROXY_PORT}
+      - APP_PORT=${APP_PORT}
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./dev.Caddyfile:/etc/caddy/dev.Caddyfile
+      - ./prod.Caddyfile:/etc/caddy/prod.Caddyfile
       - caddy_data:/data
       - caddy_config:/config
     networks:
-      - app_network
+      - app-network
     restart: unless-stopped
     depends_on:
-      - nginx
-
-  nginx:
-    image: nginx:1.29
-    environment:
-      - NGINX_HTTP_PORT=80
-      - NGINX_DOMAIN=${DOMAIN}
-      - PORT=${PORT}
-    volumes:
-      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
-    networks:
-      - app_network
-    restart: unless-stopped
+      - app
 
   redis:
     image: redis:8.4.0
@@ -104,8 +95,9 @@ services:
       - redis-network
 
 networks:
-  app_network:
-  web_app_network:
+  app-network:
+  coturn-network:
+  database-network:
   redis-network:
 volumes:
   app_storage:
