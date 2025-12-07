@@ -12,10 +12,8 @@ from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSna
 from repositories.queue.person_snapshot.identify import RepositoryQueuePersonSnapshotIdentifyError
 from modules.reid.model import ModuleReIDModel
 from modules.yolo.pose import ModuleYoloPose
-from modules.yolo.pose import ModuleYoloPoseError
 from modules.yolo.pose.verification import ModuleYoloPoseVerification
 from modules.yolo.segmentation import ModuleYoloSegmentation
-from modules.yolo.segmentation import ModuleYoloSegmentationError
 from modules.yolo.segmentation.verification import ModuleYoloSegmentationVerification
 from environment import Environment
 from error import Error
@@ -69,14 +67,16 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
                 environment),
         )
 
-    async def extract(self) -> EntityPersonSnapshot:
+    def extract(self) -> EntityPersonSnapshot:
         try:
-            queue_item = await self.repository_queue_person_snapshot_feature_extraction.dequeue()
+            queue_item = self.repository_queue_person_snapshot_feature_extraction.dequeue()
             person_snapshot = self.repository_person_snapshot.find_first(
                 filters=RepositoryPersonSnapshotFilters(
                     ids=[queue_item.id],
                 )
             )
+            if person_snapshot is None:
+                raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(f"person snapshot not found: {queue_item.id}")
             image = self.repository_person_snapshot_image.find_one(
                 RepositoryPersonSnapshotImageFindOneParams(
                     id=person_snapshot.image_id,
@@ -88,7 +88,7 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
             yolo_segmentation = self.yolo_segmentation_model.extract(
                 image.image,
             )
-            if not self.yolo_pose_verification.verify(yolo_pose):
+            if yolo_pose is not None and not self.yolo_pose_verification.verify(yolo_pose):
                 self.repository_person_snapshot.delete(
                     filters=RepositoryPersonSnapshotFilters(
                         ids=[person_snapshot.id],
@@ -114,11 +114,8 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
             person_snapshot.feature = person_snapshots_feature
             self.repository_person_snapshot.update(
                 person_snapshot,
-                filters=RepositoryPersonSnapshotFilters(
-                    ids=[person_snapshot.id],
-                ),
             )
-            await self.repository_queue_person_snapshot_identify.push(
+            self.repository_queue_person_snapshot_identify.push(
                 RepositoryQueuePersonSnapshotIdentifyQueueItem(
                     id=person_snapshot.id,
                 )
@@ -129,10 +126,6 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
         except RepositoryPersonSnapshotError as e:
             raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(e.message)
         except RepositoryPersonSnapshotImageError as e:
-            raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(e.message)
-        except ModuleYoloPoseError as e:
-            raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(e.message)
-        except ModuleYoloSegmentationError as e:
             raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(e.message)
         except RepositoryQueuePersonSnapshotIdentifyError as e:
             raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(e.message)

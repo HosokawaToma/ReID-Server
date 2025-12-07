@@ -44,14 +44,16 @@ class ApplicationPersonSnapshotBackgroundIdentify:
             reid_identifier=ModuleReIDIdentifier(threshold=0.895),
         )
 
-    async def identify(self) -> EntityPersonSnapshot:
+    def identify(self) -> EntityPersonSnapshot:
         try:
-            item = await self.repository_queue_person_snapshot_identify.dequeue()
+            item = self.repository_queue_person_snapshot_identify.dequeue()
             person_snapshot = self.repository_person_snapshot.find_first(
                 filters=RepositoryPersonSnapshotFilters(
                     ids=[item.id],
                 ),
             )
+            if person_snapshot is None:
+                raise ApplicationPersonSnapshotBackgroundIdentifyError(f"person snapshot not found: {item.id}")
             if person_snapshot.feature is None:
                 raise ApplicationPersonSnapshotBackgroundIdentifyError(f"person snapshot feature is None: {person_snapshot.id}")
             nearest_person_snapshot = self.repository_person_snapshot.find_first(
@@ -69,7 +71,7 @@ class ApplicationPersonSnapshotBackgroundIdentify:
                     ],
                 ),
             )
-            if nearest_person_snapshot.feature is None:
+            if nearest_person_snapshot is None or nearest_person_snapshot.feature is None:
                 return person_snapshot
             if not self.reid_identifier.identify(
                 person_snapshot.feature,
@@ -79,9 +81,6 @@ class ApplicationPersonSnapshotBackgroundIdentify:
             person_snapshot.person_id = nearest_person_snapshot.person_id
             self.repository_person_snapshot.update(
                 person_snapshot,
-                filters=RepositoryPersonSnapshotFilters(
-                    ids=[person_snapshot.id],
-                ),
             )
             return person_snapshot
         except RepositoryQueuePersonSnapshotIdentifyError as e:

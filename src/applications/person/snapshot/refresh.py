@@ -46,7 +46,7 @@ class ApplicationPersonSnapshotRefresh:
             repository_queue_person_snapshot_identify=RepositoryQueuePersonSnapshotIdentify.create(environment),
         )
 
-    async def refresh(self, params: ApplicationPersonSnapshotRefreshParams) -> None:
+    def refresh(self, params: ApplicationPersonSnapshotRefreshParams) -> None:
         try:
             person_snapshots = self.repository_person_snapshot.find(
                 filters=RepositoryPersonSnapshotFilters(
@@ -60,7 +60,7 @@ class ApplicationPersonSnapshotRefresh:
                 ),
             )
             for person_snapshot in person_snapshots:
-                await self.repository_queue_person_snapshot_feature_extraction.push(
+                self.repository_queue_person_snapshot_feature_extraction.push(
                     RepositoryQueuePersonSnapshotFeatureExtractionQueueItem(
                         id=person_snapshot.id,
                     )

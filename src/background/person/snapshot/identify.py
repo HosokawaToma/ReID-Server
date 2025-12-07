@@ -24,9 +24,9 @@ class BackgroundPersonSnapshotIdentify(Background):
             logger=BackgroundLogger(),
         )
 
-    async def process(self) -> str:
+    def handle(self) -> str:
         try:
-            person_snapshot = await self.application.identify()
+            person_snapshot = self.application.identify()
             return f"person snapshot id: {person_snapshot.id} identified as person id: {person_snapshot.person_id}"
         except ApplicationPersonSnapshotBackgroundIdentifyError as e:
             raise BackgroundJobError(e.message)

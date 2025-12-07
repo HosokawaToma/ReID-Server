@@ -1,9 +1,8 @@
 from repositories import RepositoryStorage
 from repositories import RepositoryStorageImage
-from repositories import StorageImageNotFoundError
-from repositories import StorageImageMultipleError
-from repositories import StorageImageInvalidError
 from repositories import RepositoryStorageImageFindOneParams
+from repositories import RepositoryStorageImageError
+from repositories import RepositoryStorageImageDeleteParams
 from entities.person.snapshot import EntityPersonSnapshotImage
 from dataclasses import dataclass
 import uuid
@@ -12,6 +11,10 @@ from error import Error
 
 @dataclass
 class RepositoryPersonSnapshotImageFindOneParams:
+    id: uuid.UUID
+
+@dataclass
+class RepositoryPersonSnapshotImageDeleteParams:
     id: uuid.UUID
 
 class RepositoryPersonSnapshotImageError(Error):
@@ -44,9 +47,13 @@ class RepositoryPersonSnapshotImage:
                 id=params.id,
                 image=image.image,
             )
-        except StorageImageNotFoundError:
-            raise RepositoryPersonSnapshotImageError("storage image not found")
-        except StorageImageMultipleError:
-            raise RepositoryPersonSnapshotImageError("storage image multiple error")
-        except StorageImageInvalidError:
-            raise RepositoryPersonSnapshotImageError("storage image invalid error")
+        except RepositoryStorageImageError as e:
+            raise RepositoryPersonSnapshotImageError(e.message)
+
+    def delete(self, params: RepositoryPersonSnapshotImageDeleteParams) -> None:
+        try:
+            self.storage.image_delete(RepositoryStorageImageDeleteParams(
+                name=str(params.id),
+            ))
+        except RepositoryStorageImageError as e:
+            raise RepositoryPersonSnapshotImageError(e.message)

@@ -39,7 +39,7 @@ class ApplicationPersonSnapshotCreate:
                 environment),
         )
 
-    async def save(self, params: ApplicationPersonSnapshotCreateParams) -> None:
+    def save(self, params: ApplicationPersonSnapshotCreateParams) -> None:
         image = EntityPersonSnapshotImage(
             image=params.image,
         )
@@ -51,7 +51,7 @@ class ApplicationPersonSnapshotCreate:
             timestamp=params.timestamp,
         )
         self.repository_person_snapshot.save(person_snapshot)
-        await self.repository_queue_person_snapshot_feature_extraction.push(
+        self.repository_queue_person_snapshot_feature_extraction.push(
             RepositoryQueuePersonSnapshotFeatureExtractionQueueItem(
                 id=person_snapshot.id,
             )

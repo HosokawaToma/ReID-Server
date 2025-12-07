@@ -3,7 +3,7 @@ import asyncio
 import abc
 import fastapi
 from error import Error
-
+import threading
 class BackgroundLogger:
     def __init__(self):
         self.logger = logging.getLogger("background")
@@ -37,7 +37,7 @@ class Background:
     ):
         self.logger = logger
         self.task: asyncio.Task | None = None
-
+        self.event = threading.Event()
     @property
     @abc.abstractmethod
     def name(self) -> str:
@@ -48,10 +48,12 @@ class Background:
         app.add_event_handler("shutdown", self.stop)
 
     async def start(self) -> None:
-        self.task = asyncio.create_task(asyncio.to_thread(self.run))
+        self.task = asyncio.create_task(self.run())
+        self.event.clear()
 
     async def stop(self) -> None:
         if self.task:
+            self.event.set()
             self.task.cancel()
             try:
                 await self.task
@@ -61,12 +63,10 @@ class Background:
                 self.logger.error(
                     f"Unexpected error stopping background {self.name}: {e}")
 
-    def run(self) -> None:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        while True:
+    async def run(self) -> None:
+        while not self.event.is_set():
             try:
-                message = loop.run_until_complete(self.process())
+                message = await asyncio.to_thread(self.handle)
                 self.logger.info(
                     f"Background {self.name} executed successfully: {message}")
             except BackgroundJobError as e:
@@ -78,5 +78,5 @@ class Background:
                 continue
 
     @abc.abstractmethod
-    async def process(self) -> str:
+    def handle(self) -> str:
         pass

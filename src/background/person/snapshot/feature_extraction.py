@@ -23,9 +23,9 @@ class BackgroundPersonSnapshotFeatureExtraction(Background):
     def name(self) -> str:
         return "person_snapshot_feature_extraction"
 
-    async def process(self) -> str:
+    def handle(self) -> str:
         try:
-            person_snapshot = await self.application.extract()
+            person_snapshot = self.application.extract()
             return f"feature extracted for person snapshot id: {person_snapshot.id}"
         except ApplicationPersonSnapshotBackgroundFeatureExtractionError as e:
             raise BackgroundJobError(e.message)

@@ -69,7 +69,7 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
     ):
         try:
             self.auth.verify(authorization)
-            await self.application.refresh(
+            self.application.refresh(
                 ApplicationPersonSnapshotRefreshParams(
                     after_timestamp=request.after_timestamp,
                     before_timestamp=request.before_timestamp,

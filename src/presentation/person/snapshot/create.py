@@ -37,7 +37,7 @@ class PresentationPersonSnapshotCreate(PresentationBase):
         timestamp: PresentationTypeDatetime,
     ) -> None:
         jwt = self.auth.verify(authorization)
-        await self.application.save(
+        self.application.save(
             ApplicationPersonSnapshotCreateParams(
                 image=image,
                 timestamp=timestamp,

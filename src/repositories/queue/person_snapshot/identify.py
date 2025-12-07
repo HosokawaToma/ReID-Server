@@ -21,17 +21,17 @@ class RepositoryQueuePersonSnapshotIdentify(RepositoryRedis):
     def create(cls, environment: Environment) -> "RepositoryQueuePersonSnapshotIdentify":
         return cls(environment)
 
-    async def push(self, value: RepositoryQueuePersonSnapshotIdentifyQueueItem) -> None:
+    def push(self, value: RepositoryQueuePersonSnapshotIdentifyQueueItem) -> None:
         try:
-            await self._push({
+            self._push({
                 "id": str(value.id),
             })
         except RepositoryRedisError as e:
             raise RepositoryQueuePersonSnapshotIdentifyError(str(e))
 
-    async def dequeue(self, timeout: int = 0) -> RepositoryQueuePersonSnapshotIdentifyQueueItem:
+    def dequeue(self, timeout: int = 0) -> RepositoryQueuePersonSnapshotIdentifyQueueItem:
         try:
-            data = await self._dequeue(timeout)
+            data = self._dequeue(timeout)
         except RepositoryRedisError as e:
             raise RepositoryQueuePersonSnapshotIdentifyError(str(e))
         if "id" not in data:

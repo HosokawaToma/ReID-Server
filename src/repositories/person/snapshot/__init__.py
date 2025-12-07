@@ -21,7 +21,24 @@ class RepositoryPersonSnapshotFilters:
     before_timestamp: datetime | None = None
 
     def __str__(self) -> str:
-        return f"ids: {self.ids}, not_ids: {self.not_ids}, image_ids: {self.image_ids}, camera_ids: {self.camera_ids}, view_ids: {self.view_ids}, person_ids: {self.person_ids}, after_timestamp: {self.after_timestamp}, before_timestamp: {self.before_timestamp}"
+        string_list = []
+        if self.ids is not None:
+            string_list.append(f"ids: {self.ids}")
+        if self.not_ids is not None:
+            string_list.append(f"not_ids: {self.not_ids}")
+        if self.image_ids is not None:
+            string_list.append(f"image_ids: {self.image_ids}")
+        if self.camera_ids is not None:
+            string_list.append(f"camera_ids: {self.camera_ids}")
+        if self.view_ids is not None:
+            string_list.append(f"view_ids: {self.view_ids}")
+        if self.person_ids is not None:
+            string_list.append(f"person_ids: {self.person_ids}")
+        if self.after_timestamp is not None:
+            string_list.append(f"after_timestamp: {self.after_timestamp}")
+        if self.before_timestamp is not None:
+            string_list.append(f"before_timestamp: {self.before_timestamp}")
+        return ", ".join(string_list)
 
 @dataclass
 class RepositoryPersonSnapshotOrdering:
@@ -104,7 +121,7 @@ class RepositoryPersonSnapshot:
         self,
         filters: RepositoryPersonSnapshotFilters | None = None,
         ordering: RepositoryPersonSnapshotOrdering | None = None,
-    ) -> EntityPersonSnapshot:
+    ) -> EntityPersonSnapshot | None:
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
             if filters is not None:
@@ -113,7 +130,7 @@ class RepositoryPersonSnapshot:
                 query = self._build_ordering(query, ordering)
             model = query.first()
             if model is None:
-                raise RepositoryPersonSnapshotError(f"person snapshot not found: {filters}")
+                return None
             return self.model_to_entity(model)
 
     def find(
@@ -133,11 +150,10 @@ class RepositoryPersonSnapshot:
     def update(
         self,
         person_snapshot: EntityPersonSnapshot,
-        filters: RepositoryPersonSnapshotFilters,
     ) -> None:
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
-            query = self._build_filters(query, filters)
+            query = query.filter(MigrationModelPersonSnapshot.id == person_snapshot.id)
             query.update(
                 {
                     MigrationModelPersonSnapshot.image_id: person_snapshot.image_id,
@@ -153,8 +169,8 @@ class RepositoryPersonSnapshot:
     def delete(
         self,
         filters: RepositoryPersonSnapshotFilters,
-    ) -> None:
+    ) -> int:
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
             query = self._build_filters(query, filters)
-            query.delete(synchronize_session=False)
+            return query.delete(synchronize_session=False)

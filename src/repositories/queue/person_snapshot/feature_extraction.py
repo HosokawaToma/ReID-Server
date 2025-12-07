@@ -22,19 +22,19 @@ class RepositoryQueuePersonSnapshotFeatureExtraction(RepositoryRedis):
     def create(cls, environment: Environment) -> "RepositoryQueuePersonSnapshotFeatureExtraction":
         return cls(environment)
 
-    async def push(self, value: RepositoryQueuePersonSnapshotFeatureExtractionQueueItem) -> None:
+    def push(self, value: RepositoryQueuePersonSnapshotFeatureExtractionQueueItem) -> None:
         try:
-            await self._push({
+            self._push({
                 "id": str(value.id),
             })
-        except RepositoryRedisError:
-            raise RepositoryQueuePersonSnapshotFeatureExtractionError("repository redis error")
-
-    async def dequeue(self, timeout: int = 0) -> RepositoryQueuePersonSnapshotFeatureExtractionQueueItem:
-        try:
-            data = await self._dequeue(timeout)
         except RepositoryRedisError as e:
-            raise RepositoryQueuePersonSnapshotFeatureExtractionError(str(e))
+            raise RepositoryQueuePersonSnapshotFeatureExtractionError(e.message)
+
+    def dequeue(self, timeout: int = 0) -> RepositoryQueuePersonSnapshotFeatureExtractionQueueItem:
+        try:
+            data = self._dequeue(timeout)
+        except RepositoryRedisError as e:
+            raise RepositoryQueuePersonSnapshotFeatureExtractionError(e.message)
         if "id" not in data:
             raise RepositoryQueuePersonSnapshotFeatureExtractionError(f"id not found: {data}")
         return RepositoryQueuePersonSnapshotFeatureExtractionQueueItem(
