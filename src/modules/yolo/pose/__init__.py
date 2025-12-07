@@ -14,7 +14,7 @@ class ModuleYoloPose:
         for item in items:
             if item.keypoints is None:
                 continue
-            xys = item.keypoints.xy.tolist()
+            xys = item.keypoints.xy[0].tolist()
             confs = item.keypoints.conf
             if confs is None:
                 continue
