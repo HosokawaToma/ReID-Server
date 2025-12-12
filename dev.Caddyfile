@@ -1,4 +1,8 @@
-:443, :80 {
+{
+  debug
+}
+
+{$DOMAIN} {
   tls internal
   log {
     output stdout

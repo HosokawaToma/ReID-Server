@@ -112,7 +112,10 @@ class ServerApp:
         return cls(
             host=environment.host(),
             port=environment.port(),
-            fastapi_app=fastapi.FastAPI(),
+            fastapi_app=fastapi.FastAPI(
+                servers=[{"url": "/api/v1"}],
+                root_path="/api/v1"
+            ),
             background_person_snapshot_feature_extraction=BackgroundPersonSnapshotFeatureExtraction.create(
                 environment=environment,
             ),
