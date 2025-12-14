@@ -15,6 +15,7 @@ from repositories import RepositoryStorageImage
 from repositories import RepositoryStorageImageFindParams
 from repositories import RepositoryStorageImageDeleteParams
 from domain.person.snapshot_sequence import DomainPersonSnapshotSequence
+from repositories import RepositoryRedis
 
 @dataclass
 class RepositoryPersonSnapshotFilters:
@@ -50,6 +51,8 @@ class RepositoryPersonSnapshotOrdering:
     KEY_TIMESTAMP_DESC: ClassVar[Literal["timestamp_desc"]] = "timestamp_desc"
     ordering: list[Literal["timestamp_asc", "timestamp_desc"] | torch.Tensor]
 
+TaskName = Literal["person_snapshot:feature_extraction", "person_snapshot:identify"]
+
 class RepositoryPersonSnapshotError(Error):
     pass
 
@@ -58,15 +61,18 @@ class RepositoryPersonSnapshot:
         self,
         database: RepositoryDatabase,
         storage: RepositoryStorage,
+        redis: RepositoryRedis,
     ):
         self.database = database
         self.storage = storage
+        self.redis = redis
 
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryPersonSnapshot":
         return cls(
             database=RepositoryDatabase.create(environment),
             storage=RepositoryStorage.create(environment, directory="person_snapshots"),
+            redis=RepositoryRedis.create(environment),
         )
 
     def _build_filters(self, query: Query, filters: RepositoryPersonSnapshotFilters) -> Query:
@@ -189,3 +195,21 @@ class RepositoryPersonSnapshot:
             name=str(filters.ids),
         ))
         return result
+
+    def next_queue(self, task_name: TaskName) -> DomainPersonSnapshot:
+        data = self.redis.dequeue(task_name)
+        with self.database as session:
+            query = session.query(MigrationModelPersonSnapshot)
+            query = query.filter(MigrationModelPersonSnapshot.id == uuid.UUID(data["id"]))
+            model = query.first()
+            if model is None:
+                raise RepositoryPersonSnapshotError(f"person snapshot not found: {data['id']}")
+            return self._model_to_domain(model)
+
+    def push_queue(self, task_name: TaskName, person_snapshot: DomainPersonSnapshot) -> None:
+        self.redis.push(
+            key=task_name,
+            value={
+                "id": str(person_snapshot.id),
+            }
+        )

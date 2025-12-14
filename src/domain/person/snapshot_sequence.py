@@ -5,7 +5,6 @@ from domain.person.snapshot import DomainPersonSnapshot
 import uuid
 from domain.person.flow import DomainPersonFlow
 from domain.person.flow_sequence import DomainPersonFlowSequence
-from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtractionQueueItem
 
 @dataclass
 class DomainPersonSnapshotSequence:
@@ -14,13 +13,6 @@ class DomainPersonSnapshotSequence:
 
     def __iter__(self) -> Iterator[DomainPersonSnapshot]:
         return iter(self.person_snapshots)
-
-    def to_feature_extraction_queue_items(self) -> list[RepositoryQueuePersonSnapshotFeatureExtractionQueueItem]:
-        return [
-            RepositoryQueuePersonSnapshotFeatureExtractionQueueItem(
-                id=person_snapshot.id,
-            ) for person_snapshot in self.person_snapshots
-        ]
 
     def group_by_person_id(self) -> list["DomainPersonSnapshotSequence"]:
         person_snapshots_by_person_id: dict[uuid.UUID, list[DomainPersonSnapshot]] = {}

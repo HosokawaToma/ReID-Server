@@ -160,24 +160,30 @@ class RepositoryRedisError(Error):
 
 
 class RepositoryRedis:
-    key: str
-
-    def __init__(self, environment: Environment):
+    def __init__(self, host: str, port: int, db: int):
         self.redis = Redis(
+            host=host,
+            port=port,
+            db=db,
+        )
+
+    @classmethod
+    def create(cls, environment: Environment) -> "RepositoryRedis":
+        return cls(
             host=environment.redis_host,
             port=environment.redis_port,
             db=environment.redis_db,
         )
 
-    def _push(self, value: dict[str, str]) -> None:
-        result = self.redis.rpush(self.key, json.dumps(value))
+    def push(self, value: dict[str, str], key: str) -> None:
+        result = self.redis.rpush(key, json.dumps(value))
         if result is None:
             raise RepositoryRedisError("result is None")
         if isinstance(result, Awaitable):
             raise RepositoryRedisError("result is Awaitable")
 
-    def _dequeue(self, timeout: int = 1) -> dict[str, str]:
-        result = self.redis.blpop([self.key], timeout=timeout)
+    def dequeue(self, key: str) -> dict[str, str]:
+        result = self.redis.blpop([key])
         if result is None:
             raise RepositoryRedisError("result is None")
         if isinstance(result, Awaitable):
