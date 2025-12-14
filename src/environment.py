@@ -7,8 +7,8 @@ class EnvironmentHash:
     secret: str
 @dataclass
 class Environment:
-    host: str = field(init=False)
-    port: int = field(init=False)
+    app_host: str = field(init=False)
+    app_port: int = field(init=False)
     hash_key: str = field(init=False)
     public_ip: str = field(init=False)
     admin_client_id: str = field(init=False)
@@ -36,8 +36,8 @@ class Environment:
     coturn_credential: str = field(init=False)
 
     def __post_init__(self):
-        self.host = self._get_string("HOST")
-        self.port = self._get_int("PORT")
+        self.app_host = self._get_string("APP_HOST")
+        self.app_port = self._get_int("APP_PORT")
         self.hash_key = self._get_string("HASH_KEY")
         self.public_ip = self._get_string("PUBLIC_IP")
         self.admin_client_id = self._get_string("ADMIN_CLIENT_ID")

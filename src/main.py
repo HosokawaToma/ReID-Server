@@ -24,8 +24,8 @@ from presentation.person.snapshot.image.search import PresentationPersonSnapshot
 class ServerApp:
     def __init__(
         self,
-        host: str,
-        port: int,
+        app_host: str,
+        app_port: int,
         fastapi_app: fastapi.FastAPI,
         background_person_snapshot_create: BackgroundPersonSnapshotCreate,
         background_person_snapshot_feature_extraction: BackgroundPersonSnapshotFeatureExtraction,
@@ -41,8 +41,8 @@ class ServerApp:
         person_flow_weight_search: PresentationPersonFlowWeightSearch,
         person_snapshot_image_search: PresentationPersonSnapshotImageSearch,
     ):
-        self.host = host
-        self.port = port
+        self.app_host = app_host
+        self.app_port = app_port
         self.fastapi_app = fastapi_app
         self.background_person_snapshot_create = background_person_snapshot_create
         self.background_person_snapshot_feature_extraction = background_person_snapshot_feature_extraction
@@ -64,8 +64,8 @@ class ServerApp:
         environment: Environment,
     ) -> "ServerApp":
         return cls(
-            host=environment.host,
-            port=environment.port,
+            app_host=environment.app_host,
+            app_port=environment.app_port,
             fastapi_app=fastapi.FastAPI(
                 servers=[{"url": "/api/v1"}],
                 root_path="/api/v1"
@@ -154,7 +154,7 @@ class ServerApp:
         self.person_flow_search.setup(self.fastapi_app)
         self.person_flow_weight_search.setup(self.fastapi_app)
         self.person_snapshot_image_search.setup(self.fastapi_app)
-        uvicorn.run(self.fastapi_app, host=self.host, port=self.port)
+        uvicorn.run(self.fastapi_app, host=self.app_host, port=self.app_port)
 
 if __name__ == "__main__":
     server_app = ServerApp.create(environment=Environment())
