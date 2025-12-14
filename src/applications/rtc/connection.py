@@ -4,12 +4,9 @@ from entities.rtc.ice_server import EntityRtcIceServer
 from applications.rtc.peer_connection import ApplicationRtcPeerConnection
 from entities.storage import EntityStorage
 from aiortc import RTCConfiguration, RTCIceServer
-from entities.environment.jwt import EntityEnvironmentJwt
-from entities.environment.coturn import EntityEnvironmentCoturn
-from entities.environment.storage import EntityEnvironmentStorage
 from entities.jwt.camera_client import EntityJWTCameraClient
 from typing import List
-
+from environment import Environment
 
 class ApplicationRtcConnection:
     def __init__(
@@ -24,14 +21,13 @@ class ApplicationRtcConnection:
     @classmethod
     def create(
         cls,
-        environment_coturn: EntityEnvironmentCoturn,
-        environment_storage: EntityEnvironmentStorage,
+        environment: Environment,
     ) -> "ApplicationRtcConnection":
         ice_server = EntityRtcIceServer(
-            host=environment_coturn.host,
-            port=environment_coturn.port,
-            username=environment_coturn.username,
-            credential=environment_coturn.credential,
+            host=environment.coturn_host,
+            port=environment.coturn_port,
+            username=environment.coturn_username,
+            credential=environment.coturn_credential,
         )
         return cls(
             configuration=RTCConfiguration(
@@ -43,7 +39,7 @@ class ApplicationRtcConnection:
                     ),
                 ],
             ),
-            storage=EntityStorage(path=environment_storage.path),
+            storage=EntityStorage(path=str(environment.storage_directory)),
         )
 
     async def connect(

@@ -38,32 +38,32 @@ services:
     networks:
       - database-network
 
-  coturn:
-    image: coturn/coturn:4.7
-    ports:
-      - ${COTURN_MIN_PORT}-${COTURN_MAX_PORT}:${COTURN_MIN_PORT}-${COTURN_MAX_PORT}/udp
-      - ${COTURN_MIN_PORT}-${COTURN_MAX_PORT}:${COTURN_MIN_PORT}-${COTURN_MAX_PORT}/tcp
-      - ${COTURN_SECURE_PORT}:${COTURN_SECURE_PORT}/tcp
-    volumes:
-      - ${CERTS_PATH}/${CERT_FILE}:/etc/coturn/certs/fullchain.pem:ro
-      - ${CERTS_PATH}/${PKEY_FILE}:/etc/coturn/certs/privkey.pem:ro
-    command:
-      - "-n"
-      - "--log-file=stdout"
-      - "--listening-ip=0.0.0.0"
-      - "--external-ip=${PUBLIC_IP}"
-      - "--relay-ip=${PUBLIC_IP}"
-      - "--realm=${DOMAIN}"
-      - "--use-auth-secret"
-      - "--static-auth-secret=${COTURN_SECRET}"
-      - "--lt-cred-mech"
-      - "--min-port=${COTURN_MIN_PORT}"
-      - "--max-port=${COTURN_MAX_PORT}"
-      - "--tls-listening-port=${COTURN_SECURE_PORT}"
-      - "--cert=/etc/coturn/certs/fullchain.pem"
-      - "--pkey=/etc/coturn/certs/privkey.pem"
-    networks:
-      - coturn-network
+#  coturn:
+#    image: coturn/coturn:4.7
+#    ports:
+#      - ${COTURN_MIN_PORT}-${COTURN_MAX_PORT}:${COTURN_MIN_PORT}-${COTURN_MAX_PORT}/udp
+#      - ${COTURN_MIN_PORT}-${COTURN_MAX_PORT}:${COTURN_MIN_PORT}-${COTURN_MAX_PORT}/tcp
+#      - ${COTURN_PORT}:${COTURN_PORT}/tcp
+#    volumes:
+#      - ${CERTS_PATH}/${CERT_FILE}:/etc/coturn/certs/fullchain.pem:ro
+#      - ${CERTS_PATH}/${PKEY_FILE}:/etc/coturn/certs/privkey.pem:ro
+#    command:
+#      - "-n"
+#      - "--log-file=stdout"
+#      - "--listening-ip=0.0.0.0"
+#      - "--external-ip=${PUBLIC_IP}"
+#      - "--relay-ip=${PUBLIC_IP}"
+#      - "--realm=${DOMAIN}"
+#      - "--use-auth-secret"
+#      - "--static-auth-secret=${COTURN_SECRET}"
+#      - "--lt-cred-mech"
+#      - "--min-port=${COTURN_MIN_PORT}"
+#      - "--max-port=${COTURN_MAX_PORT}"
+#      - "--tls-listening-port=${COTURN_SECURE_PORT}"
+#      - "--cert=/etc/coturn/certs/fullchain.pem"
+#      - "--pkey=/etc/coturn/certs/privkey.pem"
+#    networks:
+#      - coturn-network
 
   caddy:
     image: caddy:2.10.2
@@ -96,7 +96,7 @@ services:
 
 networks:
   app-network:
-  coturn-network:
+#  coturn-network:
   database-network:
   redis-network:
 volumes:

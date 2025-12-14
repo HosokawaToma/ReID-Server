@@ -3,9 +3,7 @@ from modules.auth.parse_bearer import ModuleAuthParseBearer
 from modules.auth.generate_token.camera_client import ModuleAuthGenerateTokenCameraClient
 from entities.jwt.camera_client import EntityJWTCameraClient
 from entities.camera_client import EntityCameraClient
-from entities.environment.jwt import EntityEnvironmentJwt
-from entities.environment.postgresql import EntityEnvironmentPostgreSQL
-from environment import EnvironmentHash
+from environment import Environment
 from repositories.database import RepositoryDatabaseEngine
 from repositories.database.camera_clients import RepositoryDatabaseCameraClients
 from repositories.database.camera_clients import RepositoryDatabaseCameraClientsFilters
@@ -51,30 +49,28 @@ class ApplicationAuthCameraClient:
     @classmethod
     def create(
         cls,
-        environment_postgresql: EntityEnvironmentPostgreSQL,
-        environment_jwt: EntityEnvironmentJwt,
-        environment_hash: EnvironmentHash,
+        environment: Environment,
     ) -> "ApplicationAuthCameraClient":
         return cls(
             database_camera_clients=RepositoryDatabaseCameraClients(
                 database=RepositoryDatabaseEngine(
-                    host=environment_postgresql.host,
-                    port=environment_postgresql.port,
-                    database=environment_postgresql.database,
-                    user=environment_postgresql.user,
-                    password=environment_postgresql.password,
+                    host=environment.database_host,
+                    port=environment.database_port,
+                    database=environment.database_database,
+                    user=environment.database_user,
+                    password=environment.database_password,
                 )
             ),
-            hasher=ModuleHasher(secret=environment_hash.secret),
+            hasher=ModuleHasher(secret=environment.hash_key),
             parser=ModuleAuthParseBearer(),
             verifier=ModuleAuthVerifyCameraClient(
-                secret_key=environment_jwt.secret_key,
-                algorithm=environment_jwt.algorithm,
-                expire_minutes=environment_jwt.expire_minutes,
+                secret_key=environment.jwt_secret_key,
+                algorithm=environment.jwt_algorithm,
+                expire_minutes=environment.jwt_expire_minutes,
             ),
             generator=ModuleAuthGenerateTokenCameraClient(
-                secret_key=environment_jwt.secret_key,
-                algorithm=environment_jwt.algorithm,
-                expire_minutes=environment_jwt.expire_minutes,
+                secret_key=environment.jwt_secret_key,
+                algorithm=environment.jwt_algorithm,
+                expire_minutes=environment.jwt_expire_minutes,
             ),
         )

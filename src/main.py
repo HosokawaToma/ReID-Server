@@ -6,19 +6,10 @@ from presentation.auth.login.admin_client import PresentationAuthLoginAdminClien
 from presentation.auth.login.camera_client import PresentationAuthLoginCameraClient
 from presentation.auth.refresh.admin_client import PresentationAuthRefreshAdminClient
 from presentation.camera_clients.create import PresentationCameraClientsCreate
-from presentation.rtc.connection import PresentationRtcConnection
-from presentation.rtc.ice_server import PresentationRtcIceServer
 from applications.camera_clients.create import ApplicationCameraClientsCreate
 from applications.auth.admin_client import ApplicationAuthAdminClient
 from applications.auth.camera_client import ApplicationAuthCameraClient
-from applications.rtc.connection import ApplicationRtcConnection
-from applications.rtc.ice_server import ApplicationRtcIceServer
 from environment import Environment
-from entities.environment.jwt import EntityEnvironmentJwt
-from entities.environment.postgresql import EntityEnvironmentPostgreSQL
-from entities.environment.storage import EntityEnvironmentStorage
-from entities.environment.coturn import EntityEnvironmentCoturn
-from entities.environment.admin_client import EntityEnvironmentAdminClient
 from presentation.person.snapshot.create import PresentationPersonSnapshotCreate
 from applications.person.snapshot.create import ApplicationPersonSnapshotCreate
 from background.person.snapshot.create import BackgroundPersonSnapshotCreate
@@ -26,7 +17,6 @@ from background.person.snapshot.feature_extraction import BackgroundPersonSnapsh
 from background.person.snapshot.identify import BackgroundPersonSnapshotIdentify
 from presentation.person.snapshot.refresh import PresentationPersonSnapshotRefresh
 from presentation.person.snapshot.search import PresentationPersonSnapshotSearch
-from environment import EnvironmentHash
 from presentation.person.flow.search import PresentationPersonFlowSearch
 from presentation.person.flow.weight.search import PresentationPersonFlowWeightSearch
 from presentation.person.snapshot.image.search import PresentationPersonSnapshotImageSearch
@@ -34,8 +24,8 @@ from presentation.person.snapshot.image.search import PresentationPersonSnapshot
 class ServerApp:
     def __init__(
         self,
-        host: str,
-        port: int,
+        app_host: str,
+        app_port: int,
         fastapi_app: fastapi.FastAPI,
         background_person_snapshot_create: BackgroundPersonSnapshotCreate,
         background_person_snapshot_feature_extraction: BackgroundPersonSnapshotFeatureExtraction,
@@ -50,11 +40,9 @@ class ServerApp:
         person_flow_search: PresentationPersonFlowSearch,
         person_flow_weight_search: PresentationPersonFlowWeightSearch,
         person_snapshot_image_search: PresentationPersonSnapshotImageSearch,
-        rtc_connection: PresentationRtcConnection,
-        rtc_ice_server: PresentationRtcIceServer,
     ):
-        self.host = host
-        self.port = port
+        self.app_host = app_host
+        self.app_port = app_port
         self.fastapi_app = fastapi_app
         self.background_person_snapshot_create = background_person_snapshot_create
         self.background_person_snapshot_feature_extraction = background_person_snapshot_feature_extraction
@@ -69,52 +57,15 @@ class ServerApp:
         self.person_flow_search = person_flow_search
         self.person_flow_weight_search = person_flow_weight_search
         self.person_snapshot_image_search = person_snapshot_image_search
-        self.rtc_connection = rtc_connection
-        self.rtc_ice_server = rtc_ice_server
 
     @classmethod
     def create(
         cls,
         environment: Environment,
     ) -> "ServerApp":
-        environment_hash = EnvironmentHash(
-            secret=environment.hash_key(),
-        )
-        environment_jwt = EntityEnvironmentJwt(
-            secret_key=environment.jwt_secret_key(),
-            algorithm=environment.jwt_algorithm(),
-            expire_minutes=environment.jwt_expire_minutes(),
-        )
-        environment_jwt_refresh = EntityEnvironmentJwt(
-            secret_key=environment.jwt_refresh_secret_key(),
-            algorithm=environment.jwt_refresh_algorithm(),
-            expire_minutes=environment.jwt_refresh_expire_minutes(),
-        )
-        environment_postgresql = EntityEnvironmentPostgreSQL(
-            host=environment.postgresql_host(),
-            port=environment.postgresql_port(),
-            user=environment.postgresql_user(),
-            password=environment.postgresql_password(),
-            database=environment.postgresql_database(),
-        )
-        environment_storage = EntityEnvironmentStorage(
-            path=environment.storage_path(),
-        )
-        environment_coturn = EntityEnvironmentCoturn(
-            host=environment.public_ip(),
-            port=environment.coturn_secure_port(),
-            username=environment.coturn_username(),
-            credential=environment.coturn_credential(),
-            secret=environment.coturn_secret(),
-            ttl=environment.coturn_ttl(),
-        )
-        environment_admin_client = EntityEnvironmentAdminClient(
-            id=environment.admin_client_id(),
-            password=environment.admin_client_password(),
-        )
         return cls(
-            host=environment.host(),
-            port=environment.port(),
+            app_host=environment.app_host,
+            app_port=environment.app_port,
             fastapi_app=fastapi.FastAPI(
                 servers=[{"url": "/api/v1"}],
                 root_path="/api/v1"
@@ -130,46 +81,36 @@ class ServerApp:
             ),
             login_admin_client=PresentationAuthLoginAdminClient(
                 application_token=ApplicationAuthAdminClient.create(
-                    environment_jwt=environment_jwt,
-                    environment_admin_client=environment_admin_client,
+                    environment=environment,
                 ),
                 application_refresh_token=ApplicationAuthAdminClient.create(
-                    environment_jwt=environment_jwt_refresh,
-                    environment_admin_client=environment_admin_client,
+                    environment=environment,
                 )
             ),
             login_camera_client=PresentationAuthLoginCameraClient(
                 application_token=ApplicationAuthCameraClient.create(
-                    environment_jwt=environment_jwt,
-                    environment_postgresql=environment_postgresql,
-                    environment_hash=environment_hash,
+                    environment=environment,
                 ),
             ),
             refresh_admin_client=PresentationAuthRefreshAdminClient(
                 application_token=ApplicationAuthAdminClient.create(
-                    environment_jwt=environment_jwt_refresh,
-                    environment_admin_client=environment_admin_client,
+                    environment=environment,
                 ),
                 application_refresh_token=ApplicationAuthAdminClient.create(
-                    environment_jwt=environment_jwt_refresh,
-                    environment_admin_client=environment_admin_client,
+                    environment=environment,
                 )
             ),
             camera_clients_create=PresentationCameraClientsCreate(
                 application_auth=ApplicationAuthAdminClient.create(
-                    environment_jwt=environment_jwt,
-                    environment_admin_client=environment_admin_client,
+                    environment=environment,
                 ),
                 application=ApplicationCameraClientsCreate.create(
-                    environment_postgresql=environment_postgresql,
-                    environment_hash=environment_hash,
+                    environment=environment,
                 )
             ),
             person_snapshot_create=PresentationPersonSnapshotCreate(
                 auth=ApplicationAuthCameraClient.create(
-                    environment_jwt=environment_jwt,
-                    environment_postgresql=environment_postgresql,
-                    environment_hash=environment_hash,
+                    environment=environment,
                 ),
                 application=ApplicationPersonSnapshotCreate.create(
                     environment=environment,
@@ -189,27 +130,6 @@ class ServerApp:
             ),
             person_snapshot_image_search=PresentationPersonSnapshotImageSearch.create(
                 environment=environment,
-            ),
-            rtc_connection=PresentationRtcConnection(
-                application_auth=ApplicationAuthCameraClient.create(
-                    environment_jwt=environment_jwt,
-                    environment_postgresql=environment_postgresql,
-                    environment_hash=environment_hash,
-                ),
-                application=ApplicationRtcConnection.create(
-                    environment_coturn=environment_coturn,
-                    environment_storage=environment_storage,
-                )
-            ),
-            rtc_ice_server=PresentationRtcIceServer(
-                application_auth=ApplicationAuthCameraClient.create(
-                    environment_jwt=environment_jwt,
-                    environment_postgresql=environment_postgresql,
-                    environment_hash=environment_hash,
-                ),
-                application=ApplicationRtcIceServer.create(
-                    environment_coturn=environment_coturn,
-                )
             ),
         )
 
@@ -234,9 +154,7 @@ class ServerApp:
         self.person_flow_search.setup(self.fastapi_app)
         self.person_flow_weight_search.setup(self.fastapi_app)
         self.person_snapshot_image_search.setup(self.fastapi_app)
-        self.rtc_connection.setup(self.fastapi_app)
-        self.rtc_ice_server.setup(self.fastapi_app)
-        uvicorn.run(self.fastapi_app, host=self.host, port=self.port)
+        uvicorn.run(self.fastapi_app, host=self.app_host, port=self.app_port)
 
 if __name__ == "__main__":
     server_app = ServerApp.create(environment=Environment())
