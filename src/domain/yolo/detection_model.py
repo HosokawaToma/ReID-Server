@@ -6,7 +6,7 @@ from PIL import Image
 
 class DomainYoloDetectionModel:
     def __init__(self):
-        self.model = YOLO("./resources/models/yolo11x-detection.pt")
+        self.model = YOLO("./resources/models/yolo11x.pt")
 
     def extract(self, image: Image.Image) -> list[DomainYoloBoundingBox]:
         results = self.model(image, verbose=False)

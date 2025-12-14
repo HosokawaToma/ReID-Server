@@ -21,6 +21,7 @@ from entities.environment.coturn import EntityEnvironmentCoturn
 from entities.environment.admin_client import EntityEnvironmentAdminClient
 from presentation.person.snapshot.create import PresentationPersonSnapshotCreate
 from applications.person.snapshot.create import ApplicationPersonSnapshotCreate
+from background.person.snapshot.create import BackgroundPersonSnapshotCreate
 from background.person.snapshot.feature_extraction import BackgroundPersonSnapshotFeatureExtraction
 from background.person.snapshot.identify import BackgroundPersonSnapshotIdentify
 from presentation.person.snapshot.refresh import PresentationPersonSnapshotRefresh
@@ -36,6 +37,7 @@ class ServerApp:
         host: str,
         port: int,
         fastapi_app: fastapi.FastAPI,
+        background_person_snapshot_create: BackgroundPersonSnapshotCreate,
         background_person_snapshot_feature_extraction: BackgroundPersonSnapshotFeatureExtraction,
         background_person_snapshot_identify: BackgroundPersonSnapshotIdentify,
         login_admin_client: PresentationAuthLoginAdminClient,
@@ -54,6 +56,7 @@ class ServerApp:
         self.host = host
         self.port = port
         self.fastapi_app = fastapi_app
+        self.background_person_snapshot_create = background_person_snapshot_create
         self.background_person_snapshot_feature_extraction = background_person_snapshot_feature_extraction
         self.background_person_snapshot_identify = background_person_snapshot_identify
         self.login_admin_client = login_admin_client
@@ -115,6 +118,9 @@ class ServerApp:
             fastapi_app=fastapi.FastAPI(
                 servers=[{"url": "/api/v1"}],
                 root_path="/api/v1"
+            ),
+            background_person_snapshot_create=BackgroundPersonSnapshotCreate.create(
+                environment=environment,
             ),
             background_person_snapshot_feature_extraction=BackgroundPersonSnapshotFeatureExtraction.create(
                 environment=environment,
@@ -215,6 +221,7 @@ class ServerApp:
             allow_methods=["*"],
             allow_headers=["*"],
         )
+        self.background_person_snapshot_create.setup(self.fastapi_app)
         self.background_person_snapshot_feature_extraction.setup(self.fastapi_app)
         self.background_person_snapshot_identify.setup(self.fastapi_app)
         self.login_admin_client.setup(self.fastapi_app)
