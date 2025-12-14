@@ -10,7 +10,7 @@ from enum import Enum
 from PIL import Image
 import io
 from datetime import datetime
-from pydantic import BaseModel
+from fastapi import Request
 from error import Error
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Params
@@ -32,13 +32,21 @@ class PresentationLogger:
     def debug(self, message: str):
         self.logger.debug(message)
 
-class PresentationRequest(BaseModel):
-    pass
+class PresentationRequest(Request):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_refresh_token(self) -> str:
+        return self.cookies.get("refresh_token", "")
 
 class PresentationJSONResponse(JSONResponse):
+    REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 # 1 days
+
     def __init__(self, status: int, content: dict[str, Any]):
         super().__init__(content=content, status_code=status)
 
+    def set_refresh_token(self, refresh_token: str):
+        self.set_cookie(key="refresh_token", value=refresh_token, max_age=self.REFRESH_TOKEN_MAX_AGE, path="/")
 
 class PresentationImageResponseError(Exception):
     pass
@@ -108,6 +116,8 @@ def admin_client_authenticated(
     return result.id
 
 PresentationAdminClientAuthenticated = Annotated[str, Depends(admin_client_authenticated)]
+
+
 
 class PresentationImageError(Exception):
     pass

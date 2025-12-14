@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from environment import Environment
+from presentation.admin.auth.login import PresentationAdminAuthLogin
+from presentation.admin.auth.token_refresh import PresentationAdminAuthTokenRefresh
 from presentation.person.snapshot.create import PresentationPersonSnapshotCreate
 from background.person.snapshot.create import BackgroundPersonSnapshotCreate
 from background.person.snapshot.feature_extraction import BackgroundPersonSnapshotFeatureExtraction
@@ -22,6 +24,8 @@ class ServerApp:
         background_person_snapshot_create: BackgroundPersonSnapshotCreate,
         background_person_snapshot_feature_extraction: BackgroundPersonSnapshotFeatureExtraction,
         background_person_snapshot_identify: BackgroundPersonSnapshotIdentify,
+        admin_auth_login: PresentationAdminAuthLogin,
+        admin_auth_token_refresh: PresentationAdminAuthTokenRefresh,
         person_snapshot_create: PresentationPersonSnapshotCreate,
         person_snapshot_refresh: PresentationPersonSnapshotRefresh,
         person_snapshot_search: PresentationPersonSnapshotSearch,
@@ -35,6 +39,8 @@ class ServerApp:
         self.background_person_snapshot_create = background_person_snapshot_create
         self.background_person_snapshot_feature_extraction = background_person_snapshot_feature_extraction
         self.background_person_snapshot_identify = background_person_snapshot_identify
+        self.admin_auth_login = admin_auth_login
+        self.admin_auth_token_refresh = admin_auth_token_refresh
         self.person_snapshot_create = person_snapshot_create
         self.person_snapshot_refresh = person_snapshot_refresh
         self.person_snapshot_search = person_snapshot_search
@@ -61,6 +67,12 @@ class ServerApp:
                 environment=environment,
             ),
             background_person_snapshot_identify=BackgroundPersonSnapshotIdentify.create(
+                environment=environment,
+            ),
+            admin_auth_login=PresentationAdminAuthLogin.create(
+                environment=environment,
+            ),
+            admin_auth_token_refresh=PresentationAdminAuthTokenRefresh.create(
                 environment=environment,
             ),
             person_snapshot_create=PresentationPersonSnapshotCreate.create(
@@ -94,6 +106,8 @@ class ServerApp:
         self.background_person_snapshot_create.setup(self.fastapi_app)
         self.background_person_snapshot_feature_extraction.setup(self.fastapi_app)
         self.background_person_snapshot_identify.setup(self.fastapi_app)
+        self.admin_auth_login.setup(self.fastapi_app)
+        self.admin_auth_token_refresh.setup(self.fastapi_app)
         self.person_snapshot_create.setup(self.fastapi_app)
         self.person_snapshot_refresh.setup(self.fastapi_app)
         self.person_snapshot_search.setup(self.fastapi_app)
