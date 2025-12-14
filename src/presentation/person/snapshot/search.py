@@ -1,5 +1,4 @@
 from applications.person.snapshot.search import ApplicationPersonSnapshotSearch
-from applications.person.snapshot.search import ApplicationPersonSnapshotSearchParams
 from applications.person.snapshot.search import ApplicationPersonSnapshotSearchFilters
 from applications.person.snapshot.search import ApplicationPersonSnapshotSearchOrdering
 from presentation import PresentationBase
@@ -16,8 +15,8 @@ class PresentationPersonSnapshotSearchFilters(PresentationRequest):
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
     person_ids: list[uuid.UUID] | None = None
-    after_timestamp: datetime | None = None
-    before_timestamp: datetime | None = None
+    timestamp_after: datetime | None = None
+    timestamp_before: datetime | None = None
 
 class PresentationPersonSnapshotSearchOrdering(PresentationRequest):
     timestamp_asc: bool | None = None
@@ -71,12 +70,11 @@ class PresentationPersonSnapshotSearch(PresentationBase):
             if request.filters:
                 filters = ApplicationPersonSnapshotSearchFilters(
                     ids=request.filters.ids,
-                    image_ids=request.filters.image_ids,
                     camera_ids=request.filters.camera_ids,
                     view_ids=request.filters.view_ids,
                     person_ids=request.filters.person_ids,
-                    after_timestamp=request.filters.after_timestamp,
-                    before_timestamp=request.filters.before_timestamp,
+                    timestamp_after=request.filters.timestamp_after,
+                    timestamp_before=request.filters.timestamp_before,
                 )
             ordering = None
             if request.ordering:
@@ -84,25 +82,22 @@ class PresentationPersonSnapshotSearch(PresentationBase):
                     timestamp_asc=request.ordering.timestamp_asc,
                     timestamp_desc=request.ordering.timestamp_desc,
                 )
-            person_snapshots = self.application_person_snapshot_search.search(
-                params=ApplicationPersonSnapshotSearchParams(
-                    filters=filters,
-                    ordering=ordering,
-                )
+            items = self.application_person_snapshot_search.search(
+                filters=filters,
+                ordering=ordering,
             )
-            self.logger.info(f"Person snapshots found: {len(person_snapshots)}")
+            self.logger.info(f"Person snapshots found: {len(items)}")
             return PresentationResponse(
                 status=200,
                 content={
                     "person_snapshots": [
                         {
-                            "id": str(person_snapshot.id),
-                            "image_id": str(person_snapshot.image_id),
-                            "camera_id": person_snapshot.camera_id,
-                            "view_id": person_snapshot.view_id,
-                            "timestamp": person_snapshot.timestamp.isoformat(),
-                            "person_id": str(person_snapshot.person_id),
-                        } for person_snapshot in person_snapshots
+                            "id": str(item.id),
+                            "camera_id": item.camera_id,
+                            "view_id": item.view_id,
+                            "timestamp": item.timestamp.isoformat(),
+                            "person_id": str(item.person_id),
+                        } for item in items
                     ],
                 },
             )

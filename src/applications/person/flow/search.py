@@ -1,21 +1,29 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
-from sequences.person.flows import SequencePersonFlows
-from sequences.person.snapshots import SequencePersonSnapshots
 from environment import Environment
-from datetime import datetime, timedelta
+from datetime import datetime
+from error import Error
 import uuid
 from dataclasses import dataclass
 
 @dataclass
 class ApplicationPersonFlowSearchParams:
-    after_timestamp: datetime | None = None
-    before_timestamp: datetime | None = None
-    person_ids: list[uuid.UUID] | None = None
+    person_id: uuid.UUID
+    timestamp_after: datetime | None = None
+    timestamp_before: datetime | None = None
+
+@dataclass
+class ApplicationPersonFlowSearchItem:
+    person_id: uuid.UUID
+    source_camera_id: int
+    target_camera_id: int
+    source_timestamp: datetime
+    target_timestamp: datetime
+
+class ApplicationPersonFlowSearchError(Error):
+    pass
 
 class ApplicationPersonFlowSearch:
-    INTERVAL = timedelta(seconds=10)
-
     def __init__(
         self,
         repository_person_snapshot: RepositoryPersonSnapshot,
@@ -30,20 +38,20 @@ class ApplicationPersonFlowSearch:
             ),
         )
 
-    def search(self, params: ApplicationPersonFlowSearchParams | None = None) -> list[SequencePersonFlows]:
-        filters = None
-        if params is not None:
-            filters = RepositoryPersonSnapshotFilters(
-                after_timestamp=params.after_timestamp,
-                before_timestamp=params.before_timestamp,
-                person_ids=params.person_ids,
-            )
-        person_snapshots = SequencePersonSnapshots(
-            person_snapshots=self.repository_person_snapshot.find(
-                filters=filters,
-            )
+    def search(self, params: ApplicationPersonFlowSearchParams) -> list[ApplicationPersonFlowSearchItem]:
+        filters = RepositoryPersonSnapshotFilters(
+            timestamp_after=params.timestamp_after,
+            timestamp_before=params.timestamp_before,
+            person_ids=[params.person_id],
         )
-        return [
-            person_snapshots.convert_to_flows(interval=self.INTERVAL)
-            for person_snapshots in person_snapshots.group_by_person_id() if person_snapshots.is_convertible_to_flows()
-        ]
+        person_snapshots = self.repository_person_snapshot.find(filters=filters)
+        flows = person_snapshots.to_flows()
+        if flows is None:
+            raise ApplicationPersonFlowSearchError(f"No flows found for person {params.person_id}")
+        return [ApplicationPersonFlowSearchItem(
+            person_id=params.person_id,
+            source_camera_id=flow.source_camera_id,
+            target_camera_id=flow.target_camera_id,
+            source_timestamp=flow.source_timestamp,
+            target_timestamp=flow.target_timestamp,
+        ) for flow in flows.flows]

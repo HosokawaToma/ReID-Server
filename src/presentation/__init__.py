@@ -89,6 +89,8 @@ class PresentationImage:
         content = await image.read()
         pil_image = Image.open(io.BytesIO(content))
         pil_image.load()
+        if pil_image.format is None:
+            raise PresentationImageResponseError(f"image format is None: {image.filename}")
         return pil_image
 
 PresentationTypeImage = Annotated[Image.Image, Depends(PresentationImage())]

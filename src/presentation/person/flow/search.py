@@ -10,9 +10,9 @@ import uuid
 
 
 class PresentationPersonFlowSearchRequest(PresentationRequest):
-    after_timestamp: datetime | None = None
-    before_timestamp: datetime | None = None
-    person_ids: list[uuid.UUID] | None = None
+    person_id: uuid.UUID
+    timestamp_after: datetime | None = None
+    timestamp_before: datetime | None = None
 
 class PresentationPersonFlowSearch(PresentationBase):
     @property
@@ -51,14 +51,20 @@ class PresentationPersonFlowSearch(PresentationBase):
     async def handle(self, request: PresentationPersonFlowSearchRequest) -> PresentationResponse:
         try:
             params = ApplicationPersonFlowSearchParams(
-                after_timestamp=request.after_timestamp,
-                before_timestamp=request.before_timestamp,
-                person_ids=request.person_ids,
+                person_id=request.person_id,
+                timestamp_after=request.timestamp_after,
+                timestamp_before=request.timestamp_before,
             )
-            sequence_person_flows = self.application.search(params=params)
+            items = self.application.search(params=params)
             return PresentationResponse(status=200, content={
                 "person_flows": [
-                    sequence_person_flow.to_json() for sequence_person_flow in sequence_person_flows
+                    {
+                        "person_id": str(item.person_id),
+                        "source_camera_id": item.source_camera_id,
+                        "target_camera_id": item.target_camera_id,
+                        "source_timestamp": item.source_timestamp.isoformat(),
+                        "target_timestamp": item.target_timestamp.isoformat(),
+                    } for item in items
                 ],
             })
         except Exception as e:

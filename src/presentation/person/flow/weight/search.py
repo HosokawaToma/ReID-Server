@@ -11,9 +11,9 @@ import uuid
 
 @dataclass
 class PresentationPersonFlowWeightSearchRequest(PresentationRequest):
-    after_timestamp: datetime | None = None
-    before_timestamp: datetime | None = None
     person_ids: list[uuid.UUID] | None = None
+    timestamp_after: datetime | None = None
+    timestamp_before: datetime | None = None
 
 class PresentationPersonFlowWeightSearch(PresentationBase):
     @property
@@ -53,15 +53,24 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
         request: PresentationPersonFlowWeightSearchRequest,
     ) -> PresentationResponse:
         try:
-            params = ApplicationPersonFlowWeightSearchParams(
-                after_timestamp=request.after_timestamp,
-                before_timestamp=request.before_timestamp,
-                person_ids=request.person_ids,
+            items = self.application_person_flow_weight_search.search(
+                params=ApplicationPersonFlowWeightSearchParams(
+                    person_ids=request.person_ids,
+                    timestamp_after=request.timestamp_after,
+                    timestamp_before=request.timestamp_before,
+                ),
             )
-            weights = self.application_person_flow_weight_search.search(params=params)
             return PresentationResponse(
                 status=200,
-                content=weights.to_json(),
+                content={
+                    "weights": [
+                        {
+                            "target_camera_id": item.target_camera_id,
+                            "source_camera_id": item.source_camera_id,
+                            "weight": item.weight,
+                        } for item in items
+                    ]
+                },
             )
         except Exception as e:
             self.logger.error(f"Error searching person flow weight: {e}")

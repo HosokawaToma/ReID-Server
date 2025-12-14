@@ -3,7 +3,7 @@ from datetime import datetime
 import uuid
 
 @dataclass
-class EntityPersonFlow:
+class DomainPersonFlow:
     person_id: uuid.UUID
     source_camera_id: int
     target_camera_id: int

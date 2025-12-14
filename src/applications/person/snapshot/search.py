@@ -1,7 +1,6 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
-from entities.person.snapshot import EntityPersonSnapshot
 from environment import Environment
 from dataclasses import dataclass
 import uuid
@@ -10,12 +9,12 @@ from datetime import datetime
 @dataclass
 class ApplicationPersonSnapshotSearchFilters:
     ids: list[uuid.UUID] | None = None
-    image_ids: list[uuid.UUID] | None = None
+    not_ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
     person_ids: list[uuid.UUID] | None = None
-    after_timestamp: datetime | None = None
-    before_timestamp: datetime | None = None
+    timestamp_after: datetime | None = None
+    timestamp_before: datetime | None = None
 
 @dataclass
 class ApplicationPersonSnapshotSearchOrdering:
@@ -23,9 +22,12 @@ class ApplicationPersonSnapshotSearchOrdering:
     timestamp_desc: bool | None = None
 
 @dataclass
-class ApplicationPersonSnapshotSearchParams:
-    filters: ApplicationPersonSnapshotSearchFilters | None = None
-    ordering: ApplicationPersonSnapshotSearchOrdering | None = None
+class ApplicationPersonSnapshotSearchItem:
+    id: uuid.UUID
+    camera_id: int
+    view_id: int
+    timestamp: datetime
+    person_id: uuid.UUID | None
 
 class ApplicationPersonSnapshotSearch:
     def __init__(
@@ -44,30 +46,35 @@ class ApplicationPersonSnapshotSearch:
 
     def search(
         self,
-        params: ApplicationPersonSnapshotSearchParams,
-    ) -> list[EntityPersonSnapshot]:
-        filters = None
-        if params.filters:
-            filters = RepositoryPersonSnapshotFilters(
-                ids=params.filters.ids,
-                image_ids=params.filters.image_ids,
-                camera_ids=params.filters.camera_ids,
-                view_ids=params.filters.view_ids,
-                person_ids=params.filters.person_ids,
-                after_timestamp=params.filters.after_timestamp,
-                before_timestamp=params.filters.before_timestamp,
+        filters: ApplicationPersonSnapshotSearchFilters | None = None,
+        ordering: ApplicationPersonSnapshotSearchOrdering | None = None,
+    ) -> list[ApplicationPersonSnapshotSearchItem]:
+        repository_filters = None
+        repository_ordering = None
+        if filters is not None:
+            repository_filters = RepositoryPersonSnapshotFilters(
+                ids=filters.ids,
+                not_ids=filters.not_ids,
+                camera_ids=filters.camera_ids,
+                view_ids=filters.view_ids,
+                person_ids=filters.person_ids,
+                timestamp_after=filters.timestamp_after,
+                timestamp_before=filters.timestamp_before,
             )
-        ordering = None
-        if params.ordering:
+        if ordering is not None:
             ordering_list = []
-            if params.ordering.timestamp_asc:
+            if ordering.timestamp_asc:
                 ordering_list.append(RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_ASC)
-            if params.ordering.timestamp_desc:
+            if ordering.timestamp_desc:
                 ordering_list.append(RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_DESC)
-            ordering = RepositoryPersonSnapshotOrdering(
+            repository_ordering = RepositoryPersonSnapshotOrdering(
                 ordering=ordering_list,
             )
-        return self.person_snapshot_repository.find(
-                filters=filters,
-                ordering=ordering,
-            )
+        person_snapshots = self.person_snapshot_repository.find(filters=repository_filters, ordering=repository_ordering)
+        return [ApplicationPersonSnapshotSearchItem(
+            id=person_snapshot.id,
+            camera_id=person_snapshot.camera_id,
+            view_id=person_snapshot.view_id,
+            timestamp=person_snapshot.timestamp,
+            person_id=person_snapshot.person_id,
+        ) for person_snapshot in person_snapshots]

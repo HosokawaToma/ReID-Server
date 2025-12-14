@@ -1,3 +1,4 @@
+from pathlib import Path
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.exc import SQLAlchemyError
@@ -23,20 +24,30 @@ class RepositoryDatabase:
     ENGINE_URL_TEMPLATE = "postgresql://{user}:{password}@{host}:{port}/{database}"
     _engine: Engine | None = None
 
-    def __init__(self, environment: Environment):
+    def __init__(self, host: str, port: str, database: str, user: str, password: str):
         if RepositoryDatabase._engine is None:
             RepositoryDatabase._engine = create_engine(
                 self.ENGINE_URL_TEMPLATE.format(
-                    user=environment.database_user,
-                    password=environment.database_password,
-                    host=environment.database_host,
-                    port=environment.database_port,
-                    database=environment.database_database
+                    user=user,
+                    password=password,
+                    host=host,
+                    port=port,
+                    database=database
                 )
             )
         self._session_maker = sessionmaker[Session](
             bind=RepositoryDatabase._engine)
         self._session: Session | None = None
+
+    @classmethod
+    def create(cls, environment: Environment) -> "RepositoryDatabase":
+        return cls(
+            host=environment.database_host,
+            port=environment.database_port,
+            database=environment.database_database,
+            user=environment.database_user,
+            password=environment.database_password,
+        )
 
     def __enter__(self) -> Session:
         if self._session is not None:
@@ -82,12 +93,12 @@ class RepositoryStorageImageError(Error):
 
 
 @dataclass
-class RepositoryStorageImageFindOneParams:
+class RepositoryStorageImageFindParams:
     name: str
 
 
 @dataclass
-class RepositoryStorageImageFindOneResult:
+class RepositoryStorageImageFindResult:
     name: str
     image: Image.Image
 
@@ -98,11 +109,17 @@ class RepositoryStorageImageDeleteParams:
 
 
 class RepositoryStorage:
-    def __init__(self, environment: Environment):
-        self.storage_directory = environment.storage_directory
-        self.images_directory = self.storage_directory / "images"
-        self.images_directory.mkdir(exist_ok=True)
-        self.images_directory.mkdir(parents=True, exist_ok=True)
+    def __init__(self, path: Path, directory: str):
+        self.storage_directory = path
+        self.images_directory = self.storage_directory / directory
+        self.images_directory.mkdir(exist_ok=True, parents=True)
+
+    @classmethod
+    def create(cls, environment: Environment, directory: str) -> "RepositoryStorage":
+        return cls(
+            path=environment.storage_directory,
+            directory=directory,
+        )
 
     def _fetch_image_name(self, name: str) -> str:
         image_names = glob.glob(
@@ -115,19 +132,17 @@ class RepositoryStorage:
         return image_name
 
     def image_save(self, image: RepositoryStorageImage) -> None:
-        if image.image.format == "JPEG":
-            extension = "jpg"
-        else:
-            raise RepositoryStorageImageError(f"image invalid: {image.name}")
-        image.image.save(self.images_directory / f"{image.name}.{extension}")
+        if image.image.format is None:
+            raise RepositoryStorageImageError(f"image format is None: {image.name}")
+        image.image.save(self.images_directory / f"{image.name}.{image.image.format.lower()}")
 
-    def image_find_one(self, params: RepositoryStorageImageFindOneParams) -> RepositoryStorageImageFindOneResult:
+    def image_find_one(self, params: RepositoryStorageImageFindParams) -> RepositoryStorageImageFindResult:
         image_name = self._fetch_image_name(params.name)
         try:
             with open(image_name, "rb") as file:
                 file_content = file.read()
                 image_stream = io.BytesIO(file_content)
-                return RepositoryStorageImageFindOneResult(
+                return RepositoryStorageImageFindResult(
                     name=params.name,
                     image=Image.open(image_stream),
                 )
@@ -145,24 +160,30 @@ class RepositoryRedisError(Error):
 
 
 class RepositoryRedis:
-    key: str
-
-    def __init__(self, environment: Environment):
+    def __init__(self, host: str, port: int, db: int):
         self.redis = Redis(
+            host=host,
+            port=port,
+            db=db,
+        )
+
+    @classmethod
+    def create(cls, environment: Environment) -> "RepositoryRedis":
+        return cls(
             host=environment.redis_host,
             port=environment.redis_port,
             db=environment.redis_db,
         )
 
-    def _push(self, value: dict[str, str]) -> None:
-        result = self.redis.rpush(self.key, json.dumps(value))
+    def push(self, value: dict[str, str], key: str) -> None:
+        result = self.redis.rpush(key, json.dumps(value))
         if result is None:
             raise RepositoryRedisError("result is None")
         if isinstance(result, Awaitable):
             raise RepositoryRedisError("result is Awaitable")
 
-    def _dequeue(self, timeout: int = 1) -> dict[str, str]:
-        result = self.redis.blpop([self.key], timeout=timeout)
+    def dequeue(self, key: str) -> dict[str, str]:
+        result = self.redis.blpop([key])
         if result is None:
             raise RepositoryRedisError("result is None")
         if isinstance(result, Awaitable):

@@ -1,7 +1,7 @@
 from environment import Environment
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearch
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearchParams
-from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearchNotFoundError
+from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearchError
 from presentation import PresentationBase
 from presentation import PresentationLogger
 from presentation import PresentationResponse
@@ -11,7 +11,7 @@ import uuid
 class PresentationPersonSnapshotImageSearch(PresentationBase):
     @property
     def router_path(self) -> str:
-        return "/person/snapshot/image/search/{image_id}"
+        return "/person/snapshot/image/search/{id}"
 
     @property
     def methods(self) -> list[str]:
@@ -47,13 +47,13 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
             application_person_snapshot_image_search=ApplicationPersonSnapshotImageSearch.create(environment),
         )
 
-    async def handle(self, image_id: uuid.UUID):
+    async def handle(self, id: uuid.UUID):
         try:
-            image = self.application_person_snapshot_image_search.search(
-                ApplicationPersonSnapshotImageSearchParams(image_id=image_id)
+            person_snapshot = self.application_person_snapshot_image_search.search(
+                ApplicationPersonSnapshotImageSearchParams(id=id)
             )
-            return PresentationImageResponse(status=200, image=image.image)
-        except ApplicationPersonSnapshotImageSearchNotFoundError:
+            return PresentationImageResponse(status=200, image=person_snapshot.image)
+        except ApplicationPersonSnapshotImageSearchError as e:
             return PresentationResponse(
                 status=404,
                 content={

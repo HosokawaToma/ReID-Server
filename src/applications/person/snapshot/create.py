@@ -1,12 +1,10 @@
-from repositories.person.snapshot import RepositoryPersonSnapshot
-from repositories.person.snapshot.image import RepositoryPersonSnapshotImage
-from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtraction
-from repositories.queue.person_snapshot.feature_extraction import RepositoryQueuePersonSnapshotFeatureExtractionQueueItem
-from entities.person.snapshot import EntityPersonSnapshot, EntityPersonSnapshotImage
+from repositories.frame_image import RepositoryFrameImage
+from domain.frame_image import DomainFrameImage
 from PIL import Image
 from datetime import datetime
 from dataclasses import dataclass
 from environment import Environment
+from repositories.frame_image import RepositoryFrameImageError
 
 
 @dataclass
@@ -20,39 +18,27 @@ class ApplicationPersonSnapshotCreateParams:
 class ApplicationPersonSnapshotCreate:
     def __init__(
         self,
-        repository_person_snapshot: RepositoryPersonSnapshot,
-        repository_person_snapshot_image: RepositoryPersonSnapshotImage,
-        repository_queue_person_snapshot_feature_extraction: RepositoryQueuePersonSnapshotFeatureExtraction,
+        repository_frame_image: RepositoryFrameImage,
     ):
-        self.repository_person_snapshot = repository_person_snapshot
-        self.repository_person_snapshot_image = repository_person_snapshot_image
-        self.repository_queue_person_snapshot_feature_extraction = repository_queue_person_snapshot_feature_extraction
+        self.repository_frame_image = repository_frame_image
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationPersonSnapshotCreate":
         return cls(
-            repository_person_snapshot=RepositoryPersonSnapshot.create(
-                environment),
-            repository_person_snapshot_image=RepositoryPersonSnapshotImage.create(
-                environment),
-            repository_queue_person_snapshot_feature_extraction=RepositoryQueuePersonSnapshotFeatureExtraction.create(
+            repository_frame_image=RepositoryFrameImage.create(
                 environment),
         )
 
     def save(self, params: ApplicationPersonSnapshotCreateParams) -> None:
-        image = EntityPersonSnapshotImage(
+        frame_image = DomainFrameImage(
             image=params.image,
-        )
-        self.repository_person_snapshot_image.save(image)
-        person_snapshot = EntityPersonSnapshot(
-            image_id=image.id,
             camera_id=params.camera_id,
             view_id=params.view_id,
             timestamp=params.timestamp,
         )
-        self.repository_person_snapshot.save(person_snapshot)
-        self.repository_queue_person_snapshot_feature_extraction.push(
-            RepositoryQueuePersonSnapshotFeatureExtractionQueueItem(
-                id=person_snapshot.id,
-            )
-        )
+        try:
+            self.repository_frame_image.save(frame_image)
+            self.repository_frame_image.push_queue(queue_name="frame_image:person_snapshot_create", frame_image=frame_image)
+        except RepositoryFrameImageError as e:
+            self.repository_frame_image.delete(frame_image)
+            raise e

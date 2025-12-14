@@ -1,18 +1,18 @@
-from PIL import Image
 from ultralytics.models.yolo import YOLO
-from entities.yolo.mask import EntityYoloMask
+from domain.yolo.mask import DomainYoloMask
 from ultralytics.engine.results import Results
+from PIL import Image
 
-class ModuleYoloSegmentation:
+class DomainYoloSegmentModel:
     def __init__(self):
         self.model = YOLO("./resources/models/yolo11x-seg.pt")
 
-    def extract(self, frame: Image.Image) -> list[EntityYoloMask]:
-        results = self.model(frame, classes=[0], verbose=False)
+    def extract(self, image: Image.Image) -> list[DomainYoloMask]:
+        results = self.model(image, classes=[0], verbose=False)
         items: Results = results[0]
         if items.masks is None:
             return []
         masks = []
         for mask in items.masks:
-            masks.append(EntityYoloMask(items.orig_img, mask.xy.pop()))
+            masks.append(DomainYoloMask(mask.xy.pop()))
         return masks
