@@ -2,16 +2,8 @@ import fastapi
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from presentation.auth.login.admin_client import PresentationAuthLoginAdminClient
-from presentation.auth.login.camera_client import PresentationAuthLoginCameraClient
-from presentation.auth.refresh.admin_client import PresentationAuthRefreshAdminClient
-from presentation.camera_clients.create import PresentationCameraClientsCreate
-from applications.camera_clients.create import ApplicationCameraClientsCreate
-from applications.auth.admin_client import ApplicationAuthAdminClient
-from applications.auth.camera_client import ApplicationAuthCameraClient
 from environment import Environment
 from presentation.person.snapshot.create import PresentationPersonSnapshotCreate
-from applications.person.snapshot.create import ApplicationPersonSnapshotCreate
 from background.person.snapshot.create import BackgroundPersonSnapshotCreate
 from background.person.snapshot.feature_extraction import BackgroundPersonSnapshotFeatureExtraction
 from background.person.snapshot.identify import BackgroundPersonSnapshotIdentify
@@ -30,10 +22,6 @@ class ServerApp:
         background_person_snapshot_create: BackgroundPersonSnapshotCreate,
         background_person_snapshot_feature_extraction: BackgroundPersonSnapshotFeatureExtraction,
         background_person_snapshot_identify: BackgroundPersonSnapshotIdentify,
-        login_admin_client: PresentationAuthLoginAdminClient,
-        login_camera_client: PresentationAuthLoginCameraClient,
-        refresh_admin_client: PresentationAuthRefreshAdminClient,
-        camera_clients_create: PresentationCameraClientsCreate,
         person_snapshot_create: PresentationPersonSnapshotCreate,
         person_snapshot_refresh: PresentationPersonSnapshotRefresh,
         person_snapshot_search: PresentationPersonSnapshotSearch,
@@ -47,10 +35,6 @@ class ServerApp:
         self.background_person_snapshot_create = background_person_snapshot_create
         self.background_person_snapshot_feature_extraction = background_person_snapshot_feature_extraction
         self.background_person_snapshot_identify = background_person_snapshot_identify
-        self.login_admin_client = login_admin_client
-        self.login_camera_client = login_camera_client
-        self.refresh_admin_client = refresh_admin_client
-        self.camera_clients_create = camera_clients_create
         self.person_snapshot_create = person_snapshot_create
         self.person_snapshot_refresh = person_snapshot_refresh
         self.person_snapshot_search = person_snapshot_search
@@ -78,35 +62,6 @@ class ServerApp:
             ),
             background_person_snapshot_identify=BackgroundPersonSnapshotIdentify.create(
                 environment=environment,
-            ),
-            login_admin_client=PresentationAuthLoginAdminClient(
-                application_token=ApplicationAuthAdminClient.create(
-                    environment=environment,
-                ),
-                application_refresh_token=ApplicationAuthAdminClient.create(
-                    environment=environment,
-                )
-            ),
-            login_camera_client=PresentationAuthLoginCameraClient(
-                application_token=ApplicationAuthCameraClient.create(
-                    environment=environment,
-                ),
-            ),
-            refresh_admin_client=PresentationAuthRefreshAdminClient(
-                application_token=ApplicationAuthAdminClient.create(
-                    environment=environment,
-                ),
-                application_refresh_token=ApplicationAuthAdminClient.create(
-                    environment=environment,
-                )
-            ),
-            camera_clients_create=PresentationCameraClientsCreate(
-                application_auth=ApplicationAuthAdminClient.create(
-                    environment=environment,
-                ),
-                application=ApplicationCameraClientsCreate.create(
-                    environment=environment,
-                )
             ),
             person_snapshot_create=PresentationPersonSnapshotCreate.create(
                 environment=environment,
@@ -139,10 +94,6 @@ class ServerApp:
         self.background_person_snapshot_create.setup(self.fastapi_app)
         self.background_person_snapshot_feature_extraction.setup(self.fastapi_app)
         self.background_person_snapshot_identify.setup(self.fastapi_app)
-        self.login_admin_client.setup(self.fastapi_app)
-        self.login_camera_client.setup(self.fastapi_app)
-        self.refresh_admin_client.setup(self.fastapi_app)
-        self.camera_clients_create.setup(self.fastapi_app)
         self.person_snapshot_create.setup(self.fastapi_app)
         self.person_snapshot_refresh.setup(self.fastapi_app)
         self.person_snapshot_search.setup(self.fastapi_app)
