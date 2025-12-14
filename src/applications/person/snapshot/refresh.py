@@ -13,8 +13,8 @@ from dataclasses import dataclass
 
 @dataclass
 class ApplicationPersonSnapshotRefreshParams:
-    after_timestamp: datetime | None = None
-    before_timestamp: datetime | None = None
+    timestamp_after: datetime | None = None
+    timestamp_before: datetime | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
 
@@ -50,8 +50,8 @@ class ApplicationPersonSnapshotRefresh:
         try:
             person_snapshots = self.repository_person_snapshot.find(
                 filters=RepositoryPersonSnapshotFilters(
-                    after_timestamp=params.after_timestamp,
-                    before_timestamp=params.before_timestamp,
+                    timestamp_after=params.timestamp_after,
+                    timestamp_before=params.timestamp_before,
                     camera_ids=params.camera_ids,
                     view_ids=params.view_ids,
                 ),
@@ -59,12 +59,9 @@ class ApplicationPersonSnapshotRefresh:
                     ordering=[RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_ASC],
                 ),
             )
-            for person_snapshot in person_snapshots:
-                self.repository_queue_person_snapshot_feature_extraction.push(
-                    RepositoryQueuePersonSnapshotFeatureExtractionQueueItem(
-                        id=person_snapshot.id,
-                    )
-                )
+            queue_items = person_snapshots.to_feature_extraction_queue_items()
+            for queue_item in queue_items:
+                self.repository_queue_person_snapshot_feature_extraction.push(queue_item)
         except RepositoryQueuePersonSnapshotFeatureExtractionError as e:
             raise ApplicationPersonSnapshotFeatureExtractionQueueError(e.message)
         except RepositoryQueuePersonSnapshotIdentifyError as e:

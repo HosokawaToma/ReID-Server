@@ -1,13 +1,14 @@
-from PIL import Image
 from ultralytics.models.yolo import YOLO
 from ultralytics.engine.results import Results, Boxes
-from entities.yolo.detection import EntityYoloDetection
+from domain.yolo.bounding_box import DomainYoloBoundingBox
+from PIL import Image
 
-class ModuleYoloDetection:
+
+class DomainYoloDetectionModel:
     def __init__(self):
         self.model = YOLO("./resources/models/yolo11x-detection.pt")
 
-    def extract(self, image: Image.Image) -> list[EntityYoloDetection]:
+    def extract(self, image: Image.Image) -> list[DomainYoloBoundingBox]:
         results = self.model(image, verbose=False)
         items: Results = results[0]
         if items.boxes is None:
@@ -21,14 +22,13 @@ class ModuleYoloDetection:
             x2 = float(xyxy[2])
             y2 = float(xyxy[3])
             conf = float(box.conf[0].cpu().numpy())
-            cls = int(box.cls[0].cpu().numpy())
-            detections.append(EntityYoloDetection(
-                class_id=cls,
-                confidence=conf,
+            class_id = int(box.cls[0].cpu().numpy())
+            detections.append(DomainYoloBoundingBox(
                 x1=x1,
                 y1=y1,
                 x2=x2,
                 y2=y2,
+                confidence=conf,
+                class_id=class_id,
             ))
         return detections
-

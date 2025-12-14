@@ -9,8 +9,8 @@ from entities.environment.admin_client import EntityEnvironmentAdminClient
 from datetime import datetime
 
 class PresentationPersonSnapshotRefreshRequest(PresentationRequest):
-    after_timestamp: datetime | None = None
-    before_timestamp: datetime | None = None
+    timestamp_after: datetime | None = None
+    timestamp_before: datetime | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
 
@@ -71,8 +71,8 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
             self.auth.verify(authorization)
             self.application.refresh(
                 ApplicationPersonSnapshotRefreshParams(
-                    after_timestamp=request.after_timestamp,
-                    before_timestamp=request.before_timestamp,
+                    timestamp_after=request.timestamp_after,
+                    timestamp_before=request.timestamp_before,
                     camera_ids=request.camera_ids,
                     view_ids=request.view_ids,
                 )
