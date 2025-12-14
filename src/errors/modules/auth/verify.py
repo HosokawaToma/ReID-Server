@@ -1,2 +1,0 @@
-class ErrorModulesAuthVerify(Exception):
-    pass

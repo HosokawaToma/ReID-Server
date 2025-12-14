@@ -1,2 +1,0 @@
-class ErrorModuleDatabase(Exception):
-    pass
