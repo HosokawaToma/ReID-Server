@@ -1,17 +1,20 @@
 import logging
 import fastapi
-from fastapi import Depends, UploadFile, Form
+from fastapi import Depends, UploadFile, Form, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
 import abc
-from typing import Any, Annotated
+from typing import Any, Annotated, Sequence
 from enum import Enum
 from PIL import Image
 import io
 from datetime import datetime
 from pydantic import BaseModel
 from error import Error
+from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2
+from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Params
+from environment import Environment
 
 class PresentationLogger:
     def __init__(self):
@@ -37,6 +40,9 @@ class PresentationJSONResponse(JSONResponse):
         super().__init__(content=content, status_code=status)
 
 
+class PresentationImageResponseError(Exception):
+    pass
+
 class PresentationImageResponse(StreamingResponse):
     def __init__(self, status: int, image: Image.Image):
         if image.format is None:
@@ -54,6 +60,7 @@ class PresentationBase:
     summary: str | None = None
     description: str | None = None
     responses: dict[int | str, dict[str, Any]] | None = None
+    dependencies: Sequence[Annotated[Any, Depends]] | None = None
 
     def __init__(self, logger: PresentationLogger):
         self.logger = logger
@@ -67,6 +74,7 @@ class PresentationBase:
             summary=self.summary,
             description=self.description,
             responses=self.responses,
+            dependencies=self.dependencies,
         )
 
     async def _handle(self, *args, **kwargs):
@@ -83,10 +91,26 @@ class PresentationBase:
     async def handle(self, *args, **kwargs) -> PresentationJSONResponse | PresentationImageResponse:
         pass
 
-class PresentationImageResponseError(Exception):
-    pass
-
 PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
+
+def admin_client_authenticated(
+    token: PresentationTypeAuthorization,
+    environment: Environment = Depends(Environment)
+) -> str:
+    application = ApplicationAdminClientAuthOAuth2.create(environment)
+    result = application.oauth2(ApplicationAdminClientAuthOAuth2Params(code=token))
+    if result.id is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authorization",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return result.id
+
+PresentationAdminClientAuthenticated = Annotated[str, Depends(admin_client_authenticated)]
+
+class PresentationImageError(Exception):
+    pass
 
 class PresentationImage:
     async def __call__(self, image: UploadFile) -> Image.Image:
@@ -94,7 +118,7 @@ class PresentationImage:
         pil_image = Image.open(io.BytesIO(content))
         pil_image.load()
         if pil_image.format is None:
-            raise PresentationImageResponseError(f"image format is None: {image.filename}")
+            raise PresentationImageError(f"image format is None: {image.filename}")
         return pil_image
 
 PresentationTypeImage = Annotated[Image.Image, Depends(PresentationImage())]
