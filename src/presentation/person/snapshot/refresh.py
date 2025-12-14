@@ -1,8 +1,7 @@
 from presentation import PresentationBase, PresentationLogger, PresentationJSONResponse, PresentationRequest
 from applications.person.snapshot.refresh import ApplicationPersonSnapshotRefresh
 from applications.person.snapshot.refresh import ApplicationPersonSnapshotRefreshParams
-from applications.auth.admin_client import ApplicationAuthAdminClient
-from presentation import PresentationTypeAuthorization
+from presentation import PresentationAdminClientAuthenticated
 from environment import Environment
 from datetime import datetime
 
@@ -27,20 +26,15 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
     def __init__(
         self,
         logger: PresentationLogger,
-        auth: ApplicationAuthAdminClient,
         application: ApplicationPersonSnapshotRefresh,
     ):
         super().__init__(logger)
-        self.auth = auth
         self.application = application
 
     @classmethod
     def create(cls, environment: Environment) -> "PresentationPersonSnapshotRefresh":
         return cls(
             logger=PresentationLogger(),
-            auth=ApplicationAuthAdminClient.create(
-                environment=environment,
-            ),
             application=ApplicationPersonSnapshotRefresh.create(
                 environment=environment,
             ),
@@ -48,10 +42,9 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
 
     async def handle(
         self,
-        authorization: PresentationTypeAuthorization,
+        admin_client_id: PresentationAdminClientAuthenticated,
         request: PresentationPersonSnapshotRefreshRequest,
     ):
-        self.auth.verify(authorization)
         self.application.refresh(
             ApplicationPersonSnapshotRefreshParams(
                 timestamp_after=request.timestamp_after,

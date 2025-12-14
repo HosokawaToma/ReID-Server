@@ -3,6 +3,7 @@ from applications.person.snapshot.search import ApplicationPersonSnapshotSearchF
 from applications.person.snapshot.search import ApplicationPersonSnapshotSearchOrdering
 from presentation import PresentationBase
 from presentation import PresentationRequest
+from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationJSONResponse
 from presentation import PresentationLogger
 from environment import Environment
@@ -57,6 +58,7 @@ class PresentationPersonSnapshotSearch(PresentationBase):
 
     async def handle(
         self,
+        admin_client_id: PresentationAdminClientAuthenticated,
         request: PresentationPersonSnapshotSearchRequest,
     ):
         filters = None

@@ -1,6 +1,7 @@
 from applications.person.flow.weight.search import ApplicationPersonFlowWeightSearch
 from applications.person.flow.weight.search import ApplicationPersonFlowWeightSearchParams
 from presentation import PresentationBase
+from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationLogger
 from presentation import PresentationRequest
 from presentation import PresentationJSONResponse
@@ -44,6 +45,7 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
 
     async def handle(
         self,
+        admin_client_id: PresentationAdminClientAuthenticated,
         request: PresentationPersonFlowWeightSearchRequest,
     ):
         items = self.application_person_flow_weight_search.search(

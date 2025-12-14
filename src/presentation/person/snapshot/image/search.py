@@ -3,6 +3,7 @@ from applications.person.snapshot.image.search import ApplicationPersonSnapshotI
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearchParams
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearchError
 from presentation import PresentationBase
+from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationLogger
 from presentation import PresentationJSONResponse
 from presentation import PresentationImageResponse
@@ -41,7 +42,7 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
             application_person_snapshot_image_search=ApplicationPersonSnapshotImageSearch.create(environment),
         )
 
-    async def handle(self, id: uuid.UUID):
+    async def handle(self, admin_client_id: PresentationAdminClientAuthenticated, id: uuid.UUID):
         try:
             person_snapshot = self.application_person_snapshot_image_search.search(
                 ApplicationPersonSnapshotImageSearchParams(id=id)

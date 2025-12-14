@@ -2,6 +2,7 @@ from presentation import PresentationBase
 from presentation import PresentationLogger
 from presentation import PresentationRequest
 from presentation import PresentationJSONResponse
+from presentation import PresentationAdminClientAuthenticated
 from applications.person.flow.search import ApplicationPersonFlowSearch
 from applications.person.flow.search import ApplicationPersonFlowSearchParams
 from environment import Environment
@@ -42,7 +43,11 @@ class PresentationPersonFlowSearch(PresentationBase):
             application=ApplicationPersonFlowSearch.create(environment=environment),
         )
 
-    async def handle(self, request: PresentationPersonFlowSearchRequest):
+    async def handle(
+        self,
+        admin_client_id: PresentationAdminClientAuthenticated,
+        request: PresentationPersonFlowSearchRequest,
+    ):
         params = ApplicationPersonFlowSearchParams(
             person_id=request.person_id,
             timestamp_after=request.timestamp_after,

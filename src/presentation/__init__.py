@@ -124,3 +124,5 @@ class PresentationImage:
 PresentationTypeImage = Annotated[Image.Image, Depends(PresentationImage())]
 
 PresentationTypeDatetime = Annotated[datetime, Form(...)]
+
+PresentationTypeInt = Annotated[int, Form(...)]

@@ -108,13 +108,8 @@ class ServerApp:
                     environment=environment,
                 )
             ),
-            person_snapshot_create=PresentationPersonSnapshotCreate(
-                auth=ApplicationAuthCameraClient.create(
-                    environment=environment,
-                ),
-                application=ApplicationPersonSnapshotCreate.create(
-                    environment=environment,
-                ),
+            person_snapshot_create=PresentationPersonSnapshotCreate.create(
+                environment=environment,
             ),
             person_snapshot_refresh=PresentationPersonSnapshotRefresh.create(
                 environment=environment,
