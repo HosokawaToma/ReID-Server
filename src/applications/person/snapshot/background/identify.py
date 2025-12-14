@@ -48,9 +48,21 @@ class ApplicationPersonSnapshotBackgroundIdentify:
             if person_snapshot is None:
                 raise ApplicationPersonSnapshotBackgroundIdentifyError(
                     f"person snapshot not found: {item.id}")
-            nearest_person_snapshot = person_snapshot.find_nearest(self.repository_person_snapshot)
+            if not person_snapshot.has_feature():
+                raise ApplicationPersonSnapshotBackgroundIdentifyError(
+                    f"feature is not extracted: {person_snapshot.id}")
+            nearest_person_snapshot = self.repository_person_snapshot.find_first(
+                filters=RepositoryPersonSnapshotFilters(
+                    not_ids=[person_snapshot.id],
+                    timestamp_after=datetime.combine(
+                        person_snapshot.timestamp.date(), datetime.min.time()),
+                    timestamp_before=person_snapshot.timestamp),
+                ordering=RepositoryPersonSnapshotOrdering([
+                    person_snapshot.feature, # type: ignore
+                    RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_DESC]),
+            )
             if nearest_person_snapshot is not None:
-                person_snapshot.match(nearest_person_snapshot)
+                person_snapshot.person_reid(nearest_person_snapshot)
                 self.repository_person_snapshot.update(person_snapshot)
             return person_snapshot
         except RepositoryQueuePersonSnapshotIdentifyError as e:
