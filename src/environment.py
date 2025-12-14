@@ -57,7 +57,7 @@ class Environment:
         self.redis_host = self._get_string("REDIS_HOST")
         self.redis_port = self._get_int("REDIS_PORT")
         self.redis_db = self._get_int("REDIS_DB")
-        self.coturn_host = self._get_string("COTURN_HOST")
+        self.coturn_host = self._get_string("PUBLIC_IP")
         self.coturn_port = self._get_string("COTURN_PORT")
         self.coturn_secret = self._get_string("COTURN_SECRET")
         self.coturn_ttl = self._get_int("COTURN_TTL")
