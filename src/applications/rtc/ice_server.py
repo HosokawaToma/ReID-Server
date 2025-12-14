@@ -1,5 +1,5 @@
 from entities.rtc.ice_server import EntityRtcIceServer
-from entities.environment.coturn import EntityEnvironmentCoturn
+from environment import Environment
 
 import time
 import base64
@@ -15,12 +15,12 @@ class ApplicationRtcIceServer:
         self.ttl = ttl
 
     @classmethod
-    def create(cls, environment_coturn: EntityEnvironmentCoturn) -> "ApplicationRtcIceServer":
+    def create(cls, environment: Environment) -> "ApplicationRtcIceServer":
         return cls(
-            host=environment_coturn.host,
-            port=environment_coturn.port,
-            secret=environment_coturn.secret,
-            ttl=environment_coturn.ttl,
+            host=environment.coturn_host,
+            port=environment.coturn_port,
+            secret=environment.coturn_secret,
+            ttl=environment.coturn_ttl,
         )
 
     def generate(self, camera_client_id: str) -> EntityRtcIceServer:

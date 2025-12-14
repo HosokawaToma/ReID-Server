@@ -1,10 +1,9 @@
 from entities.camera_client import EntityCameraClient
 from repositories.database.camera_clients import RepositoryDatabaseCameraClients
-from entities.environment.postgresql import EntityEnvironmentPostgreSQL
 from repositories.database import RepositoryDatabaseEngine
 from dataclasses import dataclass
 from modules.hasher import ModuleHasher
-from environment import EnvironmentHash
+from environment import Environment
 @dataclass
 class ApplicationCameraClientsCreateParams:
     id: str
@@ -27,20 +26,19 @@ class ApplicationCameraClientsCreate:
     @classmethod
     def create(
         cls,
-        environment_postgresql: EntityEnvironmentPostgreSQL,
-        environment_hash: EnvironmentHash,
+        environment: Environment,
     ) -> "ApplicationCameraClientsCreate":
         return cls(
             database_camera_clients=RepositoryDatabaseCameraClients(
                 database=RepositoryDatabaseEngine(
-                    host=environment_postgresql.host,
-                    port=environment_postgresql.port,
-                    user=environment_postgresql.user,
-                    password=environment_postgresql.password,
-                    database=environment_postgresql.database,
+                    host=environment.database_host,
+                    port=environment.database_port,
+                    user=environment.database_user,
+                    password=environment.database_password,
+                    database=environment.database_database,
                 )
             ),
-            hasher=ModuleHasher(secret=environment_hash.secret),
+            hasher=ModuleHasher(secret=environment.hash_key),
         )
 
     def create_camera_client(self, params: ApplicationCameraClientsCreateParams) -> None:

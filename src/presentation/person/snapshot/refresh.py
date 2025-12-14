@@ -4,8 +4,6 @@ from applications.person.snapshot.refresh import ApplicationPersonSnapshotRefres
 from applications.auth.admin_client import ApplicationAuthAdminClient
 from presentation import PresentationTypeAuthorization
 from environment import Environment
-from entities.environment.jwt import EntityEnvironmentJwt
-from entities.environment.admin_client import EntityEnvironmentAdminClient
 from datetime import datetime
 
 class PresentationPersonSnapshotRefreshRequest(PresentationRequest):
@@ -41,15 +39,7 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
         return cls(
             logger=PresentationLogger(),
             auth=ApplicationAuthAdminClient.create(
-                environment_jwt=EntityEnvironmentJwt(
-                    secret_key=environment.jwt_secret_key(),
-                    algorithm=environment.jwt_algorithm(),
-                    expire_minutes=environment.jwt_expire_minutes(),
-                ),
-                environment_admin_client=EntityEnvironmentAdminClient(
-                    id=environment.admin_client_id(),
-                    password=environment.admin_client_password(),
-                ),
+                environment=environment,
             ),
             application=ApplicationPersonSnapshotRefresh.create(
                 environment=environment,
