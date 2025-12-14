@@ -16,7 +16,7 @@ from environment import Environment
 from error import Error
 
 
-class RepositoryDatabaseError(Exception):
+class RepositoryDatabaseError(Error):
     pass
 
 
@@ -138,26 +138,20 @@ class RepositoryStorage:
 
     def image_find_one(self, params: RepositoryStorageImageFindParams) -> RepositoryStorageImageFindResult:
         image_name = self._fetch_image_name(params.name)
-        try:
-            with open(image_name, "rb") as file:
-                file_content = file.read()
-                image_stream = io.BytesIO(file_content)
-                return RepositoryStorageImageFindResult(
-                    name=params.name,
-                    image=Image.open(image_stream),
-                )
-        except FileNotFoundError:
-            raise RepositoryStorageImageError(f"image not found: {params.name}")
+        with open(image_name, "rb") as file:
+            file_content = file.read()
+            image_stream = io.BytesIO(file_content)
+            return RepositoryStorageImageFindResult(
+                name=params.name,
+                image=Image.open(image_stream),
+            )
 
     def image_delete(self, params: RepositoryStorageImageDeleteParams) -> None:
         image_name = self._fetch_image_name(params.name)
-        try:
-            os.remove(image_name)
-        except FileNotFoundError:
-            raise RepositoryStorageImageError(f"image not found: {params.name}")
+        os.remove(image_name)
+
 class RepositoryRedisError(Error):
     pass
-
 
 class RepositoryRedis:
     def __init__(self, host: str, port: int, db: int):
@@ -197,10 +191,7 @@ class RepositoryRedis:
             value = value.decode("utf-8")
         else:
             raise RepositoryRedisError("value is not str or bytes")
-        try:
-            data = json.loads(value)
-        except json.JSONDecodeError:
-            raise RepositoryRedisError("data is not dict")
+        data = json.loads(value)
         if not isinstance(data, dict):
             raise RepositoryRedisError("data is not dict")
         return data

@@ -1,4 +1,4 @@
-from presentation import PresentationBase, PresentationLogger, PresentationRequest, PresentationResponse
+from presentation import PresentationBase, PresentationLogger, PresentationJSONResponse, PresentationRequest
 from applications.person.snapshot.refresh import ApplicationPersonSnapshotRefresh
 from applications.person.snapshot.refresh import ApplicationPersonSnapshotRefreshParams
 from applications.auth.admin_client import ApplicationAuthAdminClient
@@ -15,14 +15,8 @@ class PresentationPersonSnapshotRefreshRequest(PresentationRequest):
     view_ids: list[int] | None = None
 
 class PresentationPersonSnapshotRefresh(PresentationBase):
-    @property
-    def router_path(self) -> str:
-        return "/person/snapshot/refresh"
-
-    @property
-    def methods(self) -> list[str]:
-        return ["POST"]
-
+    router_path = "/person/snapshot/refresh"
+    methods = ["POST"]
     tags = ["Person Snapshot"]
     summary = "Refresh person snapshots"
     description = "Refresh person snapshots"
@@ -67,16 +61,13 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
         authorization: PresentationTypeAuthorization,
         request: PresentationPersonSnapshotRefreshRequest,
     ):
-        try:
-            self.auth.verify(authorization)
-            self.application.refresh(
-                ApplicationPersonSnapshotRefreshParams(
-                    timestamp_after=request.timestamp_after,
-                    timestamp_before=request.timestamp_before,
-                    camera_ids=request.camera_ids,
-                    view_ids=request.view_ids,
-                )
+        self.auth.verify(authorization)
+        self.application.refresh(
+            ApplicationPersonSnapshotRefreshParams(
+                timestamp_after=request.timestamp_after,
+                timestamp_before=request.timestamp_before,
+                camera_ids=request.camera_ids,
+                view_ids=request.view_ids,
             )
-            return PresentationResponse(status=200, content={"message": "Person snapshots refreshed"})
-        except Exception as e:
-            return PresentationResponse(status=500, content={"message": "Internal server error"})
+        )
+        return PresentationJSONResponse(status=200, content={"message": "Person snapshots refreshed"})

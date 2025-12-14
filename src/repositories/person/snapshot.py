@@ -9,7 +9,6 @@ from sqlalchemy.orm import Query
 from typing import Literal, ClassVar
 from error import Error
 from datetime import datetime
-from PIL import Image
 from repositories import RepositoryStorage
 from repositories import RepositoryStorageImage
 from repositories import RepositoryStorageImageFindParams

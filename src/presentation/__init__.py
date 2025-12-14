@@ -11,6 +11,7 @@ from PIL import Image
 import io
 from datetime import datetime
 from pydantic import BaseModel
+from error import Error
 
 class PresentationLogger:
     def __init__(self):
@@ -28,18 +29,27 @@ class PresentationLogger:
     def debug(self, message: str):
         self.logger.debug(message)
 
+class PresentationRequest(BaseModel):
+    pass
+
+class PresentationJSONResponse(JSONResponse):
+    def __init__(self, status: int, content: dict[str, Any]):
+        super().__init__(content=content, status_code=status)
+
+
+class PresentationImageResponse(StreamingResponse):
+    def __init__(self, status: int, image: Image.Image):
+        if image.format is None:
+            raise PresentationImageResponseError
+        img_buffer = io.BytesIO()
+        image.save(img_buffer, format=image.format)
+        img_buffer.seek(0)
+        super().__init__(content=img_buffer,
+                         media_type=f"image/{image.format.lower()}", status_code=status)
 
 class PresentationBase:
-    @property
-    @abc.abstractmethod
-    def router_path(self) -> str:
-        pass
-
-    @property
-    @abc.abstractmethod
-    def methods(self) -> list[str]:
-        pass
-
+    router_path: str
+    methods: list[str]
     tags: list[str | Enum] | None = None
     summary: str | None = None
     description: str | None = None
@@ -51,7 +61,7 @@ class PresentationBase:
     def setup(self, app: fastapi.FastAPI):
         app.add_api_route(
             self.router_path,
-            self.handle,
+            self._handle,
             methods=self.methods,
             tags=self.tags,
             summary=self.summary,
@@ -59,28 +69,22 @@ class PresentationBase:
             responses=self.responses,
         )
 
+    async def _handle(self, *args, **kwargs):
+        try:
+            return await self.handle(*args, **kwargs)
+        except Error as e:
+            self.logger.error(f"Error: route: {self.router_path}, method: {self.methods}, message: {e.message}")
+            return PresentationJSONResponse(status=500, content={"message": "Internal server error"})
+        except Exception as e:
+            self.logger.error(f"Unexpected error: route: {self.router_path}, method: {self.methods}, error: {e}")
+            return PresentationJSONResponse(status=500, content={"message": "Internal server error"})
+
     @abc.abstractmethod
-    async def handle(self, *args, **kwargs) -> Any:
+    async def handle(self, *args, **kwargs) -> PresentationJSONResponse | PresentationImageResponse:
         pass
-
-class PresentationRequest(BaseModel):
-    pass
-
-class PresentationResponse(JSONResponse):
-    def __init__(self, status: int, content: dict[str, Any]):
-        super().__init__(content=content, status_code=status)
 
 class PresentationImageResponseError(Exception):
     pass
-
-class PresentationImageResponse(StreamingResponse):
-    def __init__(self, status: int, image: Image.Image):
-        if image.format is None:
-            raise PresentationImageResponseError
-        img_buffer = io.BytesIO()
-        image.save(img_buffer, format=image.format)
-        img_buffer.seek(0)
-        super().__init__(content=img_buffer, media_type=f"image/{image.format.lower()}", status_code=status)
 
 PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
 

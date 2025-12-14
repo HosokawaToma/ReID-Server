@@ -3,7 +3,7 @@ from applications.person.snapshot.search import ApplicationPersonSnapshotSearchF
 from applications.person.snapshot.search import ApplicationPersonSnapshotSearchOrdering
 from presentation import PresentationBase
 from presentation import PresentationRequest
-from presentation import PresentationResponse
+from presentation import PresentationJSONResponse
 from presentation import PresentationLogger
 from environment import Environment
 from datetime import datetime
@@ -27,14 +27,8 @@ class PresentationPersonSnapshotSearchRequest(PresentationRequest):
     ordering: PresentationPersonSnapshotSearchOrdering | None = None
 
 class PresentationPersonSnapshotSearch(PresentationBase):
-    @property
-    def router_path(self) -> str:
-        return "/person/snapshot/search"
-
-    @property
-    def methods(self) -> list[str]:
-        return ["POST"]
-
+    router_path = "/person/snapshot/search"
+    methods = ["POST"]
     tags = ["Person Snapshot"]
     summary = "Search person snapshots"
     description = "Search person snapshots"
@@ -64,48 +58,39 @@ class PresentationPersonSnapshotSearch(PresentationBase):
     async def handle(
         self,
         request: PresentationPersonSnapshotSearchRequest,
-    ) -> PresentationResponse:
-        try:
-            filters = None
-            if request.filters:
-                filters = ApplicationPersonSnapshotSearchFilters(
-                    ids=request.filters.ids,
-                    camera_ids=request.filters.camera_ids,
-                    view_ids=request.filters.view_ids,
-                    person_ids=request.filters.person_ids,
-                    timestamp_after=request.filters.timestamp_after,
-                    timestamp_before=request.filters.timestamp_before,
-                )
-            ordering = None
-            if request.ordering:
-                ordering = ApplicationPersonSnapshotSearchOrdering(
-                    timestamp_asc=request.ordering.timestamp_asc,
-                    timestamp_desc=request.ordering.timestamp_desc,
-                )
-            items = self.application_person_snapshot_search.search(
-                filters=filters,
-                ordering=ordering,
+    ):
+        filters = None
+        if request.filters:
+            filters = ApplicationPersonSnapshotSearchFilters(
+                ids=request.filters.ids,
+                camera_ids=request.filters.camera_ids,
+                view_ids=request.filters.view_ids,
+                person_ids=request.filters.person_ids,
+                timestamp_after=request.filters.timestamp_after,
+                timestamp_before=request.filters.timestamp_before,
             )
-            self.logger.info(f"Person snapshots found: {len(items)}")
-            return PresentationResponse(
-                status=200,
-                content={
-                    "person_snapshots": [
-                        {
-                            "id": str(item.id),
-                            "camera_id": item.camera_id,
-                            "view_id": item.view_id,
-                            "timestamp": item.timestamp.isoformat(),
-                            "person_id": str(item.person_id),
-                        } for item in items
-                    ],
-                },
+        ordering = None
+        if request.ordering:
+            ordering = ApplicationPersonSnapshotSearchOrdering(
+                timestamp_asc=request.ordering.timestamp_asc,
+                timestamp_desc=request.ordering.timestamp_desc,
             )
-        except Exception as e:
-            self.logger.error(f"Internal server error: {e}")
-            return PresentationResponse(
-                status=500,
-                content={
-                    "message": "Internal server error",
-                },
-            )
+        items = self.application_person_snapshot_search.search(
+            filters=filters,
+            ordering=ordering,
+        )
+        self.logger.info(f"Person snapshots found: {len(items)}")
+        return PresentationJSONResponse(
+            status=200,
+            content={
+                "person_snapshots": [
+                    {
+                        "id": str(item.id),
+                        "camera_id": item.camera_id,
+                        "view_id": item.view_id,
+                        "timestamp": item.timestamp.isoformat(),
+                        "person_id": str(item.person_id),
+                    } for item in items
+                ],
+            },
+        )

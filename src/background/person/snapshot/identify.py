@@ -1,6 +1,5 @@
-from background import Background, BackgroundJobError, BackgroundLogger
+from background import Background, BackgroundLogger
 from applications.person.snapshot.background.identify import ApplicationPersonSnapshotBackgroundIdentify
-from applications.person.snapshot.background.identify import ApplicationPersonSnapshotBackgroundIdentifyError
 from environment import Environment
 
 class BackgroundPersonSnapshotIdentify(Background):
@@ -25,8 +24,5 @@ class BackgroundPersonSnapshotIdentify(Background):
         )
 
     def handle(self) -> str:
-        try:
-            person_snapshot = self.application.identify()
-            return f"person snapshot id: {person_snapshot.id} identified as person id: {person_snapshot.person_id}"
-        except ApplicationPersonSnapshotBackgroundIdentifyError as e:
-            raise BackgroundJobError(e.message)
+        person_snapshot = self.application.identify()
+        return f"person snapshot id: {person_snapshot.id} identified as person id: {person_snapshot.person_id}"

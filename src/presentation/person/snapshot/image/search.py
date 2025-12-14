@@ -4,19 +4,13 @@ from applications.person.snapshot.image.search import ApplicationPersonSnapshotI
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearchError
 from presentation import PresentationBase
 from presentation import PresentationLogger
-from presentation import PresentationResponse
+from presentation import PresentationJSONResponse
 from presentation import PresentationImageResponse
 import uuid
 
 class PresentationPersonSnapshotImageSearch(PresentationBase):
-    @property
-    def router_path(self) -> str:
-        return "/person/snapshot/image/search/{id}"
-
-    @property
-    def methods(self) -> list[str]:
-        return ["GET"]
-
+    router_path = "/person/snapshot/image/search/{id}"
+    methods = ["GET"]
     tags= ["Person Snapshot Image"]
     summary = "Search person snapshot image"
     description = "Search person snapshot image by image id"
@@ -54,18 +48,9 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
             )
             return PresentationImageResponse(status=200, image=person_snapshot.image)
         except ApplicationPersonSnapshotImageSearchError as e:
-            return PresentationResponse(
+            return PresentationJSONResponse(
                 status=404,
                 content={
                     "message": "Person snapshot image not found",
                 },
             )
-        except Exception as e:
-            self.logger.error(f"Error searching person snapshot image: {e}")
-            return PresentationResponse(
-                status=500,
-                content={
-                    "message": "Internal server error",
-                },
-            )
-
