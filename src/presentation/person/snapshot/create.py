@@ -5,16 +5,11 @@ from presentation import PresentationTypeAuthorization
 from presentation import PresentationTypeImage
 from presentation import PresentationTypeDatetime
 from applications.auth.camera_client import ApplicationAuthCameraClient
+from presentation import PresentationJSONResponse
 
 class PresentationPersonSnapshotCreate(PresentationBase):
-    @property
-    def router_path(self) -> str:
-        return "/person/snapshot/create"
-
-    @property
-    def methods(self) -> list[str]:
-        return ["POST"]
-
+    router_path = "/person/snapshot/create"
+    methods = ["POST"]
     tags = ["Person Snapshot"]
     summary = "Create a person snapshot"
     description = "Create a person snapshot"
@@ -35,7 +30,7 @@ class PresentationPersonSnapshotCreate(PresentationBase):
         authorization: PresentationTypeAuthorization,
         image: PresentationTypeImage,
         timestamp: PresentationTypeDatetime,
-    ) -> None:
+    ):
         jwt = self.auth.verify(authorization)
         self.application.save(
             ApplicationPersonSnapshotCreateParams(
@@ -45,3 +40,4 @@ class PresentationPersonSnapshotCreate(PresentationBase):
                 view_id=jwt.view_id,
             ),
         )
+        return PresentationJSONResponse(status=200, content={"message": "Person snapshot created"})

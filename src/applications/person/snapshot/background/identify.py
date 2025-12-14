@@ -4,7 +4,6 @@ from domain.person.snapshot import DomainPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
-from repositories.person.snapshot import RepositoryPersonSnapshotError
 from environment import Environment
 from error import Error
 from dataclasses import dataclass
@@ -35,24 +34,21 @@ class ApplicationPersonSnapshotBackgroundIdentify:
         )
 
     def identify(self) -> DomainPersonSnapshot:
-        try:
-            person_snapshot = self.repository_person_snapshot.next_queue(task_name="person_snapshot:identify")
-            if not person_snapshot.has_feature():
-                raise ApplicationPersonSnapshotBackgroundIdentifyError(
-                    f"feature is not extracted: {person_snapshot.id}")
-            nearest_person_snapshot = self.repository_person_snapshot.find_first(
-                filters=RepositoryPersonSnapshotFilters(
-                    not_ids=[person_snapshot.id],
-                    timestamp_after=datetime.combine(
-                        person_snapshot.timestamp.date(), datetime.min.time()),
-                    timestamp_before=person_snapshot.timestamp),
-                ordering=RepositoryPersonSnapshotOrdering([
-                    person_snapshot.feature, # type: ignore
-                    RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_DESC]),
-            )
-            if nearest_person_snapshot is not None:
-                person_snapshot.person_reid(nearest_person_snapshot)
-                self.repository_person_snapshot.update(person_snapshot)
-            return person_snapshot
-        except RepositoryPersonSnapshotError as e:
-            raise ApplicationPersonSnapshotBackgroundIdentifyError(e.message)
+        person_snapshot = self.repository_person_snapshot.next_queue(task_name="person_snapshot:identify")
+        if not person_snapshot.has_feature():
+            raise ApplicationPersonSnapshotBackgroundIdentifyError(
+                f"feature is not extracted: {person_snapshot.id}")
+        nearest_person_snapshot = self.repository_person_snapshot.find_first(
+            filters=RepositoryPersonSnapshotFilters(
+                not_ids=[person_snapshot.id],
+                timestamp_after=datetime.combine(
+                    person_snapshot.timestamp.date(), datetime.min.time()),
+                timestamp_before=person_snapshot.timestamp),
+            ordering=RepositoryPersonSnapshotOrdering([
+                person_snapshot.feature, # type: ignore
+                RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_DESC]),
+        )
+        if nearest_person_snapshot is not None:
+            person_snapshot.person_reid(nearest_person_snapshot)
+            self.repository_person_snapshot.update(person_snapshot)
+        return person_snapshot

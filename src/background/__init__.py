@@ -27,10 +27,6 @@ class BackgroundLogger:
         self.logger.debug(message)
 
 
-class BackgroundJobError(Error):
-    pass
-
-
 class Background:
     def __init__(
         self,
@@ -70,7 +66,7 @@ class Background:
                 message = await asyncio.to_thread(self.handle)
                 self.logger.info(
                     f"Background {self.name} executed successfully: {message}")
-            except BackgroundJobError as e:
+            except Error as e:
                 self.logger.error(f"Background {self.name} error: {e.message}")
                 continue
             except Exception as e:

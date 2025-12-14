@@ -1,7 +1,7 @@
 from presentation import PresentationBase
 from presentation import PresentationLogger
 from presentation import PresentationRequest
-from presentation import PresentationResponse
+from presentation import PresentationJSONResponse
 from applications.person.flow.search import ApplicationPersonFlowSearch
 from applications.person.flow.search import ApplicationPersonFlowSearchParams
 from environment import Environment
@@ -15,14 +15,8 @@ class PresentationPersonFlowSearchRequest(PresentationRequest):
     timestamp_before: datetime | None = None
 
 class PresentationPersonFlowSearch(PresentationBase):
-    @property
-    def router_path(self) -> str:
-        return "/person/flow/search"
-
-    @property
-    def methods(self) -> list[str]:
-        return ["POST"]
-
+    router_path = "/person/flow/search"
+    methods = ["POST"]
     tags = ["Person Flow"]
     summary = "Search person flows"
     description = "Search person flows"
@@ -48,25 +42,21 @@ class PresentationPersonFlowSearch(PresentationBase):
             application=ApplicationPersonFlowSearch.create(environment=environment),
         )
 
-    async def handle(self, request: PresentationPersonFlowSearchRequest) -> PresentationResponse:
-        try:
-            params = ApplicationPersonFlowSearchParams(
-                person_id=request.person_id,
-                timestamp_after=request.timestamp_after,
-                timestamp_before=request.timestamp_before,
-            )
-            items = self.application.search(params=params)
-            return PresentationResponse(status=200, content={
-                "person_flows": [
-                    {
-                        "person_id": str(item.person_id),
-                        "source_camera_id": item.source_camera_id,
-                        "target_camera_id": item.target_camera_id,
-                        "source_timestamp": item.source_timestamp.isoformat(),
-                        "target_timestamp": item.target_timestamp.isoformat(),
-                    } for item in items
-                ],
-            })
-        except Exception as e:
-            self.logger.error(f"Error searching person flows: {e}")
-            return PresentationResponse(status=500, content={"message": "Internal server error"})
+    async def handle(self, request: PresentationPersonFlowSearchRequest):
+        params = ApplicationPersonFlowSearchParams(
+            person_id=request.person_id,
+            timestamp_after=request.timestamp_after,
+            timestamp_before=request.timestamp_before,
+        )
+        items = self.application.search(params=params)
+        return PresentationJSONResponse(status=200, content={
+            "person_flows": [
+                {
+                    "person_id": str(item.person_id),
+                    "source_camera_id": item.source_camera_id,
+                    "target_camera_id": item.target_camera_id,
+                    "source_timestamp": item.source_timestamp.isoformat(),
+                    "target_timestamp": item.target_timestamp.isoformat(),
+                } for item in items
+            ],
+        })

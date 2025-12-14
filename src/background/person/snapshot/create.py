@@ -1,7 +1,6 @@
-from background import Background, BackgroundJobError
+from background import Background
 from background import BackgroundLogger
 from applications.person.snapshot.background.create import ApplicationPersonSnapshotBackgroundCreate
-from applications.person.snapshot.background.create import ApplicationPersonSnapshotBackgroundCreateError
 from environment import Environment
 
 class BackgroundPersonSnapshotCreate(Background):
@@ -24,8 +23,5 @@ class BackgroundPersonSnapshotCreate(Background):
             application=ApplicationPersonSnapshotBackgroundCreate.create(environment),
         )
     def handle(self) -> str:
-        try:
-            self.application.save()
-            return "person snapshot created"
-        except ApplicationPersonSnapshotBackgroundCreateError as e:
-            raise BackgroundJobError(e.message)
+        self.application.save()
+        return "person snapshot created"
