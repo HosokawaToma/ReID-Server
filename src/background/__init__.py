@@ -4,6 +4,7 @@ import abc
 import fastapi
 from error import Error
 import threading
+import traceback
 class BackgroundLogger:
     def __init__(self):
         self.logger = logging.getLogger("background")
@@ -74,7 +75,7 @@ class Background:
                 continue
             except Exception as e:
                 self.logger.error(
-                    f"Unexpected error processing background {self.name}: {e}")
+                    f"Unexpected error processing background {self.name}: {traceback.format_exc()}")
                 continue
 
     @abc.abstractmethod

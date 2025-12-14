@@ -132,13 +132,9 @@ class RepositoryStorage:
         return image_name
 
     def image_save(self, image: RepositoryStorageImage) -> None:
-        if image.image.format == "JPEG":
-            extension = "jpg"
-        elif image.image.format == "PNG":
-            extension = "png"
-        else:
-            raise RepositoryStorageImageError(f"image invalid: {image.name}")
-        image.image.save(self.images_directory / f"{image.name}.{extension}")
+        if image.image.format is None:
+            raise RepositoryStorageImageError(f"image format is None: {image.name}")
+        image.image.save(self.images_directory / f"{image.name}.{image.image.format.lower()}")
 
     def image_find_one(self, params: RepositoryStorageImageFindParams) -> RepositoryStorageImageFindResult:
         image_name = self._fetch_image_name(params.name)

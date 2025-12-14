@@ -16,7 +16,7 @@ class DomainPersonSnapshot:
     view_id: int
     timestamp: datetime
     feature: torch.Tensor | None = None
-    person_id: uuid.UUID | None = None
+    person_id: uuid.UUID = field(default_factory=uuid.uuid4)
     id: uuid.UUID = field(default_factory=uuid.uuid4)
 
     def is_full_body(self, pose_model: DomainYoloPoseModel) -> bool:

@@ -4,10 +4,13 @@ from error import Error
 from dataclasses import dataclass
 import uuid
 from environment import Environment
-
+from datetime import datetime
 @dataclass
 class RepositoryQueuePersonSnapshotCreateQueueItem:
     id: uuid.UUID
+    camera_id: int
+    view_id: int
+    timestamp: datetime
 
 class RepositoryQueuePersonSnapshotCreateError(Error):
     pass
@@ -31,6 +34,9 @@ class RepositoryQueuePersonSnapshotCreate(RepositoryRedis):
         try:
             self._push({
                 "id": str(value.id),
+                "camera_id": str(value.camera_id),
+                "view_id": str(value.view_id),
+                "timestamp": value.timestamp.isoformat(),
             })
         except RepositoryRedisError as e:
             raise RepositoryQueuePersonSnapshotCreateError(e.message)
@@ -42,6 +48,15 @@ class RepositoryQueuePersonSnapshotCreate(RepositoryRedis):
             raise RepositoryQueuePersonSnapshotCreateError(e.message)
         if "id" not in data:
             raise RepositoryQueuePersonSnapshotCreateError(f"id not found: {data}")
+        if "camera_id" not in data:
+            raise RepositoryQueuePersonSnapshotCreateError(f"camera_id not found: {data}")
+        if "view_id" not in data:
+            raise RepositoryQueuePersonSnapshotCreateError(f"view_id not found: {data}")
+        if "timestamp" not in data:
+            raise RepositoryQueuePersonSnapshotCreateError(f"timestamp not found: {data}")
         return RepositoryQueuePersonSnapshotCreateQueueItem(
             id=uuid.UUID(data["id"]),
+            camera_id=int(data["camera_id"]),
+            view_id=int(data["view_id"]),
+            timestamp=datetime.fromisoformat(data["timestamp"]),
         )

@@ -47,6 +47,9 @@ class ApplicationPersonSnapshotCreate:
             self.repository_queue_person_snapshot_create.push(
                 RepositoryQueuePersonSnapshotCreateQueueItem(
                     id=frame_image.id,
+                    camera_id=params.camera_id,
+                    view_id=params.view_id,
+                    timestamp=params.timestamp,
                 )
             )
         except RepositoryQueuePersonSnapshotCreateError as e:

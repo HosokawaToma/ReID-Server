@@ -18,4 +18,6 @@ class DomainYoloBoundingBox:
         self.class_id = class_id
 
     def crop(self, image: Image.Image) -> Image.Image:
-        return image.crop((self.x1, self.y1, self.x2, self.y2))
+        cropped_image = image.crop((self.x1, self.y1, self.x2, self.y2))
+        cropped_image.format = image.format
+        return cropped_image
