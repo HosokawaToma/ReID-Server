@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import uuid
 from dataclasses import dataclass, field
 from typing import ClassVar
@@ -31,8 +30,8 @@ class DomainPersonSnapshot:
             return False
         return True
 
-    def is_one_person(self, pose_model: DomainYoloSegmentModel) -> bool:
-        masks = pose_model.extract(self.image)
+    def is_one_person(self, segment_model: DomainYoloSegmentModel) -> bool:
+        masks = segment_model.extract(self.image)
         if len(masks) != 1:
             return False
         return True

@@ -1,6 +1,5 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
-from domain.person.flow_weight_sequence import DomainPersonFlowWeightSequence
 from dataclasses import dataclass
 import uuid
 from datetime import datetime
@@ -41,7 +40,7 @@ class ApplicationPersonFlowWeightSearch:
         person_snapshots = self.repository_person_snapshot.find(filters=filters)
         flows = person_snapshots.to_flows()
         if flows is None:
-            raise ApplicationPersonFlowWeightSearchError(f"No flows found for person {params.person_ids}")
+            raise ApplicationPersonFlowWeightSearchError("No flows found")
         return [ApplicationPersonFlowWeightSearchItem(
             target_camera_id=flow_weight.target_camera_id,
             source_camera_id=flow_weight.source_camera_id,

@@ -1,7 +1,6 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
-from domain.person.snapshot_sequence import DomainPersonSnapshotSequence
 from environment import Environment
 from dataclasses import dataclass
 import uuid

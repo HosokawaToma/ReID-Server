@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, DateTime
 from sqlalchemy.orm import declarative_base
 from datetime import datetime
 import uuid
-from sqlalchemy import LargeBinary
 from sqlalchemy.dialects.postgresql import UUID
 
 Base = declarative_base()

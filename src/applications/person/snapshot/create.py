@@ -6,7 +6,6 @@ from PIL import Image
 from datetime import datetime
 from dataclasses import dataclass
 from environment import Environment
-from repositories.frame_image import RepositoryFrameImageError
 from repositories.queue.person_snapshot.create import RepositoryQueuePersonSnapshotCreateError
 
 

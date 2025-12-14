@@ -3,7 +3,6 @@ from repositories import RepositoryStorage
 from repositories import RepositoryStorageImage
 from repositories import RepositoryStorageImageFindParams
 from repositories import RepositoryStorageImageDeleteParams
-from repositories import RepositoryStorageImageError
 from error import Error
 from domain.frame_image import DomainFrameImage
 from environment import Environment
@@ -62,7 +61,6 @@ class RepositoryFrameImage:
                 camera_id=frame_image.camera_id,
                 view_id=frame_image.view_id,
                 timestamp=frame_image.timestamp,
-                image=frame_image.image,
             ))
         self.storage.image_save(RepositoryStorageImage(
             name=str(frame_image.id),

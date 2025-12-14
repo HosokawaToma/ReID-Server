@@ -1,7 +1,5 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
-from domain.person.flow_sequence import DomainPersonFlowSequence
-from domain.person.snapshot_sequence import DomainPersonSnapshotSequence
 from environment import Environment
 from datetime import datetime
 from error import Error
@@ -46,7 +44,7 @@ class ApplicationPersonFlowSearch:
             timestamp_before=params.timestamp_before,
             person_ids=[params.person_id],
         )
-        person_snapshots=self.repository_person_snapshot.find(filters=filters)
+        person_snapshots = self.repository_person_snapshot.find(filters=filters)
         flows = person_snapshots.to_flows()
         if flows is None:
             raise ApplicationPersonFlowSearchError(f"No flows found for person {params.person_id}")

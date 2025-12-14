@@ -5,7 +5,6 @@ from environment import Environment
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from repositories.person.snapshot import RepositoryPersonSnapshotError
-from domain.person.snapshot import DomainPersonSnapshot
 from error import Error
 
 class ApplicationPersonSnapshotImageSearchError(Error):
