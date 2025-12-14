@@ -134,6 +134,8 @@ class RepositoryStorage:
     def image_save(self, image: RepositoryStorageImage) -> None:
         if image.image.format == "JPEG":
             extension = "jpg"
+        elif image.image.format == "PNG":
+            extension = "png"
         else:
             raise RepositoryStorageImageError(f"image invalid: {image.name}")
         image.image.save(self.images_directory / f"{image.name}.{extension}")
