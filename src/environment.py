@@ -53,7 +53,7 @@ class Environment:
         self.database_database = self._get_string("POSTGRESQL_DATABASE")
         self.database_user = self._get_string("POSTGRESQL_USER")
         self.database_password = self._get_string("POSTGRESQL_PASSWORD")
-        self.storage_directory = Path(self._get_string("STORAGE_PATH"))
+        self.storage_directory = Path(self._get_string("STORAGE_DIRECTORY_NAME"))
         self.redis_host = self._get_string("REDIS_HOST")
         self.redis_port = self._get_int("REDIS_PORT")
         self.redis_db = self._get_int("REDIS_DB")
