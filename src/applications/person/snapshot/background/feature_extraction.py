@@ -53,7 +53,7 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
             if person_snapshot is None:
                 raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(
                     f"person snapshot not found: {queue_item.id}")
-            person_snapshot.extract_feature(self.reid_model, self.repository_person_snapshot)
+            person_snapshot.extract_feature(self.reid_model)
             self.repository_person_snapshot.update(person_snapshot)
             self.repository_queue_person_snapshot_identify.push(
                 RepositoryQueuePersonSnapshotIdentifyQueueItem(id=person_snapshot.id))

@@ -50,7 +50,7 @@ class ApplicationPersonSnapshotBackgroundCreate:
                 environment),
         )
 
-    def extract(self) -> None:
+    def save(self) -> None:
         try:
             item = self.repository_queue_person_snapshot_create.dequeue()
             frame_image = self.repository_frame_image.find_first(RepositoryFrameImageFindParams(
@@ -58,9 +58,9 @@ class ApplicationPersonSnapshotBackgroundCreate:
             ))
             person_snapshots = frame_image.crop_person(self.detection_model)
             for person_snapshot in person_snapshots:
-                if not person_snapshot.is_full_body(self.pose_model, self.repository_person_snapshot):
+                if not person_snapshot.is_full_body(self.pose_model):
                     continue
-                if not person_snapshot.is_one_person(self.segment_model, self.repository_person_snapshot):
+                if not person_snapshot.is_one_person(self.segment_model):
                     continue
                 self.repository_person_snapshot.save(person_snapshot)
             self.repository_frame_image.delete(frame_image)

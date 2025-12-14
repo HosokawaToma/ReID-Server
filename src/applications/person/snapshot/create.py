@@ -6,6 +6,8 @@ from PIL import Image
 from datetime import datetime
 from dataclasses import dataclass
 from environment import Environment
+from repositories.frame_image import RepositoryFrameImageError
+from repositories.queue.person_snapshot.create import RepositoryQueuePersonSnapshotCreateError
 
 
 @dataclass
@@ -41,9 +43,13 @@ class ApplicationPersonSnapshotCreate:
             view_id=params.view_id,
             timestamp=params.timestamp,
         )
-        self.repository_frame_image.save(frame_image)
-        self.repository_queue_person_snapshot_create.push(
-            RepositoryQueuePersonSnapshotCreateQueueItem(
-                id=frame_image.id,
+        try:
+            self.repository_frame_image.save(frame_image)
+            self.repository_queue_person_snapshot_create.push(
+                RepositoryQueuePersonSnapshotCreateQueueItem(
+                    id=frame_image.id,
+                )
             )
-        )
+        except RepositoryQueuePersonSnapshotCreateError as e:
+            self.repository_frame_image.delete(frame_image)
+            raise e

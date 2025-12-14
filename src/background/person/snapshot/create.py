@@ -25,7 +25,7 @@ class BackgroundPersonSnapshotCreate(Background):
         )
     def handle(self) -> str:
         try:
-            self.application.extract()
+            self.application.save()
             return "person snapshot created"
         except ApplicationPersonSnapshotBackgroundCreateError as e:
             raise BackgroundJobError(e.message)

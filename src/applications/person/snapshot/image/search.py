@@ -33,6 +33,6 @@ class ApplicationPersonSnapshotImageSearch:
             person_snapshot = self.repository_person_snapshot.find_first(filters=RepositoryPersonSnapshotFilters(ids=[params.id]))
             if person_snapshot is None:
                 raise ApplicationPersonSnapshotImageSearchError(f"Person snapshot not found: {params.id}")
-            return ApplicationPersonSnapshotImageSearchItem(image=person_snapshot.find_image(self.repository_person_snapshot))
+            return ApplicationPersonSnapshotImageSearchItem(image=person_snapshot.image)
         except RepositoryPersonSnapshotError as e:
             raise ApplicationPersonSnapshotImageSearchError(e.message)

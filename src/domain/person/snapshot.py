@@ -15,23 +15,15 @@ from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
 @dataclass
 class DomainPersonSnapshot:
     MATCH_THRESHOLD: ClassVar[float] = 0.895
+    image: Image.Image
     camera_id: int
     view_id: int
     timestamp: datetime
     feature: torch.Tensor | None = None
     person_id: uuid.UUID | None = None
     id: uuid.UUID = field(default_factory=uuid.uuid4)
-    image: Image.Image | None = field(default=None)
 
-    def find_image(self, repository: RepositoryPersonSnapshot) -> Image.Image:
-        self.image = repository.find_image(self.id)
-        return self.image
-
-    def is_full_body(self, pose_model: DomainYoloPoseModel, repository: RepositoryPersonSnapshot) -> bool:
-        if self.image is None:
-            self.find_image(repository)
-        if self.image is None:
-            return False
+    def is_full_body(self, pose_model: DomainYoloPoseModel) -> bool:
         key_points = pose_model.extract(self.image)
         if len(key_points) != 1:
             return False
@@ -39,21 +31,13 @@ class DomainPersonSnapshot:
             return False
         return True
 
-    def is_one_person(self, pose_model: DomainYoloSegmentModel, repository: RepositoryPersonSnapshot) -> bool:
-        if self.image is None:
-            self.find_image(repository)
-        if self.image is None:
-            return False
+    def is_one_person(self, pose_model: DomainYoloSegmentModel) -> bool:
         masks = pose_model.extract(self.image)
         if len(masks) != 1:
             return False
         return True
 
-    def extract_feature(self, reid_model: ModuleReIDModel, repository: RepositoryPersonSnapshot) -> None:
-        if self.image is None:
-            self.find_image(repository)
-        if self.image is None:
-            return None
+    def extract_feature(self, reid_model: ModuleReIDModel) -> None:
         self.feature = reid_model.extract_feature(self.image, self.camera_id, self.view_id)
 
     def find_nearest(self, repository_person_snapshot: RepositoryPersonSnapshot) -> "DomainPersonSnapshot | None":

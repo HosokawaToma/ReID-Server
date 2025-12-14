@@ -100,6 +100,9 @@ class RepositoryPersonSnapshot:
         return query
 
     def _model_to_domain(self, model: MigrationModelPersonSnapshot) -> DomainPersonSnapshot:
+        image = self.storage.image_find_one(RepositoryStorageImageFindParams(
+            name=str(model.id),
+        )).image
         return DomainPersonSnapshot(
             id=uuid.UUID(str(model.id)),
             camera_id=int(str(model.camera_id)),
@@ -107,11 +110,10 @@ class RepositoryPersonSnapshot:
             timestamp=datetime.fromisoformat(str(model.timestamp)),
             person_id=uuid.UUID(str(model.person_id)),
             feature=torch.tensor(model.feature) if model.feature is not None else None,
+            image=image,
         )
 
     def save(self, snapshot: DomainPersonSnapshot) -> None:
-        if snapshot.image is None:
-            raise RepositoryPersonSnapshotError("Image is not found")
         with self.database as session:
             session.add(MigrationModelPersonSnapshot(
                 id=snapshot.id,
@@ -157,11 +159,6 @@ class RepositoryPersonSnapshot:
             return DomainPersonSnapshotSequence(
                 person_snapshots=[self._model_to_domain(model) for model in models],
             )
-
-    def find_image(self, snapshot_id: uuid.UUID) -> Image.Image:
-        return self.storage.image_find_one(RepositoryStorageImageFindParams(
-            name=str(snapshot_id),
-        )).image
 
     def update(
         self,
