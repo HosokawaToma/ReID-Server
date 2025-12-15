@@ -36,9 +36,4 @@ class ApplicationPersonSnapshotCreate:
             view_id=params.view_id,
             timestamp=params.timestamp,
         )
-        try:
-            self.repository_frame_image.save(frame_image)
-            self.repository_frame_image.push_queue(queue_name="frame_image:person_snapshot_create", frame_image=frame_image)
-        except RepositoryFrameImageError as e:
-            self.repository_frame_image.delete(frame_image)
-            raise e
+        self.repository_frame_image.push_queue(queue_name="frame_image:person_snapshot_create", frame_image=frame_image)
