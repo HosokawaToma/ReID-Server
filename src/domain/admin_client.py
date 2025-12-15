@@ -13,7 +13,7 @@ class DomainAdminClient:
     def generate_token(self, token_converter: DomainTokenConverter) -> str:
         payload = {
             "id": self.id,
-            "expire_time": time.time() + token_converter.expire_minutes * 60
+            "expire_time": int(time.time() + token_converter.expire_minutes * 60)
         }
         return token_converter.encode(payload)
 

@@ -1,6 +1,9 @@
 import jwt
 from dataclasses import dataclass
 
+class DomainTokenConverterError(Exception):
+    pass
+
 @dataclass
 class DomainTokenConverter:
     secret_key: str
@@ -11,4 +14,7 @@ class DomainTokenConverter:
         return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
 
     def decode(self, token: str) -> dict:
-        return jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+        try:
+            return jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+        except jwt.InvalidTokenError:
+            raise DomainTokenConverterError("Invalid token")

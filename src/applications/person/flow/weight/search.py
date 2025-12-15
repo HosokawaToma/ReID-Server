@@ -35,10 +35,10 @@ class ApplicationPersonFlowWeightSearch:
         filters = None
         if params is not None:
             filters = RepositoryPersonSnapshotFilters(
-            timestamp_after=params.timestamp_after,
-            timestamp_before=params.timestamp_before,
-            person_ids=params.person_ids,
-        )
+                timestamp_after=params.timestamp_after,
+                timestamp_before=params.timestamp_before,
+                person_ids=params.person_ids,
+            )
         person_snapshots = self.repository_person_snapshot.find(filters=filters)
         flows = person_snapshots.to_flows()
         if flows is None:

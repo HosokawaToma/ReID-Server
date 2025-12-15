@@ -24,7 +24,7 @@ class PresentationPersonSnapshotCreate(PresentationBase):
         logger: PresentationLogger,
         application: ApplicationPersonSnapshotCreate,
     ):
-        super().__init__(logger=PresentationLogger())
+        super().__init__(logger=logger)
         self.application = application
 
     @classmethod

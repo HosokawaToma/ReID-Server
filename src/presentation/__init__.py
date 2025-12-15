@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
 import abc
+from functools import lru_cache
 from typing import Any, Annotated, Sequence
 from enum import Enum
 from PIL import Image
@@ -44,13 +45,21 @@ class PresentationRequestBody(BaseModel):
     pass
 
 class PresentationJSONResponse(JSONResponse):
-    REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 # 1 days
+    REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 # 1 day
 
     def __init__(self, status: int, content: dict[str, Any]):
         super().__init__(content=content, status_code=status)
 
     def set_refresh_token(self, refresh_token: str):
-        self.set_cookie(key="refresh_token", value=refresh_token, max_age=self.REFRESH_TOKEN_MAX_AGE, path="/")
+        self.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            max_age=self.REFRESH_TOKEN_MAX_AGE,
+            path="/",
+            secure=True,
+            httponly=True,
+            samesite="strict",
+        )
 
 class PresentationImageResponseError(Exception):
     pass
@@ -95,19 +104,25 @@ class PresentationBase:
 
 PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
 
+
+@lru_cache
+def get_admin_client_auth_application(
+    environment: Environment = Depends(Environment)
+) -> ApplicationAdminClientAuthOAuth2:
+    return ApplicationAdminClientAuthOAuth2.create(environment)
+
 def admin_client_authenticated(
     token: PresentationTypeAuthorization,
-    environment: Environment = Depends(Environment)
+    application: ApplicationAdminClientAuthOAuth2 = Depends(get_admin_client_auth_application),
 ) -> str:
-    application = ApplicationAdminClientAuthOAuth2.create(environment)
-    result = application.oauth2(ApplicationAdminClientAuthOAuth2Params(code=token))
-    if result.id is None:
+    result = application.oauth2(ApplicationAdminClientAuthOAuth2Params(token=token))
+    if result.admin_client_id is None:
         raise HTTPException(
             status_code=401,
             detail="Invalid authorization",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return result.id
+    return result.admin_client_id
 
 PresentationAdminClientAuthenticated = Annotated[str, Depends(admin_client_authenticated)]
 

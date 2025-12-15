@@ -49,7 +49,7 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
         request: PresentationPersonFlowWeightSearchRequest | None = None,
     ):
         params = None
-        if request is not None :
+        if request is not None:
             params = ApplicationPersonFlowWeightSearchParams(
                 person_ids=request.person_ids,
                 timestamp_after=request.timestamp_after,

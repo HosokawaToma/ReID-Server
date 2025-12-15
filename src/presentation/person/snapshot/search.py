@@ -66,6 +66,8 @@ class PresentationPersonSnapshotSearch(PresentationBase):
                 camera_ids=request.filters.camera_ids,
                 view_ids=request.filters.view_ids,
                 person_ids=request.filters.person_ids,
+                timestamp_after=request.filters.timestamp_after,
+                timestamp_before=request.filters.timestamp_before,
             )
         ordering = None
         if request is not None and request.ordering is not None:

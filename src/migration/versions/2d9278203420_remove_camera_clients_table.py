@@ -35,6 +35,6 @@ def downgrade() -> None:
     sa.Column('view_id', sa.INTEGER(), autoincrement=False, nullable=True),
     sa.Column('created_at', postgresql.TIMESTAMP(), autoincrement=False, nullable=True),
     sa.Column('updated_at', postgresql.TIMESTAMP(), autoincrement=False, nullable=True),
-    sa.PrimaryKeyConstraint('id', name=op.f('camera_clients_pkey'))
+    sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###

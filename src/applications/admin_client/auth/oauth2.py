@@ -6,11 +6,11 @@ from dataclasses import dataclass
 
 @dataclass
 class ApplicationAdminClientAuthOAuth2Params:
-    code: str
+    token: str
 
 @dataclass
 class ApplicationAdminClientAuthOAuth2Result:
-    id: str
+    admin_client_id: str
 
 class ApplicationAdminClientAuthOAuth2Error(Error):
     pass
@@ -32,9 +32,9 @@ class ApplicationAdminClientAuthOAuth2:
         )
 
     def oauth2(self, params: ApplicationAdminClientAuthOAuth2Params) -> ApplicationAdminClientAuthOAuth2Result:
-        id = self.admin_client.verify_token(params.code, self.token_converter)
-        if id is None:
-            raise ApplicationAdminClientAuthOAuth2Error("Invalid code")
+        admin_client_id = self.admin_client.verify_token(params.token, self.token_converter)
+        if admin_client_id is None:
+            raise ApplicationAdminClientAuthOAuth2Error("Invalid token")
         return ApplicationAdminClientAuthOAuth2Result(
-            id=id,
+            admin_client_id=admin_client_id,
         )
