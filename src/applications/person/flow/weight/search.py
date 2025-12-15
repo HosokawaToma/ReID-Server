@@ -31,12 +31,14 @@ class ApplicationPersonFlowWeightSearch:
             repository_person_snapshot=RepositoryPersonSnapshot.create(environment=environment),
         )
 
-    def search(self, params: ApplicationPersonFlowWeightSearchParams) -> list[ApplicationPersonFlowWeightSearchItem]:
-        filters = RepositoryPersonSnapshotFilters(
-            timestamp_after=params.timestamp_after,
-            timestamp_before=params.timestamp_before,
-            person_ids=params.person_ids,
-        )
+    def search(self, params: ApplicationPersonFlowWeightSearchParams | None = None) -> list[ApplicationPersonFlowWeightSearchItem]:
+        filters = None
+        if params is not None:
+            filters = RepositoryPersonSnapshotFilters(
+                timestamp_after=params.timestamp_after,
+                timestamp_before=params.timestamp_before,
+                person_ids=params.person_ids,
+            )
         person_snapshots = self.repository_person_snapshot.find(filters=filters)
         flows = person_snapshots.to_flows()
         if flows is None:

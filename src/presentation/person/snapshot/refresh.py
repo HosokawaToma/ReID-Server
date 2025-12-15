@@ -1,12 +1,11 @@
-from presentation import PresentationBase, PresentationLogger, PresentationJSONResponse, PresentationRequest
+from presentation import PresentationBase, PresentationLogger, PresentationJSONResponse, PresentationRequestBody
 from applications.person.snapshot.refresh import ApplicationPersonSnapshotRefresh
 from applications.person.snapshot.refresh import ApplicationPersonSnapshotRefreshParams
-from applications.auth.admin_client import ApplicationAuthAdminClient
-from presentation import PresentationTypeAuthorization
+from presentation import PresentationAdminClientAuthenticated
 from environment import Environment
 from datetime import datetime
 
-class PresentationPersonSnapshotRefreshRequest(PresentationRequest):
+class PresentationPersonSnapshotRefreshRequest(PresentationRequestBody):
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
     camera_ids: list[int] | None = None
@@ -27,20 +26,15 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
     def __init__(
         self,
         logger: PresentationLogger,
-        auth: ApplicationAuthAdminClient,
         application: ApplicationPersonSnapshotRefresh,
     ):
         super().__init__(logger)
-        self.auth = auth
         self.application = application
 
     @classmethod
     def create(cls, environment: Environment) -> "PresentationPersonSnapshotRefresh":
         return cls(
             logger=PresentationLogger(),
-            auth=ApplicationAuthAdminClient.create(
-                environment=environment,
-            ),
             application=ApplicationPersonSnapshotRefresh.create(
                 environment=environment,
             ),
@@ -48,16 +42,16 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
 
     async def handle(
         self,
-        authorization: PresentationTypeAuthorization,
-        request: PresentationPersonSnapshotRefreshRequest,
+        admin_client_id: PresentationAdminClientAuthenticated,
+        request: PresentationPersonSnapshotRefreshRequest | None = None,
     ):
-        self.auth.verify(authorization)
-        self.application.refresh(
-            ApplicationPersonSnapshotRefreshParams(
+        params = None
+        if request is not None:
+            params = ApplicationPersonSnapshotRefreshParams(
                 timestamp_after=request.timestamp_after,
                 timestamp_before=request.timestamp_before,
                 camera_ids=request.camera_ids,
                 view_ids=request.view_ids,
             )
-        )
+        self.application.refresh(params=params)
         return PresentationJSONResponse(status=200, content={"message": "Person snapshots refreshed"})

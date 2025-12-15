@@ -1,11 +1,13 @@
 from applications.person.snapshot.create import ApplicationPersonSnapshotCreate
 from applications.person.snapshot.create import ApplicationPersonSnapshotCreateParams
 from presentation import PresentationBase
-from presentation import PresentationTypeAuthorization
+from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationTypeImage
 from presentation import PresentationTypeDatetime
-from applications.auth.camera_client import ApplicationAuthCameraClient
+from presentation import PresentationTypeInt
 from presentation import PresentationJSONResponse
+from presentation import PresentationLogger
+from environment import Environment
 
 class PresentationPersonSnapshotCreate(PresentationBase):
     router_path = "/person/snapshot/create"
@@ -19,25 +21,35 @@ class PresentationPersonSnapshotCreate(PresentationBase):
     }
     def __init__(
         self,
-        auth: ApplicationAuthCameraClient,
+        logger: PresentationLogger,
         application: ApplicationPersonSnapshotCreate,
     ):
-        self.auth = auth
+        super().__init__(logger=logger)
         self.application = application
+
+    @classmethod
+    def create(cls, environment: Environment) -> "PresentationPersonSnapshotCreate":
+        return cls(
+            logger=PresentationLogger(),
+            application=ApplicationPersonSnapshotCreate.create(
+                environment=environment,
+            ),
+        )
 
     async def handle(
         self,
-        authorization: PresentationTypeAuthorization,
+        admin_client_id: PresentationAdminClientAuthenticated,
         image: PresentationTypeImage,
         timestamp: PresentationTypeDatetime,
+        camera_id: PresentationTypeInt,
+        view_id: PresentationTypeInt,
     ):
-        jwt = self.auth.verify(authorization)
         self.application.save(
             ApplicationPersonSnapshotCreateParams(
                 image=image,
                 timestamp=timestamp,
-                camera_id=jwt.camera_id,
-                view_id=jwt.view_id,
+                camera_id=camera_id,
+                view_id=view_id,
             ),
         )
         return PresentationJSONResponse(status=200, content={"message": "Person snapshot created"})

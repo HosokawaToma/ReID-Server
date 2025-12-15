@@ -1,7 +1,8 @@
 from presentation import PresentationBase
 from presentation import PresentationLogger
-from presentation import PresentationRequest
+from presentation import PresentationRequestBody
 from presentation import PresentationJSONResponse
+from presentation import PresentationAdminClientAuthenticated
 from applications.person.flow.search import ApplicationPersonFlowSearch
 from applications.person.flow.search import ApplicationPersonFlowSearchParams
 from environment import Environment
@@ -9,7 +10,7 @@ from datetime import datetime
 import uuid
 
 
-class PresentationPersonFlowSearchRequest(PresentationRequest):
+class PresentationPersonFlowSearchRequest(PresentationRequestBody):
     person_id: uuid.UUID
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
@@ -42,7 +43,11 @@ class PresentationPersonFlowSearch(PresentationBase):
             application=ApplicationPersonFlowSearch.create(environment=environment),
         )
 
-    async def handle(self, request: PresentationPersonFlowSearchRequest):
+    async def handle(
+        self,
+        admin_client_id: PresentationAdminClientAuthenticated,
+        request: PresentationPersonFlowSearchRequest,
+    ):
         params = ApplicationPersonFlowSearchParams(
             person_id=request.person_id,
             timestamp_after=request.timestamp_after,
