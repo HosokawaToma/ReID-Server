@@ -3,7 +3,7 @@ from applications.person.flow.weight.search import ApplicationPersonFlowWeightSe
 from presentation import PresentationBase
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationLogger
-from presentation import PresentationRequest
+from presentation import PresentationRequestBody
 from presentation import PresentationJSONResponse
 from environment import Environment
 from dataclasses import dataclass
@@ -11,7 +11,7 @@ from datetime import datetime
 import uuid
 
 @dataclass
-class PresentationPersonFlowWeightSearchRequest(PresentationRequest):
+class PresentationPersonFlowWeightSearchRequest(PresentationRequestBody):
     person_ids: list[uuid.UUID] | None = None
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
@@ -19,7 +19,7 @@ class PresentationPersonFlowWeightSearchRequest(PresentationRequest):
 class PresentationPersonFlowWeightSearch(PresentationBase):
     router_path = "/person/flow/weight/search"
     methods = ["POST"]
-    tags = ["Person Flow", "Person Flow Weight"]
+    tags = ["Person Flow"]
     summary = "Search person flow weight"
     description = "Search person flow weight"
     responses = {
@@ -46,15 +46,16 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
     async def handle(
         self,
         admin_client_id: PresentationAdminClientAuthenticated,
-        request: PresentationPersonFlowWeightSearchRequest,
+        request: PresentationPersonFlowWeightSearchRequest | None = None,
     ):
-        items = self.application_person_flow_weight_search.search(
-            params=ApplicationPersonFlowWeightSearchParams(
+        params = None
+        if request is not None :
+            params = ApplicationPersonFlowWeightSearchParams(
                 person_ids=request.person_ids,
                 timestamp_after=request.timestamp_after,
                 timestamp_before=request.timestamp_before,
-            ),
-        )
+            )
+        items = self.application_person_flow_weight_search.search(params=params)
         return PresentationJSONResponse(
             status=200,
             content={

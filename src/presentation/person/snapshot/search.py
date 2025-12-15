@@ -1,8 +1,7 @@
 from applications.person.snapshot.search import ApplicationPersonSnapshotSearch
 from applications.person.snapshot.search import ApplicationPersonSnapshotSearchFilters
 from applications.person.snapshot.search import ApplicationPersonSnapshotSearchOrdering
-from presentation import PresentationBase
-from presentation import PresentationRequest
+from presentation import PresentationBase, PresentationRequestBody
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationJSONResponse
 from presentation import PresentationLogger
@@ -10,20 +9,19 @@ from environment import Environment
 from datetime import datetime
 import uuid
 
-class PresentationPersonSnapshotSearchFilters(PresentationRequest):
+class PresentationPersonSnapshotSearchFilters(PresentationRequestBody):
     ids: list[uuid.UUID] | None = None
-    image_ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
     person_ids: list[uuid.UUID] | None = None
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
 
-class PresentationPersonSnapshotSearchOrdering(PresentationRequest):
+class PresentationPersonSnapshotSearchOrdering(PresentationRequestBody):
     timestamp_asc: bool | None = None
     timestamp_desc: bool | None = None
 
-class PresentationPersonSnapshotSearchRequest(PresentationRequest):
+class PresentationPersonSnapshotSearchRequest(PresentationRequestBody):
     filters: PresentationPersonSnapshotSearchFilters | None = None
     ordering: PresentationPersonSnapshotSearchOrdering | None = None
 
@@ -59,24 +57,22 @@ class PresentationPersonSnapshotSearch(PresentationBase):
     async def handle(
         self,
         admin_client_id: PresentationAdminClientAuthenticated,
-        request: PresentationPersonSnapshotSearchRequest,
+        request: PresentationPersonSnapshotSearchRequest | None = None,
     ):
         filters = None
-        if request.filters:
+        if request is not None and request.filters is not None:
             filters = ApplicationPersonSnapshotSearchFilters(
                 ids=request.filters.ids,
                 camera_ids=request.filters.camera_ids,
                 view_ids=request.filters.view_ids,
                 person_ids=request.filters.person_ids,
-                timestamp_after=request.filters.timestamp_after,
-                timestamp_before=request.filters.timestamp_before,
             )
         ordering = None
-        if request.ordering:
+        if request is not None and request.ordering is not None:
             ordering = ApplicationPersonSnapshotSearchOrdering(
                 timestamp_asc=request.ordering.timestamp_asc,
                 timestamp_desc=request.ordering.timestamp_desc,
-            )
+                )
         items = self.application_person_snapshot_search.search(
             filters=filters,
             ordering=ordering,

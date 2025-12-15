@@ -27,14 +27,17 @@ class ApplicationPersonSnapshotRefresh:
             repository_person_snapshot=RepositoryPersonSnapshot.create(environment),
         )
 
-    def refresh(self, params: ApplicationPersonSnapshotRefreshParams) -> None:
-        person_snapshots = self.repository_person_snapshot.find(
-            filters=RepositoryPersonSnapshotFilters(
+    def refresh(self, params: ApplicationPersonSnapshotRefreshParams | None = None) -> None:
+        filters = None
+        if params is not None:
+            filters = RepositoryPersonSnapshotFilters(
                 timestamp_after=params.timestamp_after,
                 timestamp_before=params.timestamp_before,
                 camera_ids=params.camera_ids,
                 view_ids=params.view_ids,
-            ),
+            )
+        person_snapshots = self.repository_person_snapshot.find(
+            filters=filters,
             ordering=RepositoryPersonSnapshotOrdering(
                 ordering=[RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_ASC],
             ),

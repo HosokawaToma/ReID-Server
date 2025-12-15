@@ -1,12 +1,12 @@
 from presentation import PresentationBase
 from presentation import PresentationLogger
-from presentation import PresentationRequest
+from presentation import PresentationRequestBody
 from presentation import PresentationJSONResponse
 from environment import Environment
 from applications.admin_client.auth.login import ApplicationAdminClientAuthLogin
 from applications.admin_client.auth.login import ApplicationAdminClientAuthLoginParams
 
-class PresentationAdminAuthLoginRequest(PresentationRequest):
+class PresentationAdminAuthLoginRequest(PresentationRequestBody):
     id: str
     password: str
 

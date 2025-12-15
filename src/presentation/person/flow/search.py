@@ -1,6 +1,6 @@
 from presentation import PresentationBase
 from presentation import PresentationLogger
-from presentation import PresentationRequest
+from presentation import PresentationRequestBody
 from presentation import PresentationJSONResponse
 from presentation import PresentationAdminClientAuthenticated
 from applications.person.flow.search import ApplicationPersonFlowSearch
@@ -10,7 +10,7 @@ from datetime import datetime
 import uuid
 
 
-class PresentationPersonFlowSearchRequest(PresentationRequest):
+class PresentationPersonFlowSearchRequest(PresentationRequestBody):
     person_id: uuid.UUID
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None

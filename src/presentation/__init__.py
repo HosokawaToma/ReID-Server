@@ -15,6 +15,7 @@ from error import Error
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Params
 from environment import Environment
+from pydantic import BaseModel
 
 class PresentationLogger:
     def __init__(self):
@@ -38,6 +39,9 @@ class PresentationRequest(Request):
 
     def get_refresh_token(self) -> str:
         return self.cookies.get("refresh_token", "")
+
+class PresentationRequestBody(BaseModel):
+    pass
 
 class PresentationJSONResponse(JSONResponse):
     REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 # 1 days
@@ -76,7 +80,7 @@ class PresentationBase:
     def setup(self, app: fastapi.FastAPI):
         app.add_api_route(
             self.router_path,
-            self._handle,
+            self.handle,
             methods=self.methods,
             tags=self.tags,
             summary=self.summary,
@@ -84,16 +88,6 @@ class PresentationBase:
             responses=self.responses,
             dependencies=self.dependencies,
         )
-
-    async def _handle(self, *args, **kwargs):
-        try:
-            return await self.handle(*args, **kwargs)
-        except Error as e:
-            self.logger.error(f"Error: route: {self.router_path}, method: {self.methods}, message: {e.message}")
-            return PresentationJSONResponse(status=500, content={"message": "Internal server error"})
-        except Exception as e:
-            self.logger.error(f"Unexpected error: route: {self.router_path}, method: {self.methods}, error: {e}")
-            return PresentationJSONResponse(status=500, content={"message": "Internal server error"})
 
     @abc.abstractmethod
     async def handle(self, *args, **kwargs) -> PresentationJSONResponse | PresentationImageResponse:
