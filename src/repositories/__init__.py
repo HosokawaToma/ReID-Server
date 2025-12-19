@@ -11,7 +11,7 @@ import io
 from redis import Redis
 import json
 import os
-
+import concurrent.futures
 from environment import Environment
 from error import Error
 
@@ -149,7 +149,9 @@ class RepositoryStorage:
             )
 
     def image_find_all(self, params: list[RepositoryStorageImageFindParams]) -> list[RepositoryStorageImageFindResult]:
-        return [self.image_find_one(param) for param in params]
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            results = executor.map(self.image_find_one, params)
+        return list(results)
 
     def image_delete(self, params: RepositoryStorageImageDeleteParams) -> None:
         image_name = self._fetch_image_name(params.name)
