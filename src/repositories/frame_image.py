@@ -52,9 +52,9 @@ class RepositoryFrameImage:
     def save(self, frame_image: DomainFrameImage) -> None:
         try:
             self.storage.image_save(RepositoryStorageImage(
-                    name=str(frame_image.id),
-                    image=frame_image.image,
-                ))
+                name=str(frame_image.id),
+                image=frame_image.image,
+            ))
         except RepositoryStorageImageSaveError as error:
             raise RepositoryFrameImageSaveError(error.message) from error
 
