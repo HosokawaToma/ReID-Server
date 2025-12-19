@@ -56,11 +56,11 @@ class RepositoryDatabase:
             self._session = self._session_maker()
             self._session.begin()
             return self._session
-        except SQLAlchemyError as e:
+        except SQLAlchemyError as error:
             if self._session:
                 self._session.close()
                 self._session = None
-            raise e
+            raise error from error
 
     def __exit__(
         self,
@@ -74,9 +74,9 @@ class RepositoryDatabase:
             if exc_type is not None:
                 self._session.rollback()
             self._session.commit()
-        except SQLAlchemyError as e:
+        except SQLAlchemyError as error:
             self._session.rollback()
-            raise e
+            raise error from error
         finally:
             self._session.close()
             self._session = None
@@ -86,11 +86,6 @@ class RepositoryDatabase:
 class RepositoryStorageImage:
     name: str
     image: Image.Image
-
-
-class RepositoryStorageImageError(Error):
-    pass
-
 
 @dataclass
 class RepositoryStorageImageFindParams:
@@ -107,6 +102,14 @@ class RepositoryStorageImageFindResult:
 class RepositoryStorageImageDeleteParams:
     name: str
 
+class RepositoryStorageImageError(Error):
+    pass
+class RepositoryStorageImageNotFoundError(RepositoryStorageImageError):
+    pass
+class RepositoryStorageImageMultipleError(RepositoryStorageImageError):
+    pass
+class RepositoryStorageImageFormatNoneError(RepositoryStorageImageError):
+    pass
 
 class RepositoryStorage:
     def __init__(self, path: Path, directory: str):
@@ -125,15 +128,15 @@ class RepositoryStorage:
         image_names = glob.glob(
             str(self.images_directory / f"{name}.*"))
         if len(image_names) == 0:
-            raise RepositoryStorageImageError(f"image not found: {name}")
+            raise RepositoryStorageImageNotFoundError(f"image not found: {name}")
         if len(image_names) > 1:
-            raise RepositoryStorageImageError(f"image multiple: {name}")
+            raise RepositoryStorageImageMultipleError(f"image multiple: {name}")
         image_name = image_names[0]
         return image_name
 
     def image_save(self, image: RepositoryStorageImage) -> None:
         if image.image.format is None:
-            raise RepositoryStorageImageError(f"image format is None: {image.name}")
+            raise RepositoryStorageImageFormatNoneError(f"image format is None: {image.name}")
         image.image.save(self.images_directory / f"{image.name}.{image.image.format.lower()}")
 
     def image_find_one(self, params: RepositoryStorageImageFindParams) -> RepositoryStorageImageFindResult:
@@ -151,6 +154,16 @@ class RepositoryStorage:
         os.remove(image_name)
 
 class RepositoryRedisError(Error):
+    pass
+class RepositoryRedisErrorResultNoneError(RepositoryRedisError):
+    pass
+class RepositoryRedisErrorResultAwaitableError(RepositoryRedisError):
+    pass
+class RepositoryRedisErrorResultLengthNot2Error(RepositoryRedisError):
+    pass
+class RepositoryRedisErrorResultValueNotStrOrBytesError(RepositoryRedisError):
+    pass
+class RepositoryRedisErrorResultDataNotDictError(RepositoryRedisError):
     pass
 
 class RepositoryRedis:
@@ -172,26 +185,26 @@ class RepositoryRedis:
     def push(self, value: dict[str, str], key: str) -> None:
         result = self.redis.rpush(key, json.dumps(value))
         if result is None:
-            raise RepositoryRedisError("result is None")
+            raise RepositoryRedisErrorResultNoneError("result is None")
         if isinstance(result, Awaitable):
-            raise RepositoryRedisError("result is Awaitable")
+            raise RepositoryRedisErrorResultAwaitableError("result is Awaitable")
 
     def dequeue(self, key: str) -> dict[str, str]:
         result = self.redis.blpop([key])
         if result is None:
-            raise RepositoryRedisError("result is None")
+            raise RepositoryRedisErrorResultNoneError("result is None")
         if isinstance(result, Awaitable):
-            raise RepositoryRedisError("result is Awaitable")
+            raise RepositoryRedisErrorResultAwaitableError("result is Awaitable")
         if len(result) != 2:
-            raise RepositoryRedisError("result length is not 2")
+            raise RepositoryRedisErrorResultLengthNot2Error("result length is not 2")
         value = result[1]
         if isinstance(value, str):
             pass
         elif isinstance(value, bytes):
             value = value.decode("utf-8")
         else:
-            raise RepositoryRedisError("value is not str or bytes")
+            raise RepositoryRedisErrorResultValueNotStrOrBytesError("value is not str or bytes")
         data = json.loads(value)
         if not isinstance(data, dict):
-            raise RepositoryRedisError("data is not dict")
+            raise RepositoryRedisErrorResultDataNotDictError("data is not dict")
         return data
