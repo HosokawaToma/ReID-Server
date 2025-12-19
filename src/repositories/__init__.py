@@ -4,13 +4,14 @@ from sqlalchemy import Engine, create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from PIL import Image
 from dataclasses import dataclass
-from typing import Type, Awaitable
+from typing import Type, Awaitable, Any
 from types import TracebackType
 import glob
 import io
 from redis import Redis
 import json
 import os
+from typing import Callable, Iterable
 import concurrent.futures
 from environment import Environment
 from error import Error
@@ -148,9 +149,13 @@ class RepositoryStorage:
             )
 
     def image_find_all(self, params: list[RepositoryStorageImageFindParams]) -> list[RepositoryStorageImageFindResult]:
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            results = executor.map(self.image_find_one, params)
-        return list(results)
+        cpu_count = os.cpu_count()
+        if cpu_count is None:
+            raise RepositoryStorageImageFindError("cpu count is None")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(params), cpu_count * 5)) as executor:
+            futures = [executor.submit(self.image_find_one, param) for param in params]
+            results = [future.result() for future in futures]
+            return results
 
     def image_delete(self, params: RepositoryStorageImageDeleteParams) -> None:
         image_name = self._fetch_image_name(params.name)
