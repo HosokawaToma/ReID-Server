@@ -48,7 +48,8 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
                 ApplicationPersonSnapshotImageSearchParams(id=id)
             )
             return PresentationImageResponse(status=200, image=person_snapshot.image)
-        except ApplicationPersonSnapshotImageSearchError as e:
+        except ApplicationPersonSnapshotImageSearchError as error:
+            self.logger.error(error.message)
             return PresentationJSONResponse(
                 status=404,
                 content={
