@@ -147,14 +147,18 @@ class RepositoryPersonSnapshot:
                     person_id=snapshot.person_id,
                     feature=snapshot.feature.cpu().numpy().tolist() if snapshot.feature is not None else None
                 ))
-                self.storage.image_save(RepositoryStorageImage(
-                    name=str(snapshot.id),
-                    image=snapshot.image,
-                ))
+            self.storage.image_save(RepositoryStorageImage(
+                name=str(snapshot.id),
+                image=snapshot.image,
+            ))
         except RepositoryDatabaseError as error:
             raise RepositoryPersonSnapshotSaveError(error.message) from error
         except RepositoryStorageImageSaveError as error:
-            self.database.rollback()
+            try:
+                with self.database as session:
+                    session.delete(MigrationModelPersonSnapshot(id=snapshot.id))
+            except RepositoryDatabaseError as error:
+                raise RepositoryPersonSnapshotSaveError(error.message) from error
             raise RepositoryPersonSnapshotSaveError(error.message) from error
 
     def find_first(
@@ -172,10 +176,10 @@ class RepositoryPersonSnapshot:
                 model = query.first()
                 if model is None:
                     return None
-                image = self.storage.image_find_one(RepositoryStorageImageFindParams(
-                    name=str(model.id),
-                )).image
-                return self._model_to_domain(model, image)
+            image = self.storage.image_find_one(RepositoryStorageImageFindParams(
+                name=str(model.id),
+            )).image
+            return self._model_to_domain(model, image)
         except RepositoryStorageImageFindError as error:
             raise RepositoryPersonSnapshotFindError(error.message) from error
         except RepositoryDatabaseError as error:
@@ -194,14 +198,14 @@ class RepositoryPersonSnapshot:
                 if ordering is not None:
                     query = self._build_ordering(query, ordering)
                 models = query.all()
-                images = self.storage.image_find_all(
-                    [RepositoryStorageImageFindParams(
-                        name=str(model.id),
-                    ) for model in models]
-                )
-                return DomainPersonSnapshotSequence(
-                    person_snapshots=[self._model_to_domain(model, image.image) for model, image in zip(models, images)],
-                )
+            images = self.storage.image_find_all(
+                [RepositoryStorageImageFindParams(
+                    name=str(model.id),
+                ) for model in models]
+            )
+            return DomainPersonSnapshotSequence(
+                person_snapshots=[self._model_to_domain(model, image.image) for model, image in zip(models, images)],
+            )
         except RepositoryStorageImageFindError as error:
             raise RepositoryPersonSnapshotFindError(error.message) from error
         except RepositoryDatabaseError as error:
