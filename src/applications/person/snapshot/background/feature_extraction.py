@@ -1,6 +1,5 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from domain.person.snapshot import DomainPersonSnapshot
-from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotNextQueueError
 from modules.reid.model import ModuleReIDModel
 from environment import Environment
