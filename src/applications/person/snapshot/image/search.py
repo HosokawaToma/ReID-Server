@@ -4,6 +4,7 @@ from PIL import Image
 from environment import Environment
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
+from repositories.person.snapshot import RepositoryPersonSnapshotFindError
 from error import Error
 
 class ApplicationPersonSnapshotImageSearchError(Error):
@@ -27,7 +28,10 @@ class ApplicationPersonSnapshotImageSearch:
         )
 
     def search(self, params: ApplicationPersonSnapshotImageSearchParams) -> ApplicationPersonSnapshotImageSearchItem:
-        person_snapshot = self.repository_person_snapshot.find_first(filters=RepositoryPersonSnapshotFilters(ids=[params.id]))
-        if person_snapshot is None:
-            raise ApplicationPersonSnapshotImageSearchError(f"Person snapshot not found: {params.id}")
-        return ApplicationPersonSnapshotImageSearchItem(image=person_snapshot.image)
+        try:
+            person_snapshot = self.repository_person_snapshot.find_first(filters=RepositoryPersonSnapshotFilters(ids=[params.id]))
+            if person_snapshot is None:
+                raise ApplicationPersonSnapshotImageSearchError(f"Person snapshot not found: {params.id}")
+            return ApplicationPersonSnapshotImageSearchItem(image=person_snapshot.image)
+        except RepositoryPersonSnapshotFindError as error:
+            raise ApplicationPersonSnapshotImageSearchError(error.message) from error
