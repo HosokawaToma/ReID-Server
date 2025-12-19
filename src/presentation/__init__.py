@@ -121,7 +121,7 @@ def admin_client_authenticated(
             status_code=401,
             detail="Invalid authorization",
             headers={"WWW-Authenticate": "Bearer"},
-        ) from error
+        )
     return result.admin_client_id
 
 PresentationAdminClientAuthenticated = Annotated[str, Depends(admin_client_authenticated)]
