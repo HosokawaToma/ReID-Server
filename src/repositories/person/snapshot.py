@@ -137,16 +137,17 @@ class RepositoryPersonSnapshot:
         )
 
     def save(self, snapshot: DomainPersonSnapshot) -> None:
+        model = MigrationModelPersonSnapshot(
+            id=snapshot.id,
+            camera_id=snapshot.camera_id,
+            view_id=snapshot.view_id,
+            timestamp=snapshot.timestamp,
+            person_id=snapshot.person_id,
+            feature=snapshot.feature.cpu().numpy().tolist() if snapshot.feature is not None else None
+        )
         try:
             with self.database as session:
-                session.add(MigrationModelPersonSnapshot(
-                    id=snapshot.id,
-                    camera_id=snapshot.camera_id,
-                    view_id=snapshot.view_id,
-                    timestamp=snapshot.timestamp,
-                    person_id=snapshot.person_id,
-                    feature=snapshot.feature.cpu().numpy().tolist() if snapshot.feature is not None else None
-                ))
+                session.add(model)
             self.storage.image_save(RepositoryStorageImage(
                 name=str(snapshot.id),
                 image=snapshot.image,
@@ -156,7 +157,7 @@ class RepositoryPersonSnapshot:
         except RepositoryStorageImageSaveError as error:
             try:
                 with self.database as session:
-                    session.delete(MigrationModelPersonSnapshot(id=snapshot.id))
+                    session.delete(model)
             except RepositoryDatabaseError as error:
                 raise RepositoryPersonSnapshotSaveError(error.message) from error
             raise RepositoryPersonSnapshotSaveError(error.message) from error
@@ -198,6 +199,7 @@ class RepositoryPersonSnapshot:
                 if ordering is not None:
                     query = self._build_ordering(query, ordering)
                 models = query.all()
+                session.expire_all()
             images = self.storage.image_find_all(
                 [RepositoryStorageImageFindParams(
                     name=str(model.id),
@@ -258,6 +260,7 @@ class RepositoryPersonSnapshot:
                 model = query.first()
                 if model is None:
                     raise RepositoryPersonSnapshotNextQueueError(f"person snapshot not found: {data['id']}")
+                session.expire(model)
             image = self.storage.image_find_one(RepositoryStorageImageFindParams(
                 name=str(model.id),
             )).image
