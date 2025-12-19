@@ -20,7 +20,6 @@ from repositories import RepositoryRedisDequeueError
 from domain.person.snapshot_sequence import DomainPersonSnapshotSequence
 from repositories import RepositoryRedis
 from repositories import RepositoryRedisError
-from repositories import RepositoryStorageImageFindError
 from PIL import Image
 
 @dataclass
