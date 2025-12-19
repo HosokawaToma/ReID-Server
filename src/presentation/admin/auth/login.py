@@ -5,6 +5,7 @@ from presentation import PresentationJSONResponse
 from environment import Environment
 from applications.admin_client.auth.login import ApplicationAdminClientAuthLogin
 from applications.admin_client.auth.login import ApplicationAdminClientAuthLoginParams
+from applications.admin_client.auth.login import ApplicationAdminClientAuthLoginError
 
 class PresentationAdminAuthLoginRequest(PresentationRequestBody):
     id: str
@@ -33,12 +34,18 @@ class PresentationAdminAuthLogin(PresentationBase):
         )
 
     async def handle(self, request: PresentationAdminAuthLoginRequest):
-        result = self.application.login(
-            ApplicationAdminClientAuthLoginParams(
-                id=request.id,
-                password=request.password,
-            ),
-        )
+        try:
+            result = self.application.login(
+                ApplicationAdminClientAuthLoginParams(
+                    id=request.id,
+                    password=request.password,
+                ),
+            )
+        except ApplicationAdminClientAuthLoginError as error:
+            self.logger.error(error.message)
+            return PresentationJSONResponse(status=401, content={
+                "message": "Invalid credentials",
+            })
         response = PresentationJSONResponse(status=200, content={"token": result.token})
         response.set_refresh_token(refresh_token=result.refresh_token)
         return response
