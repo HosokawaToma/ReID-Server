@@ -12,9 +12,9 @@ from PIL import Image
 import io
 from datetime import datetime
 from fastapi import Request
-from error import Error
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Params
+from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Error
 from environment import Environment
 from pydantic import BaseModel
 
@@ -102,8 +102,8 @@ class PresentationBase:
     async def handle(self, *args, **kwargs) -> PresentationJSONResponse | PresentationImageResponse:
         pass
 
-PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
 
+PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
 
 @lru_cache
 def get_admin_client_auth_application(
@@ -115,17 +115,17 @@ def admin_client_authenticated(
     token: PresentationTypeAuthorization,
     application: ApplicationAdminClientAuthOAuth2 = Depends(get_admin_client_auth_application),
 ) -> str:
-    result = application.oauth2(ApplicationAdminClientAuthOAuth2Params(token=token))
-    if result.admin_client_id is None:
+    try:
+        result = application.oauth2(ApplicationAdminClientAuthOAuth2Params(token=token))
+    except ApplicationAdminClientAuthOAuth2Error as error:
         raise HTTPException(
-            status_code=401,
-            detail="Invalid authorization",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+                status_code=401,
+                detail="Invalid authorization",
+                headers={"WWW-Authenticate": "Bearer"},
+            ) from error
     return result.admin_client_id
 
 PresentationAdminClientAuthenticated = Annotated[str, Depends(admin_client_authenticated)]
-
 
 
 class PresentationImageError(Exception):
