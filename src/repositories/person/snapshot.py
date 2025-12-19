@@ -193,7 +193,6 @@ class RepositoryPersonSnapshot:
                 if ordering is not None:
                     query = self._build_ordering(query, ordering)
                 models = query.all()
-                #Todo: N + 1問題が発生しているため修正対象
                 images = self.storage.image_find_all(
                     [RepositoryStorageImageFindParams(
                         name=str(model.id),
