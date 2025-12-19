@@ -102,7 +102,6 @@ class PresentationBase:
     async def handle(self, *args, **kwargs) -> PresentationJSONResponse | PresentationImageResponse:
         pass
 
-
 PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
 
 @lru_cache
