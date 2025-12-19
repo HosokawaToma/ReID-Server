@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from environment import Environment
 from repositories.frame_image import RepositoryFrameImageSaveError
 from repositories.frame_image import RepositoryFrameImagePushQueueError
+from repositories.frame_image import RepositoryFrameImageDeleteError
 from error import Error
 
 
@@ -46,4 +47,8 @@ class ApplicationPersonSnapshotCreate:
         except RepositoryFrameImageSaveError as error:
             raise ApplicationPersonSnapshotCreateError(error.message) from error
         except RepositoryFrameImagePushQueueError as error:
+            try:
+                self.repository_frame_image.delete(frame_image)
+            except RepositoryFrameImageDeleteError as error:
+                raise ApplicationPersonSnapshotCreateError(error.message) from error
             raise ApplicationPersonSnapshotCreateError(error.message) from error
