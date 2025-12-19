@@ -5,6 +5,7 @@ from datetime import datetime
 from dataclasses import dataclass
 from environment import Environment
 from repositories.frame_image import RepositoryFrameImageError
+from error import Error
 
 
 @dataclass
@@ -14,6 +15,8 @@ class ApplicationPersonSnapshotCreateParams:
     view_id: int
     timestamp: datetime
 
+class ApplicationPersonSnapshotCreateError(Error):
+    pass
 
 class ApplicationPersonSnapshotCreate:
     def __init__(
@@ -41,4 +44,4 @@ class ApplicationPersonSnapshotCreate:
             self.repository_frame_image.push_queue(queue_name="frame_image:person_snapshot_create", frame_image=frame_image)
         except RepositoryFrameImageError as error:
             self.repository_frame_image.delete(frame_image)
-            raise error from error
+            raise ApplicationPersonSnapshotCreateError(error.message) from error
