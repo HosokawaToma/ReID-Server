@@ -33,11 +33,8 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
         )
 
     def extract(self) -> DomainPersonSnapshot:
-        try:
-            person_snapshot = self.repository_person_snapshot.next_queue(task_name="person_snapshot:feature_extraction")
-            person_snapshot.extract_feature(self.reid_model)
-            self.repository_person_snapshot.update(person_snapshot)
-            self.repository_person_snapshot.push_queue(task_name="person_snapshot:identify", person_snapshot=person_snapshot)
-            return person_snapshot
-        except RepositoryPersonSnapshotError as e:
-            raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(e.message)
+        person_snapshot = self.repository_person_snapshot.next_queue(task_name="person_snapshot:feature_extraction")
+        person_snapshot.extract_feature(self.reid_model)
+        self.repository_person_snapshot.update(person_snapshot)
+        self.repository_person_snapshot.push_queue(task_name="person_snapshot:identify", person_snapshot=person_snapshot)
+        return person_snapshot
