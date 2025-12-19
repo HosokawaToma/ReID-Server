@@ -147,13 +147,14 @@ class RepositoryPersonSnapshot:
                     person_id=snapshot.person_id,
                     feature=snapshot.feature.cpu().numpy().tolist() if snapshot.feature is not None else None
                 ))
-            self.storage.image_save(RepositoryStorageImage(
-                name=str(snapshot.id),
-                image=snapshot.image,
-            ))
+                self.storage.image_save(RepositoryStorageImage(
+                    name=str(snapshot.id),
+                    image=snapshot.image,
+                ))
         except RepositoryDatabaseError as error:
             raise RepositoryPersonSnapshotSaveError(error.message) from error
         except RepositoryStorageImageSaveError as error:
+            self.database.rollback()
             raise RepositoryPersonSnapshotSaveError(error.message) from error
 
     def find_first(
@@ -242,6 +243,7 @@ class RepositoryPersonSnapshot:
         except RepositoryDatabaseError as error:
             raise RepositoryPersonSnapshotDeleteError(error.message) from error
         except RepositoryStorageImageDeleteError as error:
+            self.database.rollback()
             raise RepositoryPersonSnapshotDeleteError(error.message) from error
 
     def next_queue(self, task_name: TaskName) -> DomainPersonSnapshot:
