@@ -14,10 +14,13 @@ from repositories import RepositoryStorage
 from repositories import RepositoryStorageImage
 from repositories import RepositoryStorageImageFindParams
 from repositories import RepositoryStorageImageDeleteParams
-from repositories import RepositoryStorageImageError
+from repositories import RepositoryStorageImageFindError
+from repositories import RepositoryStorageImageDeleteError
+from repositories import RepositoryRedisDequeueError
 from domain.person.snapshot_sequence import DomainPersonSnapshotSequence
 from repositories import RepositoryRedis
 from repositories import RepositoryRedisError
+from repositories import RepositoryStorageImageFindError
 from PIL import Image
 
 @dataclass
@@ -167,7 +170,7 @@ class RepositoryPersonSnapshot:
                     name=str(model.id),
                 )).image
                 return self._model_to_domain(model, image)
-        except RepositoryStorageImageError as error:
+        except RepositoryStorageImageFindError as error:
             raise RepositoryPersonSnapshotFindError(error.message) from error
         except RepositoryDatabaseError as error:
             raise RepositoryPersonSnapshotFindError(error.message) from error
@@ -191,7 +194,7 @@ class RepositoryPersonSnapshot:
                 return DomainPersonSnapshotSequence(
                     person_snapshots=[self._model_to_domain(model, image) for model, image in zip(models, images)],
                 )
-        except RepositoryStorageImageError as error:
+        except RepositoryStorageImageFindError as error:
             raise RepositoryPersonSnapshotFindError(error.message) from error
         except RepositoryDatabaseError as error:
             raise RepositoryPersonSnapshotFindError(error.message) from error
@@ -215,8 +218,6 @@ class RepositoryPersonSnapshot:
                 )
         except RepositoryDatabaseError as error:
             raise RepositoryPersonSnapshotUpdateError(error.message) from error
-        except RepositoryStorageImageError as error:
-            raise RepositoryPersonSnapshotUpdateError(error.message) from error
 
     def delete(
         self,
@@ -231,9 +232,9 @@ class RepositoryPersonSnapshot:
                     name=str(filters.ids),
                 ))
             return result
-        except RepositoryStorageImageError as error:
-            raise RepositoryPersonSnapshotDeleteError(error.message) from error
         except RepositoryDatabaseError as error:
+            raise RepositoryPersonSnapshotDeleteError(error.message) from error
+        except RepositoryStorageImageDeleteError as error:
             raise RepositoryPersonSnapshotDeleteError(error.message) from error
 
     def next_queue(self, task_name: TaskName) -> DomainPersonSnapshot:
@@ -249,11 +250,11 @@ class RepositoryPersonSnapshot:
                     name=str(model.id),
                 )).image
                 return self._model_to_domain(model, image)
-        except RepositoryRedisError as error:
-            raise RepositoryPersonSnapshotNextQueueError(error.message) from error
         except RepositoryDatabaseError as error:
             raise RepositoryPersonSnapshotNextQueueError(error.message) from error
-        except RepositoryStorageImageError as error:
+        except RepositoryRedisDequeueError as error:
+            raise RepositoryPersonSnapshotNextQueueError(error.message) from error
+        except RepositoryStorageImageFindError as error:
             raise RepositoryPersonSnapshotNextQueueError(error.message) from error
 
     def push_queue(self, task_name: TaskName, person_snapshot: DomainPersonSnapshot) -> None:
