@@ -1,5 +1,6 @@
 from repositories import RepositoryStorage
 from repositories import RepositoryStorageImage
+from repositories import RepositoryStorageImageError
 from repositories import RepositoryStorageImageFindParams
 from repositories import RepositoryStorageImageDeleteParams
 from error import Error
@@ -14,6 +15,16 @@ from repositories import RepositoryRedisError
 
 
 class RepositoryFrameImageError(Error):
+    pass
+class RepositoryFrameImageSaveError(RepositoryFrameImageError):
+    pass
+class RepositoryFrameImageNextQueueError(RepositoryFrameImageError):
+    pass
+class RepositoryFrameImagePushQueueError(RepositoryFrameImageError):
+    pass
+class RepositoryFrameImageFindImageError(RepositoryFrameImageError):
+    pass
+class RepositoryFrameImageDeleteError(RepositoryFrameImageError):
     pass
 
 QueueName = Literal["frame_image:person_snapshot_create"]
@@ -36,21 +47,27 @@ class RepositoryFrameImage:
         )
 
     def save(self, frame_image: DomainFrameImage) -> None:
-        self.storage.image_save(RepositoryStorageImage(
-            name=str(frame_image.id),
-            image=frame_image.image,
-        ))
+        try:
+            self.storage.image_save(RepositoryStorageImage(
+                    name=str(frame_image.id),
+                    image=frame_image.image,
+                ))
+        except RepositoryStorageImageError as error:
+            raise RepositoryFrameImageSaveError(error.message) from error
 
     def next_queue(self, queue_name: QueueName) -> DomainFrameImage:
-        data = self.redis.dequeue(queue_name)
-        return DomainFrameImage(
-            id=uuid.UUID(data["id"]),
-            image=self.storage.image_find_one(RepositoryStorageImageFindParams(
-                name=str(data["id"]))).image,
-            camera_id=int(data["camera_id"]),
-            view_id=int(data["view_id"]),
-            timestamp=datetime.fromisoformat(data["timestamp"]),
-        )
+        try:
+            data = self.redis.dequeue(queue_name)
+            return DomainFrameImage(
+                id=uuid.UUID(data["id"]),
+                image=self.storage.image_find_one(RepositoryStorageImageFindParams(
+                    name=str(data["id"]))).image,
+                camera_id=int(data["camera_id"]),
+                view_id=int(data["view_id"]),
+                timestamp=datetime.fromisoformat(data["timestamp"]),
+            )
+        except RepositoryRedisError as error:
+            raise RepositoryFrameImageNextQueueError(error.message) from error
 
     def push_queue(self, queue_name: QueueName, frame_image: DomainFrameImage) -> None:
         try:
@@ -63,14 +80,20 @@ class RepositoryFrameImage:
                     "timestamp": frame_image.timestamp.isoformat(),
                 }
             )
-        except RepositoryRedisError as e:
-            raise RepositoryFrameImageError(e.message)
+        except RepositoryRedisError as error:
+            raise RepositoryFrameImagePushQueueError(error.message) from error
 
     def find_image(self, id: uuid.UUID) -> Image.Image:
-        return self.storage.image_find_one(RepositoryStorageImageFindParams(
-            name=str(id))).image
+        try:
+            return self.storage.image_find_one(RepositoryStorageImageFindParams(
+                name=str(id))).image
+        except RepositoryStorageImageError as error:
+            raise RepositoryFrameImageFindImageError(error.message) from error
 
     def delete(self, frame_image: DomainFrameImage) -> None:
-        self.storage.image_delete(RepositoryStorageImageDeleteParams(
-            name=str(frame_image.id),
-        ))
+        try:
+            self.storage.image_delete(RepositoryStorageImageDeleteParams(
+                name=str(frame_image.id),
+            ))
+        except RepositoryStorageImageError as error:
+            raise RepositoryFrameImageDeleteError(error.message) from error
