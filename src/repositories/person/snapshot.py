@@ -177,6 +177,7 @@ class RepositoryPersonSnapshot:
                 model = query.first()
                 if model is None:
                     return None
+                session.expunge(model)
             image = self.storage.image_find_one(RepositoryStorageImageFindParams(
                 name=str(model.id),
             )).image
@@ -199,7 +200,7 @@ class RepositoryPersonSnapshot:
                 if ordering is not None:
                     query = self._build_ordering(query, ordering)
                 models = query.all()
-                session.expire_all()
+                session.expunge_all()
             images = self.storage.image_find_all(
                 [RepositoryStorageImageFindParams(
                     name=str(model.id),
@@ -260,7 +261,7 @@ class RepositoryPersonSnapshot:
                 model = query.first()
                 if model is None:
                     raise RepositoryPersonSnapshotNextQueueError(f"person snapshot not found: {data['id']}")
-                session.expire(model)
+                session.expunge(model)
             image = self.storage.image_find_one(RepositoryStorageImageFindParams(
                 name=str(model.id),
             )).image
