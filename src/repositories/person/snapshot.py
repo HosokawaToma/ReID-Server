@@ -194,11 +194,13 @@ class RepositoryPersonSnapshot:
                     query = self._build_ordering(query, ordering)
                 models = query.all()
                 #Todo: N + 1問題が発生しているため修正対象
-                images = [self.storage.image_find_one(RepositoryStorageImageFindParams(
-                    name=str(model.id),
-                )).image for model in models]
+                images = self.storage.image_find_all(
+                    [RepositoryStorageImageFindParams(
+                        name=str(model.id),
+                    ) for model in models]
+                )
                 return DomainPersonSnapshotSequence(
-                    person_snapshots=[self._model_to_domain(model, image) for model, image in zip(models, images)],
+                    person_snapshots=[self._model_to_domain(model, image.image) for model, image in zip(models, images)],
                 )
         except RepositoryStorageImageFindError as error:
             raise RepositoryPersonSnapshotFindError(error.message) from error

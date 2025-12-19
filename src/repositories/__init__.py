@@ -91,6 +91,9 @@ class RepositoryStorageImage:
 class RepositoryStorageImageFindParams:
     name: str
 
+@dataclass
+class RepositoryStorageImageFindAllParams:
+    name: str
 
 @dataclass
 class RepositoryStorageImageFindResult:
@@ -148,6 +151,9 @@ class RepositoryStorage:
                 name=params.name,
                 image=Image.open(image_stream),
             )
+
+    def image_find_all(self, params: list[RepositoryStorageImageFindParams]) -> list[RepositoryStorageImageFindResult]:
+        return [self.image_find_one(param) for param in params]
 
     def image_delete(self, params: RepositoryStorageImageDeleteParams) -> None:
         image_name = self._fetch_image_name(params.name)
