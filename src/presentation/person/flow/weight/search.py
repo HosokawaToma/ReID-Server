@@ -1,5 +1,6 @@
 from applications.person.flow.weight.search import ApplicationPersonFlowWeightSearch
 from applications.person.flow.weight.search import ApplicationPersonFlowWeightSearchParams
+from applications.person.flow.weight.search import ApplicationPersonFlowWeightSearchError
 from presentation import PresentationBase
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationLogger
@@ -55,7 +56,13 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
                 timestamp_after=request.timestamp_after,
                 timestamp_before=request.timestamp_before,
             )
-        items = self.application_person_flow_weight_search.search(params=params)
+        try:
+            items = self.application_person_flow_weight_search.search(params=params)
+        except ApplicationPersonFlowWeightSearchError as error:
+            self.logger.error(error.message)
+            return PresentationJSONResponse(status=404, content={
+                "message": "Person flow weight not found",
+            })
         return PresentationJSONResponse(
             status=200,
             content={
