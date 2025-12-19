@@ -118,10 +118,10 @@ def admin_client_authenticated(
         result = application.oauth2(ApplicationAdminClientAuthOAuth2Params(token=token))
     except ApplicationAdminClientAuthOAuth2Error as error:
         raise HTTPException(
-                status_code=401,
-                detail="Invalid authorization",
-                headers={"WWW-Authenticate": "Bearer"},
-            ) from error
+            status_code=401,
+            detail="Invalid authorization",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from error
     return result.admin_client_id
 
 PresentationAdminClientAuthenticated = Annotated[str, Depends(admin_client_authenticated)]
