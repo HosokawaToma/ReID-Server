@@ -1,4 +1,5 @@
 from repositories import RepositoryDatabase
+from repositories import RepositoryDatabaseError
 from domain.person.snapshot import DomainPersonSnapshot
 from migration.models.person_snapshots import MigrationModelPersonSnapshot
 import torch
@@ -13,8 +14,11 @@ from repositories import RepositoryStorage
 from repositories import RepositoryStorageImage
 from repositories import RepositoryStorageImageFindParams
 from repositories import RepositoryStorageImageDeleteParams
+from repositories import RepositoryStorageImageError
 from domain.person.snapshot_sequence import DomainPersonSnapshotSequence
 from repositories import RepositoryRedis
+from repositories import RepositoryRedisError
+from PIL import Image
 
 @dataclass
 class RepositoryPersonSnapshotFilters:
@@ -53,6 +57,20 @@ class RepositoryPersonSnapshotOrdering:
 TaskName = Literal["person_snapshot:feature_extraction", "person_snapshot:identify"]
 
 class RepositoryPersonSnapshotError(Error):
+    pass
+class RepositoryPersonSnapshotFindError(RepositoryPersonSnapshotError):
+    pass
+class RepositoryPersonSnapshotSaveError(RepositoryPersonSnapshotError):
+    pass
+class RepositoryPersonSnapshotUpdateError(RepositoryPersonSnapshotError):
+    pass
+class RepositoryPersonSnapshotDeleteError(RepositoryPersonSnapshotError):
+    pass
+class RepositoryPersonSnapshotNextQueueError(RepositoryPersonSnapshotError):
+    pass
+class RepositoryPersonSnapshotPushQueueError(RepositoryPersonSnapshotError):
+    pass
+class RepositoryPersonSnapshotFindImageError(RepositoryPersonSnapshotError):
     pass
 
 class RepositoryPersonSnapshot:
@@ -104,10 +122,7 @@ class RepositoryPersonSnapshot:
             query = query.order_by(*order_by)
         return query
 
-    def _model_to_domain(self, model: MigrationModelPersonSnapshot) -> DomainPersonSnapshot:
-        image = self.storage.image_find_one(RepositoryStorageImageFindParams(
-            name=str(model.id),
-        )).image
+    def _model_to_domain(self, model: MigrationModelPersonSnapshot, image: Image.Image) -> DomainPersonSnapshot:
         return DomainPersonSnapshot(
             id=uuid.UUID(str(model.id)),
             camera_id=int(str(model.camera_id)),
@@ -138,77 +153,116 @@ class RepositoryPersonSnapshot:
         filters: RepositoryPersonSnapshotFilters | None = None,
         ordering: RepositoryPersonSnapshotOrdering | None = None,
     ) -> DomainPersonSnapshot | None:
-        with self.database as session:
-            query = session.query(MigrationModelPersonSnapshot)
-            if filters is not None:
-                query = self._build_filters(query, filters)
-            if ordering is not None:
-                query = self._build_ordering(query, ordering)
-            model = query.first()
-            if model is None:
-                return None
-            return self._model_to_domain(model)
+        try:
+            with self.database as session:
+                query = session.query(MigrationModelPersonSnapshot)
+                if filters is not None:
+                    query = self._build_filters(query, filters)
+                if ordering is not None:
+                    query = self._build_ordering(query, ordering)
+                model = query.first()
+                if model is None:
+                    return None
+                image = self.storage.image_find_one(RepositoryStorageImageFindParams(
+                    name=str(model.id),
+                )).image
+                return self._model_to_domain(model, image)
+        except RepositoryStorageImageError as error:
+            raise RepositoryPersonSnapshotFindError(error.message) from error
+        except RepositoryDatabaseError as error:
+            raise RepositoryPersonSnapshotFindError(error.message) from error
 
     def find(
         self,
         filters: RepositoryPersonSnapshotFilters | None = None,
         ordering: RepositoryPersonSnapshotOrdering | None = None,
     ) -> DomainPersonSnapshotSequence:
-        with self.database as session:
-            query = session.query(MigrationModelPersonSnapshot)
-            if filters is not None:
-                query = self._build_filters(query, filters)
-            if ordering is not None:
-                query = self._build_ordering(query, ordering)
-            models = query.all()
-            return DomainPersonSnapshotSequence(
-                person_snapshots=[self._model_to_domain(model) for model in models],
-            )
+        try:
+            with self.database as session:
+                query = session.query(MigrationModelPersonSnapshot)
+                if filters is not None:
+                    query = self._build_filters(query, filters)
+                if ordering is not None:
+                    query = self._build_ordering(query, ordering)
+                models = query.all()
+                images = [self.storage.image_find_one(RepositoryStorageImageFindParams(
+                    name=str(model.id),
+                )).image for model in models]
+                return DomainPersonSnapshotSequence(
+                    person_snapshots=[self._model_to_domain(model, image) for model, image in zip(models, images)],
+                )
+        except RepositoryStorageImageError as error:
+            raise RepositoryPersonSnapshotFindError(error.message) from error
+        except RepositoryDatabaseError as error:
+            raise RepositoryPersonSnapshotFindError(error.message) from error
 
     def update(
         self,
         person_snapshot: DomainPersonSnapshot,
     ) -> None:
-        with self.database as session:
-            query = session.query(MigrationModelPersonSnapshot)
-            query = query.filter(MigrationModelPersonSnapshot.id == person_snapshot.id)
-            query.update(
-                {
-                    MigrationModelPersonSnapshot.camera_id: person_snapshot.camera_id,
-                    MigrationModelPersonSnapshot.view_id: person_snapshot.view_id,
-                    MigrationModelPersonSnapshot.timestamp: person_snapshot.timestamp,
-                    MigrationModelPersonSnapshot.person_id: person_snapshot.person_id,
-                    MigrationModelPersonSnapshot.feature: person_snapshot.feature.cpu().numpy().tolist() if person_snapshot.feature is not None else None,
-                }
-            )
+        try:
+            with self.database as session:
+                query = session.query(MigrationModelPersonSnapshot)
+                query = query.filter(MigrationModelPersonSnapshot.id == person_snapshot.id)
+                query.update(
+                    {
+                        MigrationModelPersonSnapshot.camera_id: person_snapshot.camera_id,
+                        MigrationModelPersonSnapshot.view_id: person_snapshot.view_id,
+                        MigrationModelPersonSnapshot.timestamp: person_snapshot.timestamp,
+                        MigrationModelPersonSnapshot.person_id: person_snapshot.person_id,
+                        MigrationModelPersonSnapshot.feature: person_snapshot.feature.cpu().numpy().tolist() if person_snapshot.feature is not None else None,
+                    }
+                )
+        except RepositoryDatabaseError as error:
+            raise RepositoryPersonSnapshotUpdateError(error.message) from error
+        except RepositoryStorageImageError as error:
+            raise RepositoryPersonSnapshotUpdateError(error.message) from error
 
     def delete(
         self,
         filters: RepositoryPersonSnapshotFilters,
     ) -> int:
-        with self.database as session:
-            query = session.query(MigrationModelPersonSnapshot)
-            query = self._build_filters(query, filters)
-            result = query.delete(synchronize_session=False)
-        self.storage.image_delete(RepositoryStorageImageDeleteParams(
-            name=str(filters.ids),
-        ))
-        return result
+        try:
+            with self.database as session:
+                query = session.query(MigrationModelPersonSnapshot)
+                query = self._build_filters(query, filters)
+                result = query.delete(synchronize_session=False)
+            self.storage.image_delete(RepositoryStorageImageDeleteParams(
+                    name=str(filters.ids),
+                ))
+            return result
+        except RepositoryStorageImageError as error:
+            raise RepositoryPersonSnapshotDeleteError(error.message) from error
+        except RepositoryDatabaseError as error:
+            raise RepositoryPersonSnapshotDeleteError(error.message) from error
 
     def next_queue(self, task_name: TaskName) -> DomainPersonSnapshot:
-        data = self.redis.dequeue(task_name)
-        with self.database as session:
-            query = session.query(MigrationModelPersonSnapshot)
-            query = query.filter(MigrationModelPersonSnapshot.id == uuid.UUID(data["id"]))
-            model = query.first()
-            if model is None:
-                raise RepositoryPersonSnapshotError(f"person snapshot not found: {data['id']}")
-            return self._model_to_domain(model)
+        try:
+            data = self.redis.dequeue(task_name)
+            with self.database as session:
+                query = session.query(MigrationModelPersonSnapshot)
+                query = query.filter(MigrationModelPersonSnapshot.id == uuid.UUID(data["id"]))
+                model = query.first()
+                if model is None:
+                    raise RepositoryPersonSnapshotNextQueueError(f"person snapshot not found: {data['id']}")
+                image = self.storage.image_find_one(RepositoryStorageImageFindParams(
+                    name=str(model.id),
+                )).image
+                return self._model_to_domain(model, image)
+        except RepositoryRedisError as error:
+            raise RepositoryPersonSnapshotNextQueueError(error.message) from error
+        except RepositoryDatabaseError as error:
+            raise RepositoryPersonSnapshotNextQueueError(error.message) from error
+        except RepositoryStorageImageError as error:
+            raise RepositoryPersonSnapshotNextQueueError(error.message) from error
 
     def push_queue(self, task_name: TaskName, person_snapshot: DomainPersonSnapshot) -> None:
-        self.redis.push(
-            key=task_name,
-            value={
-                "id": str(person_snapshot.id),
-            }
-        )
+        try:
+            self.redis.push(
+                key=task_name,
+                value={
+                    "id": str(person_snapshot.id),
+                }
+            )
+        except RepositoryRedisError as error:
+            raise RepositoryPersonSnapshotPushQueueError(error.message) from error
