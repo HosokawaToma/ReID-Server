@@ -81,6 +81,13 @@ class RepositoryDatabase:
             self._session.close()
             self._session = None
 
+    def rollback(self) -> None:
+        if self._session is None:
+            raise RepositoryDatabaseError("Session is not open")
+        self._session.rollback()
+        self._session.close()
+        self._session = None
+
 
 @dataclass
 class RepositoryStorageImage:
