@@ -1,7 +1,8 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
-from repositories.person.snapshot import RepositoryPersonSnapshotError
+from repositories.person.snapshot import RepositoryPersonSnapshotFindError
+from repositories.person.snapshot import RepositoryPersonSnapshotPushQueueError
 from environment import Environment
 from datetime import datetime
 from dataclasses import dataclass
@@ -13,6 +14,9 @@ class ApplicationPersonSnapshotRefreshParams:
     timestamp_before: datetime | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
+
+class ApplicationPersonSnapshotRefreshError(Error):
+    pass
 
 class ApplicationPersonSnapshotRefresh:
     def __init__(
@@ -28,19 +32,24 @@ class ApplicationPersonSnapshotRefresh:
         )
 
     def refresh(self, params: ApplicationPersonSnapshotRefreshParams | None = None) -> None:
-        filters = None
-        if params is not None:
-            filters = RepositoryPersonSnapshotFilters(
-                timestamp_after=params.timestamp_after,
-                timestamp_before=params.timestamp_before,
-                camera_ids=params.camera_ids,
-                view_ids=params.view_ids,
+        try:
+            filters = None
+            if params is not None:
+                filters = RepositoryPersonSnapshotFilters(
+                    timestamp_after=params.timestamp_after,
+                    timestamp_before=params.timestamp_before,
+                    camera_ids=params.camera_ids,
+                    view_ids=params.view_ids,
+                )
+            person_snapshots = self.repository_person_snapshot.find(
+                filters=filters,
+                ordering=RepositoryPersonSnapshotOrdering(
+                    ordering=[RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_ASC],
+                ),
             )
-        person_snapshots = self.repository_person_snapshot.find(
-            filters=filters,
-            ordering=RepositoryPersonSnapshotOrdering(
-                ordering=[RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_ASC],
-            ),
-        )
-        for person_snapshot in person_snapshots:
-            self.repository_person_snapshot.push_queue(task_name="person_snapshot:feature_extraction", person_snapshot=person_snapshot)
+            for person_snapshot in person_snapshots:
+                self.repository_person_snapshot.push_queue(task_name="person_snapshot:feature_extraction", person_snapshot=person_snapshot)
+        except RepositoryPersonSnapshotFindError as error:
+            raise ApplicationPersonSnapshotRefreshError(error.message) from error
+        except RepositoryPersonSnapshotPushQueueError as error:
+            raise ApplicationPersonSnapshotRefreshError(error.message) from error
