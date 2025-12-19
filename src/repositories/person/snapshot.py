@@ -21,6 +21,7 @@ from domain.person.snapshot_sequence import DomainPersonSnapshotSequence
 from repositories import RepositoryRedis
 from repositories import RepositoryRedisError
 from PIL import Image
+from repositories import RepositoryStorageImageSaveError
 
 @dataclass
 class RepositoryPersonSnapshotFilters:
@@ -136,19 +137,24 @@ class RepositoryPersonSnapshot:
         )
 
     def save(self, snapshot: DomainPersonSnapshot) -> None:
-        with self.database as session:
-            session.add(MigrationModelPersonSnapshot(
-                id=snapshot.id,
-                camera_id=snapshot.camera_id,
-                view_id=snapshot.view_id,
-                timestamp=snapshot.timestamp,
-                person_id=snapshot.person_id,
-                feature=snapshot.feature.cpu().numpy().tolist() if snapshot.feature is not None else None
+        try:
+            with self.database as session:
+                session.add(MigrationModelPersonSnapshot(
+                    id=snapshot.id,
+                    camera_id=snapshot.camera_id,
+                    view_id=snapshot.view_id,
+                    timestamp=snapshot.timestamp,
+                    person_id=snapshot.person_id,
+                    feature=snapshot.feature.cpu().numpy().tolist() if snapshot.feature is not None else None
+                ))
+            self.storage.image_save(RepositoryStorageImage(
+                name=str(snapshot.id),
+                image=snapshot.image,
             ))
-        self.storage.image_save(RepositoryStorageImage(
-            name=str(snapshot.id),
-            image=snapshot.image,
-        ))
+        except RepositoryDatabaseError as error:
+            raise RepositoryPersonSnapshotSaveError(error.message) from error
+        except RepositoryStorageImageSaveError as error:
+            raise RepositoryPersonSnapshotSaveError(error.message) from error
 
     def find_first(
         self,
