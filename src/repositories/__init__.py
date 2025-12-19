@@ -92,10 +92,6 @@ class RepositoryStorageImageFindParams:
     name: str
 
 @dataclass
-class RepositoryStorageImageFindAllParams:
-    name: str
-
-@dataclass
 class RepositoryStorageImageFindResult:
     name: str
     image: Image.Image
