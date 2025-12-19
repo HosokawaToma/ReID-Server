@@ -19,7 +19,7 @@ from repositories import RepositoryStorageImageDeleteError
 from repositories import RepositoryRedisDequeueError
 from domain.person.snapshot_sequence import DomainPersonSnapshotSequence
 from repositories import RepositoryRedis
-from repositories import RepositoryRedisError
+from repositories import RepositoryRedisPushError
 from PIL import Image
 from repositories import RepositoryStorageImageSaveError
 
@@ -271,5 +271,5 @@ class RepositoryPersonSnapshot:
                     "id": str(person_snapshot.id),
                 }
             )
-        except RepositoryRedisError as error:
+        except RepositoryRedisPushError as error:
             raise RepositoryPersonSnapshotPushQueueError(error.message) from error
