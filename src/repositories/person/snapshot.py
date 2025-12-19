@@ -234,10 +234,10 @@ class RepositoryPersonSnapshot:
                 query = session.query(MigrationModelPersonSnapshot)
                 query = self._build_filters(query, filters)
                 result = query.delete(synchronize_session=False)
-            self.storage.image_delete(RepositoryStorageImageDeleteParams(
-                    name=str(filters.ids),
-                ))
-            return result
+                self.storage.image_delete(RepositoryStorageImageDeleteParams(
+                        name=str(filters.ids),
+                    ))
+                return result
         except RepositoryDatabaseError as error:
             raise RepositoryPersonSnapshotDeleteError(error.message) from error
         except RepositoryStorageImageDeleteError as error:
