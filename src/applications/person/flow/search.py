@@ -1,5 +1,6 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
+from repositories.person.snapshot import RepositoryPersonSnapshotFindError
 from environment import Environment
 from datetime import datetime
 from error import Error
@@ -39,19 +40,22 @@ class ApplicationPersonFlowSearch:
         )
 
     def search(self, params: ApplicationPersonFlowSearchParams) -> list[ApplicationPersonFlowSearchItem]:
-        filters = RepositoryPersonSnapshotFilters(
-            timestamp_after=params.timestamp_after,
-            timestamp_before=params.timestamp_before,
-            person_ids=[params.person_id],
-        )
-        person_snapshots = self.repository_person_snapshot.find(filters=filters)
-        flows = person_snapshots.to_flows()
-        if flows is None:
-            raise ApplicationPersonFlowSearchError(f"No flows found for person {params.person_id}")
-        return [ApplicationPersonFlowSearchItem(
-            person_id=params.person_id,
-            source_camera_id=flow.source_camera_id,
-            target_camera_id=flow.target_camera_id,
-            source_timestamp=flow.source_timestamp,
-            target_timestamp=flow.target_timestamp,
-        ) for flow in flows.flows]
+        try:
+            filters = RepositoryPersonSnapshotFilters(
+                timestamp_after=params.timestamp_after,
+                timestamp_before=params.timestamp_before,
+                person_ids=[params.person_id],
+            )
+            person_snapshots = self.repository_person_snapshot.find(filters=filters)
+            flows = person_snapshots.to_flows()
+            if flows is None:
+                raise ApplicationPersonFlowSearchError(f"No flows found for person {params.person_id}")
+            return [ApplicationPersonFlowSearchItem(
+                person_id=params.person_id,
+                source_camera_id=flow.source_camera_id,
+                target_camera_id=flow.target_camera_id,
+                source_timestamp=flow.source_timestamp,
+                target_timestamp=flow.target_timestamp,
+            ) for flow in flows.flows]
+        except RepositoryPersonSnapshotFindError as error:
+            raise ApplicationPersonFlowSearchError(error.message) from error
