@@ -243,7 +243,6 @@ class RepositoryPersonSnapshot:
         except RepositoryDatabaseError as error:
             raise RepositoryPersonSnapshotDeleteError(error.message) from error
         except RepositoryStorageImageDeleteError as error:
-            self.database.rollback()
             raise RepositoryPersonSnapshotDeleteError(error.message) from error
 
     def next_queue(self, task_name: TaskName) -> DomainPersonSnapshot:
@@ -255,10 +254,10 @@ class RepositoryPersonSnapshot:
                 model = query.first()
                 if model is None:
                     raise RepositoryPersonSnapshotNextQueueError(f"person snapshot not found: {data['id']}")
-                image = self.storage.image_find_one(RepositoryStorageImageFindParams(
-                    name=str(model.id),
-                )).image
-                return self._model_to_domain(model, image)
+            image = self.storage.image_find_one(RepositoryStorageImageFindParams(
+                name=str(model.id),
+            )).image
+            return self._model_to_domain(model, image)
         except RepositoryDatabaseError as error:
             raise RepositoryPersonSnapshotNextQueueError(error.message) from error
         except RepositoryRedisDequeueError as error:
