@@ -7,7 +7,6 @@ from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
 from repositories.person.snapshot import RepositoryPersonSnapshotNextQueueError
 from repositories.person.snapshot import RepositoryPersonSnapshotFindError
 from repositories.person.snapshot import RepositoryPersonSnapshotUpdateError
-from repositories.person.snapshot import RepositoryPersonSnapshotUpdateError
 from environment import Environment
 from error import Error
 from dataclasses import dataclass
