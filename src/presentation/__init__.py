@@ -115,22 +115,16 @@ Request:
     Client Host: {client_host}
     URL: {url}
     Method: {method}
-    Headers: {headers}
-    Body: {body}
 """
-
     RESPONSE_LOG_TEMPLATE = """
 Response:
     ID: {id}
     Client Host: {client_host}
     URL: {url}
     Method: {method}
-    Headers: {headers}
-    Body: {body}
     Status Code: {status_code}
     Response Time: {response_time}s
 """
-
     def __init__(self, app: ASGIApp, logger: PresentationLogger):
         super().__init__(app=app)
         self.logger = logger
@@ -144,8 +138,6 @@ Response:
             client_host=request.client.host if request.client is not None else "unknown",
             url=request.url,
             method=request.method,
-            headers=request.headers,
-            body=request.body,
         ))
         response = await call_next(request)
         response_time = time.time() - start_time
@@ -154,8 +146,6 @@ Response:
             client_host=request.client.host if request.client is not None else "unknown",
             url=request.url,
             method=request.method,
-            headers=response.headers,
-            body=response.body,
             status_code=response.status_code,
             response_time=response_time,
         ))
