@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from PIL import Image
+import PIL
 from dataclasses import dataclass
 from typing import Type, Awaitable
 from types import TracebackType
@@ -143,21 +144,39 @@ class RepositoryStorage:
         return image_name
 
     def image_save(self, image: RepositoryStorageImage) -> None:
-        if image.image.format is None:
-            raise RepositoryStorageImageSaveError(
-                f"image format is None: {image.name}")
-        image.image.save(self.images_directory /
-                         f"{image.name}.{image.image.format.lower()}")
+        try:
+            if image.image.format is None:
+                raise RepositoryStorageImageSaveError(f"image format is None: {image.name}")
+            image.image.save(self.images_directory /f"{image.name}.{image.image.format.lower()}")
+        except ValueError as error:
+            raise RepositoryStorageImageSaveError(f"image format is invalid") from error
+        except OSError as error:
+            raise RepositoryStorageImageSaveError(f"image save failed") from error
 
     def image_find_one(self, params: RepositoryStorageImageFindParams) -> RepositoryStorageImageFindResult:
-        image_name = self._fetch_image_name(params.name)
-        with open(image_name, "rb") as file:
-            file_content = file.read()
-            image_stream = io.BytesIO(file_content)
-            return RepositoryStorageImageFindResult(
-                name=params.name,
-                image=Image.open(image_stream),
-            )
+        try:
+            image_name = self._fetch_image_name(params.name)
+            with open(image_name, "rb") as file:
+                file_content = file.read()
+                image_stream = io.BytesIO(file_content)
+                return RepositoryStorageImageFindResult(
+                    name=params.name,
+                    image=Image.open(image_stream),
+                )
+        except FileNotFoundError as error:
+            raise RepositoryStorageImageFindError(f"image not found") from error
+        except PermissionError as error:
+            raise RepositoryStorageImageFindError(f"image permission error") from error
+        except IsADirectoryError as error:
+            raise RepositoryStorageImageFindError(f"image is a directory") from error
+        except PIL.UnidentifiedImageError as error:
+            raise RepositoryStorageImageFindError(
+                f"image is corrupted or in an unsupported format") from error
+        except Image.DecompressionBombError as error:
+            raise RepositoryStorageImageFindError(
+                f"image decompression bomb error") from error
+        except OSError as error:
+            raise RepositoryStorageImageFindError(f"image find failed") from error
 
     def image_find_all(self, params: list[RepositoryStorageImageFindParams]) -> list[RepositoryStorageImageFindResult]:
         if len(params) == 0:
