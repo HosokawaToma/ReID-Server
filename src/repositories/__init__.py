@@ -162,6 +162,8 @@ class RepositoryStorage:
             )
 
     def image_find_all(self, params: list[RepositoryStorageImageFindParams]) -> list[RepositoryStorageImageFindResult]:
+        if len(params) == 0:
+            return []
         cpu_count = os.cpu_count()
         if cpu_count is None:
             raise RepositoryStorageImageFindError("cpu count is None")
