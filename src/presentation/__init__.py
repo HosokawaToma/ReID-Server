@@ -1,23 +1,28 @@
 import logging
 import fastapi
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp
 from fastapi import Depends, UploadFile, Form, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
 import abc
 from functools import lru_cache
-from typing import Any, Annotated, Sequence
+from typing import Any, Annotated, Sequence, Callable, Awaitable
 from enum import Enum
 from PIL import Image
 import io
 from datetime import datetime
-from fastapi import Request
+from fastapi import Request, Response
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Params
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Error
 from environment import Environment
 from pydantic import BaseModel
 from error import Error
+import time
+import uuid
+import traceback
 
 class PresentationLogger:
     def __init__(self):
@@ -103,8 +108,71 @@ class PresentationBase:
     async def handle(self, *args, **kwargs) -> PresentationJSONResponse | PresentationImageResponse:
         pass
 
+class PresentationMiddleware(BaseHTTPMiddleware):
+    REQUEST_LOG_TEMPLATE = """
+Request:
+    ID: {id}
+    Client Host: {client_host}
+    URL: {url}
+    Method: {method}
+    Headers: {headers}
+    Body: {body}
+"""
+
+    RESPONSE_LOG_TEMPLATE = """
+Response:
+    ID: {id}
+    Client Host: {client_host}
+    URL: {url}
+    Method: {method}
+    Headers: {headers}
+    Body: {body}
+    Status Code: {status_code}
+    Response Time: {response_time}s
+"""
+
+    def __init__(self, app: ASGIApp, logger: PresentationLogger):
+        super().__init__(app=app)
+        self.logger = logger
+
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]):
+        request_id = str(uuid.uuid4())
+        request.state.request_id = request_id
+        start_time = time.time()
+        self.logger.info(self.REQUEST_LOG_TEMPLATE.format(
+            id=request_id,
+            client_host=request.client.host if request.client is not None else "unknown",
+            url=request.url,
+            method=request.method,
+            headers=request.headers,
+            body=request.body,
+        ))
+        response = await call_next(request)
+        response_time = time.time() - start_time
+        self.logger.info(self.RESPONSE_LOG_TEMPLATE.format(
+            id=request_id,
+            client_host=request.client.host if request.client is not None else "unknown",
+            url=request.url,
+            method=request.method,
+            headers=response.headers,
+            body=response.body,
+            status_code=response.status_code,
+            response_time=response_time,
+        ))
+        return response
 
 class PresentationExceptionHandler:
+    EXCEPTION_LOG_TEMPLATE = """
+Unexpected Error:
+    Request ID: {request_id}
+    Traceback: {traceback}
+"""
+    ERROR_LOG_TEMPLATE = """
+Error:
+    Request ID: {request_id}
+    Message: {message}
+"""
+
     def __init__(self, logger: PresentationLogger):
         self.logger = logger
 
@@ -117,7 +185,10 @@ class PresentationExceptionHandler:
         app.add_exception_handler(Exception, self.exception_handler)
 
     async def exception_handler(self, request: Request, exc: Exception):
-        self.logger.error(f"Unexpected error occurred: {exc}")
+        self.logger.error(self.EXCEPTION_LOG_TEMPLATE.format(
+            request_id=request.state.request_id,
+            traceback=traceback.format_exc(),
+        ))
         return PresentationJSONResponse(
             status=500,
             content={
@@ -126,7 +197,10 @@ class PresentationExceptionHandler:
         )
 
     async def error_handler(self, request: Request, exc: Exception):
-        self.logger.error(f"Error occurred: {exc}")
+        self.logger.error(self.ERROR_LOG_TEMPLATE.format(
+            request_id=request.state.request_id,
+            message=str(exc),
+        ))
         return PresentationJSONResponse(
             status=500,
             content={
