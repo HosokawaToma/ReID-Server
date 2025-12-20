@@ -9,7 +9,7 @@ from typing import Type, Awaitable
 from types import TracebackType
 import glob
 import io
-from redis import Redis
+from redis import Redis, RedisError
 import json
 import os
 import concurrent.futures
@@ -247,14 +247,20 @@ class RepositoryRedis:
         )
 
     def push(self, value: dict[str, str], key: str) -> None:
-        result = self.redis.rpush(key, json.dumps(value))
+        try:
+            result = self.redis.rpush(key, json.dumps(value))
+        except RedisError as error:
+            raise RepositoryRedisPushError(f"failed to push") from error
         if result is None:
             raise RepositoryRedisPushError("result is None")
         if isinstance(result, Awaitable):
             raise RepositoryRedisPushError("result is Awaitable")
 
     def dequeue(self, key: str) -> dict[str, str]:
-        result = self.redis.blpop([key])
+        try:
+            result = self.redis.blpop([key])
+        except RedisError as error:
+            raise RepositoryRedisDequeueError(f"failed to dequeue") from error
         if result is None:
             raise RepositoryRedisDequeueError("result is None")
         if isinstance(result, Awaitable):
