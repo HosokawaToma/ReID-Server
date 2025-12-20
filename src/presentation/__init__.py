@@ -195,6 +195,7 @@ Error:
             request_id = request.state.request_id
         else:
             request_id = self.UNKNOWN_REQUEST_ID
+        # エラーをそのままログに載せるのは機密性の観点から避けるべきだが、ログから調査ができなくなるため出力する
         self.logger.error(self.ERROR_LOG_TEMPLATE.format(
             request_id=request_id,
             message=str(exc),
