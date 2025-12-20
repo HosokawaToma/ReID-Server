@@ -22,7 +22,6 @@ from repositories import RepositoryRedis
 from repositories import RepositoryRedisPushError
 from PIL import Image
 from repositories import RepositoryStorageImageSaveError
-from itertools import zip_longest
 
 @dataclass
 class RepositoryPersonSnapshotFilters:
