@@ -207,8 +207,10 @@ class RepositoryPersonSnapshot:
                     name=str(model.id),
                 ) for model in models]
             )
+            if len(models) != len(images):
+                raise RepositoryPersonSnapshotFindError("person snapshot and image count mismatch")
             return DomainPersonSnapshotSequence(
-                person_snapshots=[self._model_to_domain(model, image.image) for model, image in zip_longest(models, images)],
+                person_snapshots=[self._model_to_domain(model, image.image) for model, image in zip(models, images)],
             )
         except RepositoryStorageImageFindError as error:
             raise RepositoryPersonSnapshotFindError(error.message) from error
@@ -248,7 +250,8 @@ class RepositoryPersonSnapshot:
             self.storage.image_delete_all(
                 [RepositoryStorageImageDeleteParams(name=str(model.id)) for model in models])
             with self.database as session:
-                session.delete(models)
+                for model in models:
+                    session.delete(model)
         except RepositoryDatabaseError as error:
             raise RepositoryPersonSnapshotDeleteError(error.message) from error
         except RepositoryStorageImageDeleteError as error:
