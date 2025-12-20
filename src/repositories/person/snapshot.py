@@ -157,8 +157,8 @@ class RepositoryPersonSnapshot:
             try:
                 with self.database as session:
                     session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id == snapshot.id).delete()
-            except RepositoryDatabaseError as error:
-                raise RepositoryPersonSnapshotSaveError(error.message) from error
+            except RepositoryDatabaseError as delete_error:
+                raise RepositoryPersonSnapshotSaveError(delete_error.message) from delete_error
             raise RepositoryPersonSnapshotSaveError(error.message) from error
 
     def find_first(
