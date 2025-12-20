@@ -22,6 +22,7 @@ from repositories import RepositoryRedis
 from repositories import RepositoryRedisPushError
 from PIL import Image
 from repositories import RepositoryStorageImageSaveError
+from itertools import zip_longest
 
 @dataclass
 class RepositoryPersonSnapshotFilters:
@@ -207,7 +208,7 @@ class RepositoryPersonSnapshot:
                 ) for model in models]
             )
             return DomainPersonSnapshotSequence(
-                person_snapshots=[self._model_to_domain(model, image.image) for model, image in zip(models, images)],
+                person_snapshots=[self._model_to_domain(model, image.image) for model, image in zip_longest(models, images)],
             )
         except RepositoryStorageImageFindError as error:
             raise RepositoryPersonSnapshotFindError(error.message) from error
@@ -237,16 +238,17 @@ class RepositoryPersonSnapshot:
     def delete(
         self,
         filters: RepositoryPersonSnapshotFilters,
-    ) -> int:
+    ) -> None:
         try:
             with self.database as session:
                 query = session.query(MigrationModelPersonSnapshot)
                 query = self._build_filters(query, filters)
-                result = query.delete(synchronize_session=False)
-                self.storage.image_delete(RepositoryStorageImageDeleteParams(
-                        name=str(filters.ids),
-                    ))
-                return result
+                models = query.all()
+                session.expunge_all()
+            self.storage.image_delete_all(
+                [RepositoryStorageImageDeleteParams(name=str(model.id)) for model in models])
+            with self.database as session:
+                session.delete(models)
         except RepositoryDatabaseError as error:
             raise RepositoryPersonSnapshotDeleteError(error.message) from error
         except RepositoryStorageImageDeleteError as error:

@@ -189,6 +189,11 @@ class RepositoryStorage:
         image_name = self._fetch_image_name(params.name)
         os.remove(image_name)
 
+    def image_delete_all(self, params: list[RepositoryStorageImageDeleteParams]) -> None:
+        image_names = [self._fetch_image_name(param.name) for param in params]
+        for image_name in image_names:
+            os.remove(image_name)
+
 
 class RepositoryRedisError(Error):
     pass
