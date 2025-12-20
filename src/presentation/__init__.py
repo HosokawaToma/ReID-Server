@@ -175,7 +175,7 @@ Error:
         app.add_exception_handler(Exception, self.exception_handler)
 
     async def exception_handler(self, request: Request, exc: Exception):
-        if request.state is not None or request.state.request_id is not None:
+        if request.state is not None and request.state.request_id is not None:
             request_id = request.state.request_id
         else:
             request_id = self.UNKNOWN_REQUEST_ID
@@ -191,7 +191,7 @@ Error:
         )
 
     async def error_handler(self, request: Request, exc: Exception):
-        if request.state is not None or request.state.request_id is not None:
+        if request.state is not None and request.state.request_id is not None:
             request_id = request.state.request_id
         else:
             request_id = self.UNKNOWN_REQUEST_ID
