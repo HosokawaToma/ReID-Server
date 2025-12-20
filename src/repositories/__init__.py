@@ -19,7 +19,6 @@ from error import Error
 class RepositoryDatabaseError(Error):
     pass
 
-
 class RepositoryDatabase:
     ENGINE_URL_TEMPLATE = "postgresql://{user}:{password}@{host}:{port}/{database}"
     _engine: Engine | None = None
@@ -60,7 +59,7 @@ class RepositoryDatabase:
             if self._session:
                 self._session.close()
                 self._session = None
-            raise error
+            raise RepositoryDatabaseError(f"failed to open session: {error}") from error
 
     def __exit__(
         self,
@@ -77,7 +76,7 @@ class RepositoryDatabase:
                 self._session.commit()
         except SQLAlchemyError as error:
             self._session.rollback()
-            raise error
+            raise RepositoryDatabaseError(f"failed to commit session: {error}") from error
         finally:
             self._session.close()
             self._session = None
