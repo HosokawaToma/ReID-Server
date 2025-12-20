@@ -17,6 +17,7 @@ from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAut
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Error
 from environment import Environment
 from pydantic import BaseModel
+from error import Error
 
 class PresentationLogger:
     def __init__(self):
@@ -101,6 +102,38 @@ class PresentationBase:
     @abc.abstractmethod
     async def handle(self, *args, **kwargs) -> PresentationJSONResponse | PresentationImageResponse:
         pass
+
+
+class PresentationExceptionHandler:
+    def __init__(self, logger: PresentationLogger):
+        self.logger = logger
+
+    @classmethod
+    def create(cls) -> "PresentationExceptionHandler":
+        return cls(logger=PresentationLogger())
+
+    def setup(self, app: fastapi.FastAPI):
+        app.add_exception_handler(Error, self.error_handler)
+        app.add_exception_handler(Exception, self.exception_handler)
+
+    async def exception_handler(self, request: Request, exc: Exception):
+        self.logger.error(f"Unexpected error occurred: {exc}")
+        return PresentationJSONResponse(
+            status=500,
+            content={
+                "message": "Internal Server Error",
+            },
+        )
+
+    async def error_handler(self, request: Request, exc: Exception):
+        self.logger.error(f"Error occurred: {exc}")
+        return PresentationJSONResponse(
+            status=500,
+            content={
+                "message": "Internal Server Error",
+            },
+        )
+
 
 PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
 
