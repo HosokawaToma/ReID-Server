@@ -49,6 +49,6 @@ class ApplicationPersonSnapshotCreate:
         except RepositoryFrameImagePushQueueError as error:
             try:
                 self.repository_frame_image.delete(frame_image)
-            except RepositoryFrameImageDeleteError as error:
-                raise ApplicationPersonSnapshotCreateError(error.message) from error
+            except RepositoryFrameImageDeleteError as delete_error:
+                raise ApplicationPersonSnapshotCreateError(delete_error.message) from delete_error
             raise ApplicationPersonSnapshotCreateError(error.message) from error
