@@ -168,10 +168,23 @@ class RepositoryStorage:
         if cpu_count is None:
             raise RepositoryStorageImageFindError("cpu count is None")
         with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(params), cpu_count * 5)) as executor:
-            futures = [executor.submit(self.image_find_one, param)
-                       for param in params]
-            results = [future.result() for future in futures]
-            return results
+            future_to_index: dict[concurrent.futures.Future, int] = {
+                executor.submit(self.image_find_one, param): index
+                for index, param in enumerate(params)
+            }
+            results: list[RepositoryStorageImageFindResult | None] = [None] * len(params)
+            exceptions: list[BaseException] = []
+            for future in concurrent.futures.as_completed(future_to_index):
+                index = future_to_index[future]
+                try:
+                    results[index] = future.result()
+                except Exception as exc:
+                    exceptions.append(exc)
+            if exceptions:
+                raise RepositoryStorageImageFindError(
+                    f"failed to load {len(exceptions)} images"
+                ) from exceptions[0]
+            return [result for result in results if result is not None]
 
     def image_delete(self, params: RepositoryStorageImageDeleteParams) -> None:
         image_name = self._fetch_image_name(params.name)
