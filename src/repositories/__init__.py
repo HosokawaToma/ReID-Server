@@ -74,7 +74,8 @@ class RepositoryDatabase:
         try:
             if exc_type is not None:
                 self._session.rollback()
-            self._session.commit()
+            else:
+                self._session.commit()
         except SQLAlchemyError as error:
             self._session.rollback()
             raise error
@@ -87,9 +88,11 @@ class RepositoryStorageImage:
     name: str
     image: Image.Image
 
+
 @dataclass
 class RepositoryStorageImageFindParams:
     name: str
+
 
 @dataclass
 class RepositoryStorageImageFindResult:
@@ -101,14 +104,22 @@ class RepositoryStorageImageFindResult:
 class RepositoryStorageImageDeleteParams:
     name: str
 
+
 class RepositoryStorageImageError(Error):
     pass
+
+
 class RepositoryStorageImageFindError(RepositoryStorageImageError):
     pass
+
+
 class RepositoryStorageImageSaveError(RepositoryStorageImageError):
     pass
+
+
 class RepositoryStorageImageDeleteError(RepositoryStorageImageError):
     pass
+
 
 class RepositoryStorage:
     def __init__(self, path: Path, directory: str):
@@ -135,8 +146,10 @@ class RepositoryStorage:
 
     def image_save(self, image: RepositoryStorageImage) -> None:
         if image.image.format is None:
-            raise RepositoryStorageImageSaveError(f"image format is None: {image.name}")
-        image.image.save(self.images_directory / f"{image.name}.{image.image.format.lower()}")
+            raise RepositoryStorageImageSaveError(
+                f"image format is None: {image.name}")
+        image.image.save(self.images_directory /
+                         f"{image.name}.{image.image.format.lower()}")
 
     def image_find_one(self, params: RepositoryStorageImageFindParams) -> RepositoryStorageImageFindResult:
         image_name = self._fetch_image_name(params.name)
@@ -153,7 +166,8 @@ class RepositoryStorage:
         if cpu_count is None:
             raise RepositoryStorageImageFindError("cpu count is None")
         with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(params), cpu_count * 5)) as executor:
-            futures = [executor.submit(self.image_find_one, param) for param in params]
+            futures = [executor.submit(self.image_find_one, param)
+                       for param in params]
             results = [future.result() for future in futures]
             return results
 
@@ -161,12 +175,18 @@ class RepositoryStorage:
         image_name = self._fetch_image_name(params.name)
         os.remove(image_name)
 
+
 class RepositoryRedisError(Error):
     pass
+
+
 class RepositoryRedisPushError(RepositoryRedisError):
     pass
+
+
 class RepositoryRedisDequeueError(RepositoryRedisError):
     pass
+
 
 class RepositoryRedis:
     def __init__(self, host: str, port: int, db: int):
