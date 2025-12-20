@@ -162,6 +162,7 @@ Error:
     Request ID: {request_id}
     Message: {message}
 """
+    UNKNOWN_REQUEST_ID = "unknown"
 
     def __init__(self, logger: PresentationLogger):
         self.logger = logger
@@ -175,8 +176,12 @@ Error:
         app.add_exception_handler(Exception, self.exception_handler)
 
     async def exception_handler(self, request: Request, exc: Exception):
+        if request.state is not None or request.state.request_id is not None:
+            request_id = request.state.request_id
+        else:
+            request_id = self.UNKNOWN_REQUEST_ID
         self.logger.error(self.EXCEPTION_LOG_TEMPLATE.format(
-            request_id=request.state.request_id,
+            request_id=request_id,
             traceback=traceback.format_exc(),
         ))
         return PresentationJSONResponse(
@@ -187,8 +192,12 @@ Error:
         )
 
     async def error_handler(self, request: Request, exc: Exception):
+        if request.state is not None or request.state.request_id is not None:
+            request_id = request.state.request_id
+        else:
+            request_id = self.UNKNOWN_REQUEST_ID
         self.logger.error(self.ERROR_LOG_TEMPLATE.format(
-            request_id=request.state.request_id,
+            request_id=request_id,
             message=str(exc),
         ))
         return PresentationJSONResponse(
