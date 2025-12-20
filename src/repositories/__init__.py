@@ -185,14 +185,19 @@ class RepositoryStorage:
             return [result for result in results if result is not None]
 
     def image_delete(self, params: RepositoryStorageImageDeleteParams) -> None:
-        image_name = self._fetch_image_name(params.name)
-        os.remove(image_name)
+        try:
+            image_name = self._fetch_image_name(params.name)
+            os.remove(image_name)
+        except FileNotFoundError as error:
+            raise RepositoryStorageImageDeleteError(f"image not found") from error
 
     def image_delete_all(self, params: list[RepositoryStorageImageDeleteParams]) -> None:
-        image_names = [self._fetch_image_name(param.name) for param in params]
-        for image_name in image_names:
-            os.remove(image_name)
-
+        try:
+            image_names = [self._fetch_image_name(param.name) for param in params]
+            for image_name in image_names:
+                os.remove(image_name)
+        except FileNotFoundError as error:
+            raise RepositoryStorageImageDeleteError(f"image not found") from error
 
 class RepositoryRedisError(Error):
     pass
