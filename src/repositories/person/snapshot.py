@@ -138,6 +138,10 @@ class RepositoryPersonSnapshot:
 
     def save(self, snapshot: DomainPersonSnapshot) -> None:
         try:
+            self.storage.image_save(RepositoryStorageImage(
+                name=str(snapshot.id),
+                image=snapshot.image,
+            ))
             with self.database as session:
                 session.add(MigrationModelPersonSnapshot(
                     id=snapshot.id,
@@ -147,18 +151,15 @@ class RepositoryPersonSnapshot:
                     person_id=snapshot.person_id,
                     feature=snapshot.feature.cpu().numpy().tolist() if snapshot.feature is not None else None
                 ))
-            self.storage.image_save(RepositoryStorageImage(
-                name=str(snapshot.id),
-                image=snapshot.image,
-            ))
-        except RepositoryDatabaseError as error:
-            raise RepositoryPersonSnapshotSaveError(error.message) from error
         except RepositoryStorageImageSaveError as error:
+            raise RepositoryPersonSnapshotSaveError(error.message) from error
+        except RepositoryDatabaseError as error:
             try:
-                with self.database as session:
-                    session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id == snapshot.id).delete()
-            except RepositoryDatabaseError as delete_error:
-                raise RepositoryPersonSnapshotSaveError(delete_error.message) from delete_error
+                self.storage.image_delete(RepositoryStorageImageDeleteParams(
+                    name=str(snapshot.id),
+                ))
+            except RepositoryStorageImageDeleteError as error:
+                raise RepositoryPersonSnapshotSaveError(error.message) from error
             raise RepositoryPersonSnapshotSaveError(error.message) from error
 
     def find_first(
