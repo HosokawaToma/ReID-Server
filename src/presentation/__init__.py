@@ -113,15 +113,14 @@ class PresentationMiddleware(BaseHTTPMiddleware):
 Request:
     ID: {id}
     Client Host: {client_host}
-    URL: {url}
+    URI: {uri}
     Method: {method}
 """
     RESPONSE_LOG_TEMPLATE = """
 Response:
     ID: {id}
     Client Host: {client_host}
-    URL: {url}
-    Method: {method}
+    URI: {uri}
     Status Code: {status_code}
     Response Time: {response_time}s
 """
@@ -136,7 +135,7 @@ Response:
         self.logger.info(self.REQUEST_LOG_TEMPLATE.format(
             id=request_id,
             client_host=request.client.host if request.client is not None else "unknown",
-            url=request.url,
+            uri=request.url.path,
             method=request.method,
         ))
         response = await call_next(request)
@@ -144,7 +143,7 @@ Response:
         self.logger.info(self.RESPONSE_LOG_TEMPLATE.format(
             id=request_id,
             client_host=request.client.host if request.client is not None else "unknown",
-            url=request.url,
+            uri=request.url.path,
             method=request.method,
             status_code=response.status_code,
             response_time=response_time,
