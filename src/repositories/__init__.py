@@ -221,7 +221,7 @@ class RepositoryStorage:
         cpu_count = os.cpu_count()
         if cpu_count is None:
             raise RepositoryStorageImageCPUCountNoneError()
-        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(params), cpu_count * 5)) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(params), cpu_count)) as executor:
             future_to_index: dict[concurrent.futures.Future, int] = {
                 executor.submit(self.image_find_one, param): index
                 for index, param in enumerate(params)
