@@ -181,6 +181,18 @@ class RepositoryStorage:
             raise RepositoryStorageImageInvalidSaveError(error) from error
 
     def image_find_one(self, params: RepositoryStorageImageName) -> RepositoryStorageImage:
+        """
+        ストレージ内の画像を1件取得する
+        コピーした画像を返すため、ストリーミングではなくメモリ上に読み込む
+        :param params RepositoryStorageImageName: 画像名
+        :return RepositoryStorageImage: 画像
+        :raise RepositoryStorageImageNotFoundError: 画像が見つからない場合
+        :raise RepositoryStorageImagePermissionError: 画像にアクセスできない場合
+        :raise RepositoryStorageImageIsADirectoryError: 画像がディレクトリの場合
+        :raise RepositoryStorageImageUnidentifiedImageError: 画像が不明な形式の場合
+        :raise RepositoryStorageImageDecompressionBombError: 画像が圧縮爆弾の場合
+        :raise RepositoryStorageImageOSError: 画像を読み込めない場合
+        """
         try:
             image_name = self._fetch_image_name(params.name)
             with open(image_name, "rb") as file:
