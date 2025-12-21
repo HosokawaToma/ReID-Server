@@ -142,7 +142,6 @@ class RepositoryPersonSnapshot:
                     person_id=snapshot.person_id,
                     feature=snapshot.feature.cpu().numpy().tolist() if snapshot.feature is not None else None
                 ))
-                session.flush()
                 self.storage.image_save(RepositoryStorageImage(
                     name=str(snapshot.id),
                     image=snapshot.image,
@@ -243,11 +242,10 @@ class RepositoryPersonSnapshot:
                 model = query.first()
                 if model is None:
                     raise RepositoryPersonSnapshotNextQueueError()
-                session.expunge(model)
-            image = self.storage.image_find_one(RepositoryStorageImageName(
-                name=str(model.id),
-            )).image
-            return self._model_to_domain(model, image)
+                image = self.storage.image_find_one(RepositoryStorageImageName(
+                    name=str(model.id),
+                )).image
+                return self._model_to_domain(model, image)
         except Error as error:
             raise RepositoryPersonSnapshotNextQueueError(error) from error
 
