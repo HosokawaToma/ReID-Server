@@ -11,4 +11,4 @@ class Error(Exception):
         return self.exception_classes + [self.__class__]
 
     def __str__(self):
-        return "->".join([exception_class.__qualname__ for exception_class in self.exception_classes])
+        return "->".join([exception_class.__qualname__ for exception_class in self.to_list()])
