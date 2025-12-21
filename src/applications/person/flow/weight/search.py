@@ -21,6 +21,9 @@ class ApplicationPersonFlowWeightSearchItem:
 class ApplicationPersonFlowWeightSearchError(Error):
     pass
 
+class ApplicationPersonFlowWeightSearchNoFlowsFoundError(ApplicationPersonFlowWeightSearchError):
+    pass
+
 class ApplicationPersonFlowWeightSearch:
     def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot):
         self.repository_person_snapshot = repository_person_snapshot
@@ -39,10 +42,13 @@ class ApplicationPersonFlowWeightSearch:
                 timestamp_before=params.timestamp_before,
                 person_ids=params.person_ids,
             )
-        person_snapshots = self.repository_person_snapshot.find(filters=filters)
-        flows = person_snapshots.to_flows()
+        try:
+            person_snapshots = self.repository_person_snapshot.find(filters=filters)
+            flows = person_snapshots.to_flows()
+        except Error as error:
+            raise ApplicationPersonFlowWeightSearchError(error) from error
         if flows is None:
-            raise ApplicationPersonFlowWeightSearchError("No flows found")
+            raise ApplicationPersonFlowWeightSearchNoFlowsFoundError()
         return [ApplicationPersonFlowWeightSearchItem(
             target_camera_id=flow_weight.target_camera_id,
             source_camera_id=flow_weight.source_camera_id,

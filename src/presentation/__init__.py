@@ -1,45 +1,42 @@
 import logging
 import fastapi
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp
 from fastapi import Depends, UploadFile, Form, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
 import abc
 from functools import lru_cache
-from typing import Any, Annotated, Sequence
+from typing import Any, Annotated, Sequence, Callable, Awaitable
 from enum import Enum
 from PIL import Image
 import io
 from datetime import datetime
-from fastapi import Request
-from error import Error
+from fastapi import Request, Response
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Params
+from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Error
 from environment import Environment
 from pydantic import BaseModel
-
-class PresentationLogger:
-    def __init__(self):
-        self.logger = logging.getLogger("presentation")
-
-    def error(self, message: str):
-        self.logger.error(message)
-
-    def warning(self, message: str):
-        self.logger.warning(message)
-
-    def info(self, message: str):
-        self.logger.info(message)
-
-    def debug(self, message: str):
-        self.logger.debug(message)
+from error import Error
+import uuid
+from logger import Logger
 
 class PresentationRequest(Request):
+    UNKNOWN_REQUEST_ID = "unknown"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def get_refresh_token(self) -> str:
         return self.cookies.get("refresh_token", "")
+
+    def get_request_id(self) -> str:
+        if self.state is not None:
+            return getattr(self.state, "request_id", self.UNKNOWN_REQUEST_ID)
+        else:
+            return self.UNKNOWN_REQUEST_ID
 
 class PresentationRequestBody(BaseModel):
     pass
@@ -83,7 +80,7 @@ class PresentationBase:
     responses: dict[int | str, dict[str, Any]] | None = None
     dependencies: Sequence[Annotated[Any, Depends]] | None = None
 
-    def __init__(self, logger: PresentationLogger):
+    def __init__(self, logger: Logger):
         self.logger = logger
 
     def setup(self, app: fastapi.FastAPI):
@@ -102,8 +99,71 @@ class PresentationBase:
     async def handle(self, *args, **kwargs) -> PresentationJSONResponse | PresentationImageResponse:
         pass
 
-PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
+class PresentationMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app: ASGIApp, logger: Logger):
+        super().__init__(app=app)
+        self.logger = logger
 
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]):
+        request_id = str(uuid.uuid4())
+        request.state.request_id = request_id
+        self.logger.info("Request received", request_id=request_id)
+        response = await call_next(request)
+        self.logger.info("Response sent", request_id=request_id)
+        return response
+
+class PresentationExceptionHandler:
+    def __init__(self, logger: Logger):
+        self.logger = logger
+
+    @classmethod
+    def create(cls) -> "PresentationExceptionHandler":
+        return cls(logger=Logger("presentation_exception_handler"))
+
+    def setup(self, app: fastapi.FastAPI):
+        app.add_exception_handler(Error, self.error_handler)
+        app.add_exception_handler(Exception, self.exception_handler)
+
+    async def exception_handler(self, request: Request, exc: Exception):
+        """
+        実装上想定していない例外が発生した場合の処理
+        :param Request request: リクエスト
+        :param Exception exc: 例外
+        :return PresentationJSONResponse: 500エラー
+        """
+        if request.state is not None and request.state.request_id is not None:
+            request_id = request.state.request_id
+        else:
+            request_id = None
+        self.logger.unexpected_error(exc, request_id=request_id)
+        return PresentationJSONResponse(
+            status=500,
+            content={
+                "message": "Internal Server Error",
+            },
+        )
+
+    async def error_handler(self, request: Request, exc: Exception):
+        """
+        実装上想定したエラーだが、ユーザに表示する必要のないエラーが発生した場合の処理
+        ユーザに表示する必要がないため、500エラーを返す
+        :param Request request: リクエスト
+        :param Exception exc: 例外
+        :return PresentationJSONResponse: 500エラー
+        """
+        if request.state is not None and request.state.request_id is not None:
+            request_id = request.state.request_id
+        else:
+            request_id = None
+        self.logger.error(Error(exc), request_id=request_id)
+        return PresentationJSONResponse(
+            status=500,
+            content={
+                "message": "Internal Server Error",
+            },
+        )
+
+PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
 
 @lru_cache
 def get_admin_client_auth_application(
@@ -115,8 +175,9 @@ def admin_client_authenticated(
     token: PresentationTypeAuthorization,
     application: ApplicationAdminClientAuthOAuth2 = Depends(get_admin_client_auth_application),
 ) -> str:
-    result = application.oauth2(ApplicationAdminClientAuthOAuth2Params(token=token))
-    if result.admin_client_id is None:
+    try:
+        result = application.oauth2(ApplicationAdminClientAuthOAuth2Params(token=token))
+    except ApplicationAdminClientAuthOAuth2Error as error:
         raise HTTPException(
             status_code=401,
             detail="Invalid authorization",
@@ -125,7 +186,6 @@ def admin_client_authenticated(
     return result.admin_client_id
 
 PresentationAdminClientAuthenticated = Annotated[str, Depends(admin_client_authenticated)]
-
 
 
 class PresentationImageError(Exception):

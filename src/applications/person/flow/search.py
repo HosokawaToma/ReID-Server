@@ -23,6 +23,9 @@ class ApplicationPersonFlowSearchItem:
 class ApplicationPersonFlowSearchError(Error):
     pass
 
+class ApplicationPersonFlowSearchNoFlowsFoundError(ApplicationPersonFlowSearchError):
+    pass
+
 class ApplicationPersonFlowSearch:
     def __init__(
         self,
@@ -44,10 +47,13 @@ class ApplicationPersonFlowSearch:
             timestamp_before=params.timestamp_before,
             person_ids=[params.person_id],
         )
-        person_snapshots = self.repository_person_snapshot.find(filters=filters)
-        flows = person_snapshots.to_flows()
+        try:
+            person_snapshots = self.repository_person_snapshot.find(filters=filters)
+            flows = person_snapshots.to_flows()
+        except Error as error:
+            raise ApplicationPersonFlowSearchError(error) from error
         if flows is None:
-            raise ApplicationPersonFlowSearchError(f"No flows found for person {params.person_id}")
+            raise ApplicationPersonFlowSearchNoFlowsFoundError()
         return [ApplicationPersonFlowSearchItem(
             person_id=params.person_id,
             source_camera_id=flow.source_camera_id,

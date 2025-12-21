@@ -6,7 +6,7 @@ from presentation import PresentationTypeImage
 from presentation import PresentationTypeDatetime
 from presentation import PresentationTypeInt
 from presentation import PresentationJSONResponse
-from presentation import PresentationLogger
+from logger import Logger
 from environment import Environment
 
 class PresentationPersonSnapshotCreate(PresentationBase):
@@ -21,7 +21,7 @@ class PresentationPersonSnapshotCreate(PresentationBase):
     }
     def __init__(
         self,
-        logger: PresentationLogger,
+        logger: Logger,
         application: ApplicationPersonSnapshotCreate,
     ):
         super().__init__(logger=logger)
@@ -30,7 +30,7 @@ class PresentationPersonSnapshotCreate(PresentationBase):
     @classmethod
     def create(cls, environment: Environment) -> "PresentationPersonSnapshotCreate":
         return cls(
-            logger=PresentationLogger(),
+            logger=Logger("person_snapshot_create"),
             application=ApplicationPersonSnapshotCreate.create(
                 environment=environment,
             ),

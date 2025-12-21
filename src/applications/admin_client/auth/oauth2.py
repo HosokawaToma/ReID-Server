@@ -15,6 +15,9 @@ class ApplicationAdminClientAuthOAuth2Result:
 class ApplicationAdminClientAuthOAuth2Error(Error):
     pass
 
+class ApplicationAdminClientAuthOAuth2InvalidTokenError(ApplicationAdminClientAuthOAuth2Error):
+    pass
+
 class ApplicationAdminClientAuthOAuth2:
     def __init__(self, admin_client: DomainAdminClient, token_converter: DomainTokenConverter):
         self.admin_client = admin_client
@@ -34,7 +37,7 @@ class ApplicationAdminClientAuthOAuth2:
     def oauth2(self, params: ApplicationAdminClientAuthOAuth2Params) -> ApplicationAdminClientAuthOAuth2Result:
         admin_client_id = self.admin_client.verify_token(params.token, self.token_converter)
         if admin_client_id is None:
-            raise ApplicationAdminClientAuthOAuth2Error("Invalid token")
+            raise ApplicationAdminClientAuthOAuth2InvalidTokenError()
         return ApplicationAdminClientAuthOAuth2Result(
             admin_client_id=admin_client_id,
         )

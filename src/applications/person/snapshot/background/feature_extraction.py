@@ -1,8 +1,5 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from domain.person.snapshot import DomainPersonSnapshot
-from repositories.person.snapshot import RepositoryPersonSnapshot
-from repositories.person.snapshot import RepositoryPersonSnapshotFilters
-from repositories.person.snapshot import RepositoryPersonSnapshotError
 from modules.reid.model import ModuleReIDModel
 from environment import Environment
 from error import Error
@@ -39,5 +36,5 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
             self.repository_person_snapshot.update(person_snapshot)
             self.repository_person_snapshot.push_queue(task_name="person_snapshot:identify", person_snapshot=person_snapshot)
             return person_snapshot
-        except RepositoryPersonSnapshotError as e:
-            raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(e.message)
+        except Error as error:
+            raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(error) from error

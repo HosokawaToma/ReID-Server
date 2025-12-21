@@ -1,10 +1,11 @@
 from presentation import PresentationBase
-from presentation import PresentationLogger
+from logger import Logger
 from presentation import PresentationRequest
 from presentation import PresentationJSONResponse
 from environment import Environment
 from applications.admin_client.auth.token_refresh import ApplicationAdminClientAuthTokenRefresh
 from applications.admin_client.auth.token_refresh import ApplicationAdminClientAuthTokenRefreshParams
+from applications.admin_client.auth.token_refresh import ApplicationAdminClientAuthTokenRefreshError
 
 class PresentationAdminAuthTokenRefresh(PresentationBase):
     router_path = "/admin/auth/token/refresh"
@@ -17,23 +18,29 @@ class PresentationAdminAuthTokenRefresh(PresentationBase):
         401: {"description": "Invalid token"},
     }
 
-    def __init__(self, logger: PresentationLogger, application: ApplicationAdminClientAuthTokenRefresh):
+    def __init__(self, logger: Logger, application: ApplicationAdminClientAuthTokenRefresh):
         super().__init__(logger=logger)
         self.application = application
 
     @classmethod
     def create(cls, environment: Environment) -> "PresentationAdminAuthTokenRefresh":
         return cls(
-            logger=PresentationLogger(),
+            logger=Logger("admin_auth_token_refresh"),
             application=ApplicationAdminClientAuthTokenRefresh.create(environment=environment),
         )
 
     async def handle(self, request: PresentationRequest):
-        result = self.application.refresh(
-            ApplicationAdminClientAuthTokenRefreshParams(
-                refresh_token=request.get_refresh_token(),
-            ),
-        )
+        try:
+            result = self.application.refresh(
+                ApplicationAdminClientAuthTokenRefreshParams(
+                    refresh_token=request.get_refresh_token(),
+                ),
+            )
+        except ApplicationAdminClientAuthTokenRefreshError as error:
+            self.logger.error(error, request_id=request.get_request_id())
+            return PresentationJSONResponse(status=401, content={
+                "message": "Invalid token",
+            })
         response = PresentationJSONResponse(status=200, content={"token": result.token})
         response.set_refresh_token(refresh_token=result.refresh_token)
         return response

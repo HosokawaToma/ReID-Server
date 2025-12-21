@@ -4,7 +4,7 @@ from applications.person.snapshot.search import ApplicationPersonSnapshotSearchO
 from presentation import PresentationBase, PresentationRequestBody
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationJSONResponse
-from presentation import PresentationLogger
+from logger import Logger
 from environment import Environment
 from datetime import datetime
 import uuid
@@ -39,7 +39,7 @@ class PresentationPersonSnapshotSearch(PresentationBase):
 
     def __init__(
         self,
-        logger: PresentationLogger,
+        logger: Logger,
         application_person_snapshot_search: ApplicationPersonSnapshotSearch,
     ):
         super().__init__(logger=logger)
@@ -48,7 +48,7 @@ class PresentationPersonSnapshotSearch(PresentationBase):
     @classmethod
     def create(cls, environment: Environment) -> "PresentationPersonSnapshotSearch":
         return cls(
-            logger=PresentationLogger(),
+            logger=Logger("person_snapshot_search"),
             application_person_snapshot_search=ApplicationPersonSnapshotSearch.create(
                 environment=environment,
             ),
@@ -79,7 +79,6 @@ class PresentationPersonSnapshotSearch(PresentationBase):
             filters=filters,
             ordering=ordering,
         )
-        self.logger.info(f"Person snapshots found: {len(items)}")
         return PresentationJSONResponse(
             status=200,
             content={

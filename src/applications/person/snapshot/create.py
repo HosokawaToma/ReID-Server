@@ -1,10 +1,11 @@
 from repositories.frame_image import RepositoryFrameImage
+from repositories.frame_image import RepositoryFrameImagePushQueueError
 from domain.frame_image import DomainFrameImage
 from PIL import Image
 from datetime import datetime
 from dataclasses import dataclass
 from environment import Environment
-from repositories.frame_image import RepositoryFrameImageError
+from error import Error
 
 
 @dataclass
@@ -14,6 +15,8 @@ class ApplicationPersonSnapshotCreateParams:
     view_id: int
     timestamp: datetime
 
+class ApplicationPersonSnapshotCreateError(Error):
+    pass
 
 class ApplicationPersonSnapshotCreate:
     def __init__(
@@ -39,6 +42,11 @@ class ApplicationPersonSnapshotCreate:
         try:
             self.repository_frame_image.save(frame_image)
             self.repository_frame_image.push_queue(queue_name="frame_image:person_snapshot_create", frame_image=frame_image)
-        except RepositoryFrameImageError as e:
-            self.repository_frame_image.delete(frame_image)
-            raise e
+        except RepositoryFrameImagePushQueueError as error:
+            try:
+                self.repository_frame_image.delete(frame_image)
+            except Error as delete_error:
+                raise ApplicationPersonSnapshotCreateError(delete_error) from delete_error
+            raise ApplicationPersonSnapshotCreateError(error) from error
+        except Error as error:
+            raise ApplicationPersonSnapshotCreateError(error) from error

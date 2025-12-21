@@ -1,10 +1,11 @@
 from environment import Environment
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearch
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearchParams
-from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearchError
+from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearchNotFoundError
 from presentation import PresentationBase
 from presentation import PresentationAdminClientAuthenticated
-from presentation import PresentationLogger
+from presentation import PresentationRequest
+from logger import Logger
 from presentation import PresentationJSONResponse
 from presentation import PresentationImageResponse
 import uuid
@@ -29,7 +30,7 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
 
     def __init__(
         self,
-        logger: PresentationLogger,
+        logger: Logger,
         application_person_snapshot_image_search: ApplicationPersonSnapshotImageSearch
         ):
         super().__init__(logger=logger)
@@ -38,17 +39,18 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
     @classmethod
     def create(cls, environment: Environment) -> "PresentationPersonSnapshotImageSearch":
         return cls(
-            logger=PresentationLogger(),
+            logger=Logger("person_snapshot_image_search"),
             application_person_snapshot_image_search=ApplicationPersonSnapshotImageSearch.create(environment),
         )
 
-    async def handle(self, admin_client_id: PresentationAdminClientAuthenticated, id: uuid.UUID):
+    async def handle(self, admin_client_id: PresentationAdminClientAuthenticated, request: PresentationRequest, id: uuid.UUID):
         try:
             person_snapshot = self.application_person_snapshot_image_search.search(
                 ApplicationPersonSnapshotImageSearchParams(id=id)
             )
             return PresentationImageResponse(status=200, image=person_snapshot.image)
-        except ApplicationPersonSnapshotImageSearchError as e:
+        except ApplicationPersonSnapshotImageSearchNotFoundError as error:
+            self.logger.error(error, request_id=request.get_request_id())
             return PresentationJSONResponse(
                 status=404,
                 content={

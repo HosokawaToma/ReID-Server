@@ -1,4 +1,5 @@
-from background import Background, BackgroundLogger
+from background import Background
+from logger import Logger
 from applications.person.snapshot.background.identify import ApplicationPersonSnapshotBackgroundIdentify
 from environment import Environment
 
@@ -9,18 +10,17 @@ class BackgroundPersonSnapshotIdentify(Background):
 
     def __init__(
         self,
+        logger: Logger,
         application: ApplicationPersonSnapshotBackgroundIdentify,
-        *args,
-        **kwargs,
     ):
-        super().__init__(*args, **kwargs)
+        super().__init__(logger=logger)
         self.application = application
 
     @classmethod
     def create(cls, environment: Environment) -> "BackgroundPersonSnapshotIdentify":
         return cls(
+            logger=Logger("person_snapshot_identify"),
             application=ApplicationPersonSnapshotBackgroundIdentify.create(environment),
-            logger=BackgroundLogger(),
         )
 
     def handle(self) -> str:

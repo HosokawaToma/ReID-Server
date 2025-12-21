@@ -1,8 +1,9 @@
-from presentation import PresentationBase, PresentationLogger, PresentationJSONResponse, PresentationRequestBody
+from presentation import PresentationBase, PresentationJSONResponse, PresentationRequestBody
 from applications.person.snapshot.refresh import ApplicationPersonSnapshotRefresh
 from applications.person.snapshot.refresh import ApplicationPersonSnapshotRefreshParams
 from presentation import PresentationAdminClientAuthenticated
 from environment import Environment
+from logger import Logger
 from datetime import datetime
 
 class PresentationPersonSnapshotRefreshRequest(PresentationRequestBody):
@@ -25,7 +26,7 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
 
     def __init__(
         self,
-        logger: PresentationLogger,
+        logger: Logger,
         application: ApplicationPersonSnapshotRefresh,
     ):
         super().__init__(logger)
@@ -34,7 +35,7 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
     @classmethod
     def create(cls, environment: Environment) -> "PresentationPersonSnapshotRefresh":
         return cls(
-            logger=PresentationLogger(),
+            logger=Logger("person_snapshot_refresh"),
             application=ApplicationPersonSnapshotRefresh.create(
                 environment=environment,
             ),
