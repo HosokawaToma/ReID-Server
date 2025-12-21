@@ -216,6 +216,19 @@ class RepositoryStorage:
             raise RepositoryStorageImageOSError(error) from error
 
     def image_find_all(self, params: list[RepositoryStorageImageName]) -> list[RepositoryStorageImage]:
+        """
+        ストレージ内の画像を複数件取得する
+        並列処理を採用しているため、例外が発生した場合は最初に発生した例外を返す
+        :param params list[RepositoryStorageImageName]: 画像名のリスト
+        :return list[RepositoryStorageImage]: 画像のリスト
+        :raise RepositoryStorageImageCPUCountNoneError: CPUカウントが取得できない場合
+        :raise RepositoryStorageImageNotFoundError: 画像が見つからない場合
+        :raise RepositoryStorageImagePermissionError: 画像にアクセスできない場合
+        :raise RepositoryStorageImageIsADirectoryError: 画像がディレクトリの場合
+        :raise RepositoryStorageImageUnidentifiedImageError: 画像が不明な形式の場合
+        :raise RepositoryStorageImageDecompressionBombError: 画像が圧縮爆弾の場合
+        :raise RepositoryStorageImageOSError: 画像を読み込めない場合
+        """
         if len(params) == 0:
             return []
         cpu_count = os.cpu_count()
