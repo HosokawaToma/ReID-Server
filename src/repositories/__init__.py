@@ -196,7 +196,7 @@ class RepositoryStorage:
         """
         ストレージ内の画像を1件取得する
         コピーした画像を返すため、ストリーミングではなくメモリ上に読み込む
-        :param params RepositoryStorageImageName: 画像名
+        :param RepositoryStorageImageName params: 画像名
         :return RepositoryStorageImage: 画像
         :raise RepositoryStorageImageNotFoundError: 画像が見つからない場合
         :raise RepositoryStorageImagePermissionError: 画像にアクセスできない場合
