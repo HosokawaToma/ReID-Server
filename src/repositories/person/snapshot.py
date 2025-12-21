@@ -136,10 +136,6 @@ class RepositoryPersonSnapshot:
 
     def save(self, snapshot: DomainPersonSnapshot) -> None:
         try:
-            self.storage.image_save(RepositoryStorageImage(
-                name=str(snapshot.id),
-                image=snapshot.image,
-            ))
             with self.database as session:
                 session.add(MigrationModelPersonSnapshot(
                     id=snapshot.id,
@@ -149,12 +145,11 @@ class RepositoryPersonSnapshot:
                     person_id=snapshot.person_id,
                     feature=snapshot.feature.cpu().numpy().tolist() if snapshot.feature is not None else None
                 ))
-        except RepositoryDatabaseError as error:
-            try:
-                self.storage.image_delete(RepositoryStorageImageName(name=str(snapshot.id)))
-            except RepositoryStorageImageError as delete_error:
-                raise RepositoryPersonSnapshotSaveError(delete_error) from delete_error
-            raise RepositoryPersonSnapshotSaveError(error) from error
+                session.flush()
+                self.storage.image_save(RepositoryStorageImage(
+                    name=str(snapshot.id),
+                    image=snapshot.image,
+                ))
         except Error as error:
             raise RepositoryPersonSnapshotSaveError(error) from error
 
@@ -173,11 +168,10 @@ class RepositoryPersonSnapshot:
                 model = query.first()
                 if model is None:
                     return None
-                session.expunge(model)
-            image = self.storage.image_find_one(RepositoryStorageImageName(
-                name=str(model.id),
-            )).image
-            return self._model_to_domain(model, image)
+                image = self.storage.image_find_one(RepositoryStorageImageName(
+                    name=str(model.id),
+                )).image
+                return self._model_to_domain(model, image)
         except Error as error:
             raise RepositoryPersonSnapshotFindError(error) from error
 
@@ -194,17 +188,16 @@ class RepositoryPersonSnapshot:
                 if ordering is not None:
                     query = self._build_ordering(query, ordering)
                 models = query.all()
-                session.expunge_all()
-            images = self.storage.image_find_all(
-                [RepositoryStorageImageName(
-                    name=str(model.id),
-                ) for model in models]
-            )
-            if len(models) != len(images):
-                raise RepositoryPersonSnapshotFindNotFoundError()
-            return DomainPersonSnapshotSequence(
-                person_snapshots=[self._model_to_domain(model, image.image) for model, image in zip(models, images)],
-            )
+                images = self.storage.image_find_all(
+                    [RepositoryStorageImageName(
+                        name=str(model.id),
+                    ) for model in models]
+                )
+                if len(models) != len(images):
+                    raise RepositoryPersonSnapshotFindNotFoundError()
+                return DomainPersonSnapshotSequence(
+                    person_snapshots=[self._model_to_domain(model, image.image) for model, image in zip(models, images)],
+                )
         except Error as error:
             raise RepositoryPersonSnapshotFindError(error) from error
 
