@@ -20,17 +20,22 @@ from error import Error
 class RepositoryDatabaseError(Error):
     pass
 
+
 class RepositoryDatabaseTransactionError(RepositoryDatabaseError):
     pass
+
 
 class RepositoryDatabaseOpenError(RepositoryDatabaseError):
     pass
 
+
 class RepositoryDatabaseCommitError(RepositoryDatabaseError):
     pass
 
+
 class RepositoryDatabaseCloseError(RepositoryDatabaseError):
     pass
+
 
 class RepositoryDatabase:
     ENGINE_URL_TEMPLATE = "postgresql://{user}:{password}@{host}:{port}/{database}"
@@ -85,7 +90,8 @@ class RepositoryDatabase:
         try:
             if exc_type is not None:
                 self._session.rollback()
-                raise RepositoryDatabaseTransactionError(exc_value) from exc_value
+                raise RepositoryDatabaseTransactionError(
+                    exc_value) from exc_value
             self._session.commit()
         except SQLAlchemyError as error:
             self._session.rollback()
@@ -93,6 +99,7 @@ class RepositoryDatabase:
         finally:
             self._session.close()
             self._session = None
+
 
 @dataclass
 class RepositoryStorageImage:
@@ -104,8 +111,10 @@ class RepositoryStorageImage:
 class RepositoryStorageImageName:
     name: str
 
+
 class RepositoryStorageImageError(Error):
     pass
+
 
 class RepositoryStorageImageNotFoundError(RepositoryStorageImageError):
     pass
@@ -134,6 +143,7 @@ class RepositoryStorageImagePermissionError(RepositoryStorageImageError):
 class RepositoryStorageImageIsADirectoryError(RepositoryStorageImageError):
     pass
 
+
 class RepositoryStorageImageUnidentifiedImageError(RepositoryStorageImageError):
     pass
 
@@ -141,11 +151,14 @@ class RepositoryStorageImageUnidentifiedImageError(RepositoryStorageImageError):
 class RepositoryStorageImageDecompressionBombError(RepositoryStorageImageError):
     pass
 
+
 class RepositoryStorageImageOSError(RepositoryStorageImageError):
     pass
 
+
 class RepositoryStorageImageCPUCountNoneError(RepositoryStorageImageError):
     pass
+
 
 class RepositoryStorage:
     def __init__(self, path: Path, directory: str):
@@ -174,7 +187,8 @@ class RepositoryStorage:
         try:
             if image.image.format is None:
                 raise RepositoryStorageImageInvalidFormatError()
-            image.image.save(self.images_directory / f"{image.name}.{image.image.format.lower()}")
+            image.image.save(self.images_directory /
+                             f"{image.name}.{image.image.format.lower()}")
         except ValueError as error:
             raise RepositoryStorageImageInvalidSaveError(error) from error
         except OSError as error:
@@ -209,9 +223,11 @@ class RepositoryStorage:
         except IsADirectoryError as error:
             raise RepositoryStorageImageIsADirectoryError(error) from error
         except PIL.UnidentifiedImageError as error:
-            raise RepositoryStorageImageUnidentifiedImageError(error) from error
+            raise RepositoryStorageImageUnidentifiedImageError(
+                error) from error
         except Image.DecompressionBombError as error:
-            raise RepositoryStorageImageDecompressionBombError(error) from error
+            raise RepositoryStorageImageDecompressionBombError(
+                error) from error
         except OSError as error:
             raise RepositoryStorageImageOSError(error) from error
 
@@ -257,38 +273,87 @@ class RepositoryStorage:
             os.remove(image_name)
         except FileNotFoundError as error:
             raise RepositoryStorageImageNotFoundError(error) from error
+        except PermissionError as error:
+            raise RepositoryStorageImagePermissionError(error) from error
+        except IsADirectoryError as error:
+            raise RepositoryStorageImageIsADirectoryError(error) from error
+        except OSError as error:
+            raise RepositoryStorageImageInvalidDeleteError(error) from error
 
     def image_delete_all(self, params: list[RepositoryStorageImageName]) -> None:
+        """
+        ストレージ内の画像を複数件削除する
+        削除処理を行う前に存在・アクセス可能性の事前検証を行うため、一部ファイルのみ削除される可能性はない
+        事前検証に失敗した場合は例外を返す
+        事前検証に成功した場合は削除処理を行う
+        削除処理に失敗した場合は例外を返す
+        :param params list[RepositoryStorageImageName]: 画像名のリスト
+        :return None
+        :raise RepositoryStorageImageNotFoundError: 画像が見つからない場合
+        :raise RepositoryStorageImagePermissionError: 画像にアクセスできない場合
+        :raise RepositoryStorageImageIsADirectoryError: 画像がディレクトリの場合
+        :raise RepositoryStorageImageInvalidDeleteError: 画像を削除できない場合
+        """
+        if len(params) == 0:
+            return
+        image_names = [self._fetch_image_name(param.name) for param in params]
         try:
-            image_names = [self._fetch_image_name(param.name) for param in params]
+            for image_name in image_names:
+                os.lstat(image_name)
+                if os.path.isdir(image_name):
+                    raise IsADirectoryError(image_name)
+        except FileNotFoundError as error:
+            raise RepositoryStorageImageNotFoundError(error) from error
+        except PermissionError as error:
+            raise RepositoryStorageImagePermissionError(error) from error
+        except IsADirectoryError as error:
+            raise RepositoryStorageImageIsADirectoryError(error) from error
+        except OSError as error:
+            raise RepositoryStorageImageInvalidDeleteError(error) from error
+        try:
             for image_name in image_names:
                 os.remove(image_name)
         except FileNotFoundError as error:
             raise RepositoryStorageImageNotFoundError(error) from error
+        except PermissionError as error:
+            raise RepositoryStorageImagePermissionError(error) from error
+        except IsADirectoryError as error:
+            raise RepositoryStorageImageIsADirectoryError(error) from error
+        except OSError as error:
+            raise RepositoryStorageImageInvalidDeleteError(error) from error
+
 
 class RepositoryRedisError(Error):
     pass
 
+
 class RepositoryRedisPushError(RepositoryRedisError):
     pass
+
 
 class RepositoryRedisDequeueError(RepositoryRedisError):
     pass
 
+
 class RepositoryRedisResultNoneError(RepositoryRedisError):
     pass
+
 
 class RepositoryRedisResultAwaitableError(RepositoryRedisError):
     pass
 
+
 class RepositoryRedisResultLengthNot2Error(RepositoryRedisError):
     pass
+
 
 class RepositoryRedisResultValueNotStrOrBytesError(RepositoryRedisError):
     pass
 
+
 class RepositoryRedisResultDataNotDictError(RepositoryRedisError):
     pass
+
 
 class RepositoryRedis:
     def __init__(self, host: str, port: int, db: int):
