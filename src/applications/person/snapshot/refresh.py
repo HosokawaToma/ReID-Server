@@ -1,8 +1,6 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
-from repositories.person.snapshot import RepositoryPersonSnapshotFindError
-from repositories.person.snapshot import RepositoryPersonSnapshotPushQueueError
 from environment import Environment
 from datetime import datetime
 from dataclasses import dataclass
@@ -49,7 +47,5 @@ class ApplicationPersonSnapshotRefresh:
             )
             for person_snapshot in person_snapshots:
                 self.repository_person_snapshot.push_queue(task_name="person_snapshot:feature_extraction", person_snapshot=person_snapshot)
-        except RepositoryPersonSnapshotFindError as error:
-            raise ApplicationPersonSnapshotRefreshError(error.message) from error
-        except RepositoryPersonSnapshotPushQueueError as error:
-            raise ApplicationPersonSnapshotRefreshError(error.message) from error
+        except Error as error:
+            raise ApplicationPersonSnapshotRefreshError(error) from error

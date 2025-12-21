@@ -1,11 +1,12 @@
-from background import Background, BackgroundLogger
+from background import Background
 from applications.person.snapshot.background.feature_extraction import ApplicationPersonSnapshotBackgroundFeatureExtraction
 from environment import Environment
+from logger import Logger
 
 class BackgroundPersonSnapshotFeatureExtraction(Background):
     def __init__(
         self,
-        logger: BackgroundLogger,
+        logger: Logger,
         application: ApplicationPersonSnapshotBackgroundFeatureExtraction,
     ):
         super().__init__(logger)
@@ -15,7 +16,7 @@ class BackgroundPersonSnapshotFeatureExtraction(Background):
     def create(cls, environment: Environment) -> "BackgroundPersonSnapshotFeatureExtraction":
         return cls(
             application=ApplicationPersonSnapshotBackgroundFeatureExtraction.create(environment),
-            logger=BackgroundLogger(),
+            logger=Logger("person_snapshot_feature_extraction"),
         )
 
     @property

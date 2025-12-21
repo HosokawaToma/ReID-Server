@@ -16,6 +16,9 @@ class ApplicationAdminClientAuthTokenRefreshResult:
 class ApplicationAdminClientAuthTokenRefreshError(Error):
     pass
 
+class ApplicationAdminClientAuthTokenRefreshInvalidRefreshTokenError(ApplicationAdminClientAuthTokenRefreshError):
+    pass
+
 class ApplicationAdminClientAuthTokenRefresh:
     def __init__(
         self,
@@ -45,7 +48,7 @@ class ApplicationAdminClientAuthTokenRefresh:
 
     def refresh(self, params: ApplicationAdminClientAuthTokenRefreshParams) -> ApplicationAdminClientAuthTokenRefreshResult:
         if not self.admin_client.verify_token(params.refresh_token, self.refresh_token_converter):
-            raise ApplicationAdminClientAuthTokenRefreshError("Invalid refresh token")
+            raise ApplicationAdminClientAuthTokenRefreshInvalidRefreshTokenError()
         return ApplicationAdminClientAuthTokenRefreshResult(
             token=self.admin_client.generate_token(self.token_converter),
             refresh_token=self.admin_client.generate_token(self.refresh_token_converter),

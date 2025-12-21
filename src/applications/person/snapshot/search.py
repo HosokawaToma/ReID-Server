@@ -1,7 +1,6 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
-from repositories.person.snapshot import RepositoryPersonSnapshotFindError
 from environment import Environment
 from dataclasses import dataclass
 import uuid
@@ -84,5 +83,5 @@ class ApplicationPersonSnapshotSearch:
                 timestamp=person_snapshot.timestamp,
                 person_id=person_snapshot.person_id,
             ) for person_snapshot in person_snapshots]
-        except RepositoryPersonSnapshotFindError as error:
-            raise ApplicationPersonSnapshotSearchError(error.message) from error
+        except Error as error:
+            raise ApplicationPersonSnapshotSearchError(error) from error

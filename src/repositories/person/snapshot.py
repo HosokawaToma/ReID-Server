@@ -1,5 +1,11 @@
 from repositories import RepositoryDatabase
 from repositories import RepositoryDatabaseError
+from repositories import RepositoryStorage
+from repositories import RepositoryStorageImage
+from repositories import RepositoryStorageImageName
+from repositories import RepositoryStorageImageError
+from repositories import RepositoryRedis
+from repositories import RepositoryRedisError
 from domain.person.snapshot import DomainPersonSnapshot
 from migration.models.person_snapshots import MigrationModelPersonSnapshot
 import torch
@@ -10,18 +16,8 @@ from sqlalchemy.orm import Query
 from typing import Literal, ClassVar
 from error import Error
 from datetime import datetime
-from repositories import RepositoryStorage
-from repositories import RepositoryStorageImage
-from repositories import RepositoryStorageImageFindParams
-from repositories import RepositoryStorageImageDeleteParams
-from repositories import RepositoryStorageImageFindError
-from repositories import RepositoryStorageImageDeleteError
-from repositories import RepositoryRedisDequeueError
 from domain.person.snapshot_sequence import DomainPersonSnapshotSequence
-from repositories import RepositoryRedis
-from repositories import RepositoryRedisPushError
 from PIL import Image
-from repositories import RepositoryStorageImageSaveError
 
 @dataclass
 class RepositoryPersonSnapshotFilters:
@@ -62,6 +58,8 @@ TaskName = Literal["person_snapshot:feature_extraction", "person_snapshot:identi
 class RepositoryPersonSnapshotError(Error):
     pass
 class RepositoryPersonSnapshotFindError(RepositoryPersonSnapshotError):
+    pass
+class RepositoryPersonSnapshotFindNotFoundError(RepositoryPersonSnapshotFindError):
     pass
 class RepositoryPersonSnapshotSaveError(RepositoryPersonSnapshotError):
     pass
@@ -151,16 +149,14 @@ class RepositoryPersonSnapshot:
                     person_id=snapshot.person_id,
                     feature=snapshot.feature.cpu().numpy().tolist() if snapshot.feature is not None else None
                 ))
-        except RepositoryStorageImageSaveError as error:
-            raise RepositoryPersonSnapshotSaveError(error.message) from error
         except RepositoryDatabaseError as error:
             try:
-                self.storage.image_delete(RepositoryStorageImageDeleteParams(
-                    name=str(snapshot.id),
-                ))
-            except RepositoryStorageImageDeleteError as error:
-                raise RepositoryPersonSnapshotSaveError(error.message) from error
-            raise RepositoryPersonSnapshotSaveError(error.message) from error
+                self.storage.image_delete(RepositoryStorageImageName(name=str(snapshot.id)))
+            except RepositoryStorageImageError as delete_error:
+                raise RepositoryPersonSnapshotSaveError(delete_error) from delete_error
+            raise RepositoryPersonSnapshotSaveError(error) from error
+        except Error as error:
+            raise RepositoryPersonSnapshotSaveError(error) from error
 
     def find_first(
         self,
@@ -178,14 +174,12 @@ class RepositoryPersonSnapshot:
                 if model is None:
                     return None
                 session.expunge(model)
-            image = self.storage.image_find_one(RepositoryStorageImageFindParams(
+            image = self.storage.image_find_one(RepositoryStorageImageName(
                 name=str(model.id),
             )).image
             return self._model_to_domain(model, image)
-        except RepositoryStorageImageFindError as error:
-            raise RepositoryPersonSnapshotFindError(error.message) from error
-        except RepositoryDatabaseError as error:
-            raise RepositoryPersonSnapshotFindError(error.message) from error
+        except Error as error:
+            raise RepositoryPersonSnapshotFindError(error) from error
 
     def find(
         self,
@@ -202,19 +196,17 @@ class RepositoryPersonSnapshot:
                 models = query.all()
                 session.expunge_all()
             images = self.storage.image_find_all(
-                [RepositoryStorageImageFindParams(
+                [RepositoryStorageImageName(
                     name=str(model.id),
                 ) for model in models]
             )
             if len(models) != len(images):
-                raise RepositoryPersonSnapshotFindError("person snapshot and image count mismatch")
+                raise RepositoryPersonSnapshotFindNotFoundError()
             return DomainPersonSnapshotSequence(
                 person_snapshots=[self._model_to_domain(model, image.image) for model, image in zip(models, images)],
             )
-        except RepositoryStorageImageFindError as error:
-            raise RepositoryPersonSnapshotFindError(error.message) from error
-        except RepositoryDatabaseError as error:
-            raise RepositoryPersonSnapshotFindError(error.message) from error
+        except Error as error:
+            raise RepositoryPersonSnapshotFindError(error) from error
 
     def update(
         self,
@@ -233,8 +225,8 @@ class RepositoryPersonSnapshot:
                         MigrationModelPersonSnapshot.feature: person_snapshot.feature.cpu().numpy().tolist() if person_snapshot.feature is not None else None,
                     }
                 )
-        except RepositoryDatabaseError as error:
-            raise RepositoryPersonSnapshotUpdateError(error.message) from error
+        except Error as error:
+            raise RepositoryPersonSnapshotUpdateError(error) from error
 
     def delete(
         self,
@@ -249,11 +241,9 @@ class RepositoryPersonSnapshot:
                 for model in models:
                     session.delete(model)
             self.storage.image_delete_all(
-                [RepositoryStorageImageDeleteParams(name=model_id) for model_id in model_ids])
-        except RepositoryDatabaseError as error:
-            raise RepositoryPersonSnapshotDeleteError(error.message) from error
-        except RepositoryStorageImageDeleteError as error:
-            raise RepositoryPersonSnapshotDeleteError(error.message) from error
+                [RepositoryStorageImageName(name=model_id) for model_id in model_ids])
+        except Error as error:
+            raise RepositoryPersonSnapshotDeleteError(error) from error
 
     def next_queue(self, task_name: TaskName) -> DomainPersonSnapshot:
         try:
@@ -263,18 +253,14 @@ class RepositoryPersonSnapshot:
                 query = query.filter(MigrationModelPersonSnapshot.id == uuid.UUID(data["id"]))
                 model = query.first()
                 if model is None:
-                    raise RepositoryPersonSnapshotNextQueueError(f"person snapshot not found: {data['id']}")
+                    raise RepositoryPersonSnapshotNextQueueError()
                 session.expunge(model)
-            image = self.storage.image_find_one(RepositoryStorageImageFindParams(
+            image = self.storage.image_find_one(RepositoryStorageImageName(
                 name=str(model.id),
             )).image
             return self._model_to_domain(model, image)
-        except RepositoryDatabaseError as error:
-            raise RepositoryPersonSnapshotNextQueueError(error.message) from error
-        except RepositoryRedisDequeueError as error:
-            raise RepositoryPersonSnapshotNextQueueError(error.message) from error
-        except RepositoryStorageImageFindError as error:
-            raise RepositoryPersonSnapshotNextQueueError(error.message) from error
+        except Error as error:
+            raise RepositoryPersonSnapshotNextQueueError(error) from error
 
     def push_queue(self, task_name: TaskName, person_snapshot: DomainPersonSnapshot) -> None:
         try:
@@ -284,5 +270,5 @@ class RepositoryPersonSnapshot:
                     "id": str(person_snapshot.id),
                 }
             )
-        except RepositoryRedisPushError as error:
-            raise RepositoryPersonSnapshotPushQueueError(error.message) from error
+        except Error as error:
+            raise RepositoryPersonSnapshotPushQueueError(error) from error

@@ -1,6 +1,5 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
-from repositories.person.snapshot import RepositoryPersonSnapshotFindError
 from dataclasses import dataclass
 import uuid
 from datetime import datetime
@@ -20,6 +19,9 @@ class ApplicationPersonFlowWeightSearchItem:
     weight: int
 
 class ApplicationPersonFlowWeightSearchError(Error):
+    pass
+
+class ApplicationPersonFlowWeightSearchNoFlowsFoundError(ApplicationPersonFlowWeightSearchError):
     pass
 
 class ApplicationPersonFlowWeightSearch:
@@ -44,11 +46,11 @@ class ApplicationPersonFlowWeightSearch:
             person_snapshots = self.repository_person_snapshot.find(filters=filters)
             flows = person_snapshots.to_flows()
             if flows is None:
-                raise ApplicationPersonFlowWeightSearchError("No flows found")
+                raise ApplicationPersonFlowWeightSearchNoFlowsFoundError()
             return [ApplicationPersonFlowWeightSearchItem(
                 target_camera_id=flow_weight.target_camera_id,
                 source_camera_id=flow_weight.source_camera_id,
                 weight=flow_weight.weight,
             ) for flow_weight in flows.to_weights()]
-        except RepositoryPersonSnapshotFindError as error:
-            raise ApplicationPersonFlowWeightSearchError(error.message) from error
+        except Error as error:
+            raise ApplicationPersonFlowWeightSearchError(error) from error

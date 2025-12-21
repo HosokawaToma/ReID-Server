@@ -14,7 +14,8 @@ from presentation.person.snapshot.search import PresentationPersonSnapshotSearch
 from presentation.person.flow.search import PresentationPersonFlowSearch
 from presentation.person.flow.weight.search import PresentationPersonFlowWeightSearch
 from presentation.person.snapshot.image.search import PresentationPersonSnapshotImageSearch
-from presentation import PresentationExceptionHandler, PresentationMiddleware, PresentationLogger
+from presentation import PresentationExceptionHandler, PresentationMiddleware
+from logger import Logger
 
 class ServerApp:
     def __init__(
@@ -109,7 +110,7 @@ class ServerApp:
         )
         self.fastapi_app.add_middleware(
             PresentationMiddleware,
-            logger=PresentationLogger(),
+            logger=Logger("presentation_middleware"),
         )
         self.background_person_snapshot_create.setup(self.fastapi_app)
         self.background_person_snapshot_feature_extraction.setup(self.fastapi_app)

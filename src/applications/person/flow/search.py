@@ -1,6 +1,5 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
-from repositories.person.snapshot import RepositoryPersonSnapshotFindError
 from environment import Environment
 from datetime import datetime
 from error import Error
@@ -22,6 +21,9 @@ class ApplicationPersonFlowSearchItem:
     target_timestamp: datetime
 
 class ApplicationPersonFlowSearchError(Error):
+    pass
+
+class ApplicationPersonFlowSearchNoFlowsFoundError(ApplicationPersonFlowSearchError):
     pass
 
 class ApplicationPersonFlowSearch:
@@ -49,7 +51,7 @@ class ApplicationPersonFlowSearch:
             person_snapshots = self.repository_person_snapshot.find(filters=filters)
             flows = person_snapshots.to_flows()
             if flows is None:
-                raise ApplicationPersonFlowSearchError(f"No flows found for person {params.person_id}")
+                raise ApplicationPersonFlowSearchNoFlowsFoundError()
             return [ApplicationPersonFlowSearchItem(
                 person_id=params.person_id,
                 source_camera_id=flow.source_camera_id,
@@ -57,5 +59,5 @@ class ApplicationPersonFlowSearch:
                 source_timestamp=flow.source_timestamp,
                 target_timestamp=flow.target_timestamp,
             ) for flow in flows.flows]
-        except RepositoryPersonSnapshotFindError as error:
-            raise ApplicationPersonFlowSearchError(error.message) from error
+        except Error as error:
+            raise ApplicationPersonFlowSearchError(error) from error

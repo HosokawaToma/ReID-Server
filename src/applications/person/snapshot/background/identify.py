@@ -4,9 +4,6 @@ from domain.person.snapshot import DomainPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
-from repositories.person.snapshot import RepositoryPersonSnapshotNextQueueError
-from repositories.person.snapshot import RepositoryPersonSnapshotFindError
-from repositories.person.snapshot import RepositoryPersonSnapshotUpdateError
 from environment import Environment
 from error import Error
 from dataclasses import dataclass
@@ -21,6 +18,8 @@ class ApplicationPersonSnapshotBackgroundIdentifyParams:
 class ApplicationPersonSnapshotBackgroundIdentifyError(Error):
     pass
 
+class ApplicationPersonSnapshotBackgroundIdentifyFeatureNotExtractedError(ApplicationPersonSnapshotBackgroundIdentifyError):
+    pass
 
 class ApplicationPersonSnapshotBackgroundIdentify:
     def __init__(
@@ -40,8 +39,7 @@ class ApplicationPersonSnapshotBackgroundIdentify:
         try:
             person_snapshot = self.repository_person_snapshot.next_queue(task_name="person_snapshot:identify")
             if not person_snapshot.has_feature():
-                raise ApplicationPersonSnapshotBackgroundIdentifyError(
-                    f"feature is not extracted: {person_snapshot.id}")
+                raise ApplicationPersonSnapshotBackgroundIdentifyFeatureNotExtractedError()
             nearest_person_snapshot = self.repository_person_snapshot.find_first(
                 filters=RepositoryPersonSnapshotFilters(
                     not_ids=[person_snapshot.id],
@@ -56,9 +54,5 @@ class ApplicationPersonSnapshotBackgroundIdentify:
                 person_snapshot.person_reid(nearest_person_snapshot)
                 self.repository_person_snapshot.update(person_snapshot)
             return person_snapshot
-        except RepositoryPersonSnapshotNextQueueError as error:
-            raise ApplicationPersonSnapshotBackgroundIdentifyError(error.message) from error
-        except RepositoryPersonSnapshotFindError as error:
-            raise ApplicationPersonSnapshotBackgroundIdentifyError(error.message) from error
-        except RepositoryPersonSnapshotUpdateError as error:
-            raise ApplicationPersonSnapshotBackgroundIdentifyError(error.message) from error
+        except Error as error:
+            raise ApplicationPersonSnapshotBackgroundIdentifyError(error) from error

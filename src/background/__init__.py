@@ -1,36 +1,14 @@
-import logging
+from logger import Logger
 import asyncio
 import abc
 import fastapi
 from error import Error
 import threading
-import traceback
-class BackgroundLogger:
-    def __init__(self):
-        self.logger = logging.getLogger("background")
-        self.logger.setLevel(logging.INFO)
-        if not self.logger.handlers:
-            self.logger.addHandler(logging.StreamHandler())
-            self.logger.addHandler(logging.FileHandler("background.log"))
-
-
-    def error(self, message: str):
-        self.logger.error(message)
-
-    def warning(self, message: str):
-        self.logger.warning(message)
-
-    def info(self, message: str):
-        self.logger.info(message)
-
-    def debug(self, message: str):
-        self.logger.debug(message)
-
 
 class Background:
     def __init__(
         self,
-        logger: BackgroundLogger,
+        logger: Logger,
     ):
         self.logger = logger
         self.task: asyncio.Task | None = None
@@ -57,8 +35,7 @@ class Background:
             except asyncio.CancelledError:
                 pass
             except Exception as e:
-                self.logger.error(
-                    f"Unexpected error stopping background {self.name}: {e}")
+                self.logger.unexpected_error(e)
 
     async def run(self) -> None:
         while not self.event.is_set():
@@ -67,11 +44,10 @@ class Background:
                 self.logger.info(
                     f"Background {self.name} executed successfully: {message}")
             except Error as e:
-                self.logger.error(f"Background {self.name} error: {e.message}")
+                self.logger.error(e)
                 continue
             except Exception as e:
-                self.logger.error(
-                    f"Unexpected error processing background {self.name}: {traceback.format_exc()}")
+                self.logger.unexpected_error(e)
                 continue
 
     @abc.abstractmethod

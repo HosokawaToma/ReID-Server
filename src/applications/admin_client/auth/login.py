@@ -17,6 +17,9 @@ class ApplicationAdminClientAuthLoginResult:
 class ApplicationAdminClientAuthLoginError(Error):
     pass
 
+class ApplicationAdminClientAuthLoginInvalidCredentialsError(ApplicationAdminClientAuthLoginError):
+    pass
+
 class ApplicationAdminClientAuthLogin:
     def __init__(
         self,
@@ -46,7 +49,7 @@ class ApplicationAdminClientAuthLogin:
 
     def login(self, params: ApplicationAdminClientAuthLoginParams) -> ApplicationAdminClientAuthLoginResult:
         if not self.admin_client.authenticate(params.id, params.password):
-            raise ApplicationAdminClientAuthLoginError("Invalid id or password")
+            raise ApplicationAdminClientAuthLoginInvalidCredentialsError()
         return ApplicationAdminClientAuthLoginResult(
             token=self.admin_client.generate_token(self.token_converter),
             refresh_token=self.admin_client.generate_token(self.refresh_token_converter),

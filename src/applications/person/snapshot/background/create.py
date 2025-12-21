@@ -1,9 +1,5 @@
 from repositories.frame_image import RepositoryFrameImage
 from repositories.person.snapshot import RepositoryPersonSnapshot
-from repositories.frame_image import RepositoryFrameImageNextQueueError
-from repositories.person.snapshot import RepositoryPersonSnapshotSaveError
-from repositories.person.snapshot import RepositoryPersonSnapshotPushQueueError
-from repositories.frame_image import RepositoryFrameImageDeleteError
 from environment import Environment
 from domain.yolo.detection_model import DomainYoloDetectionModel
 from domain.yolo.pose_model import DomainYoloPoseModel
@@ -52,11 +48,5 @@ class ApplicationPersonSnapshotBackgroundCreate:
                 self.repository_person_snapshot.save(person_snapshot)
                 self.repository_person_snapshot.push_queue(task_name="person_snapshot:feature_extraction", person_snapshot=person_snapshot)
             self.repository_frame_image.delete(frame_image)
-        except RepositoryFrameImageNextQueueError as error:
-            raise ApplicationPersonSnapshotBackgroundCreateError(error.message) from error
-        except RepositoryPersonSnapshotSaveError as error:
-            raise ApplicationPersonSnapshotBackgroundCreateError(error.message) from error
-        except RepositoryPersonSnapshotPushQueueError as error:
-            raise ApplicationPersonSnapshotBackgroundCreateError(error.message) from error
-        except RepositoryFrameImageDeleteError as error:
-            raise ApplicationPersonSnapshotBackgroundCreateError(error.message) from error
+        except Error as error:
+            raise ApplicationPersonSnapshotBackgroundCreateError(error) from error

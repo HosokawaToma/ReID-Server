@@ -3,7 +3,8 @@ from applications.person.flow.weight.search import ApplicationPersonFlowWeightSe
 from applications.person.flow.weight.search import ApplicationPersonFlowWeightSearchError
 from presentation import PresentationBase
 from presentation import PresentationAdminClientAuthenticated
-from presentation import PresentationLogger
+from presentation import PresentationRequest
+from logger import Logger
 from presentation import PresentationRequestBody
 from presentation import PresentationJSONResponse
 from environment import Environment
@@ -12,7 +13,7 @@ from datetime import datetime
 import uuid
 
 @dataclass
-class PresentationPersonFlowWeightSearchRequest(PresentationRequestBody):
+class PresentationPersonFlowWeightSearchRequestBody(PresentationRequestBody):
     person_ids: list[uuid.UUID] | None = None
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
@@ -31,7 +32,7 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
 
     def __init__(
         self,
-        logger: PresentationLogger,
+        logger: Logger,
         application_person_flow_weight_search: ApplicationPersonFlowWeightSearch,
     ):
         super().__init__(logger=logger)
@@ -40,26 +41,27 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
     @classmethod
     def create(cls, environment: Environment) -> "PresentationPersonFlowWeightSearch":
         return cls(
-            logger=PresentationLogger(),
+            logger=Logger("person_flow_weight_search"),
             application_person_flow_weight_search=ApplicationPersonFlowWeightSearch.create(environment=environment),
         )
 
     async def handle(
         self,
         admin_client_id: PresentationAdminClientAuthenticated,
-        request: PresentationPersonFlowWeightSearchRequest | None = None,
+        request: PresentationRequest,
+        body: PresentationPersonFlowWeightSearchRequestBody | None = None,
     ):
         params = None
-        if request is not None:
+        if body is not None:
             params = ApplicationPersonFlowWeightSearchParams(
-                person_ids=request.person_ids,
-                timestamp_after=request.timestamp_after,
-                timestamp_before=request.timestamp_before,
+                person_ids=body.person_ids,
+                timestamp_after=body.timestamp_after,
+                timestamp_before=body.timestamp_before,
             )
         try:
             items = self.application_person_flow_weight_search.search(params=params)
         except ApplicationPersonFlowWeightSearchError as error:
-            self.logger.error(error.message)
+            self.logger.error(error, request_id=request.get_request_id())
             return PresentationJSONResponse(status=404, content={
                 "message": "Person flow weight not found",
             })

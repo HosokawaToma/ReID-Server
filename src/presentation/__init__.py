@@ -20,32 +20,23 @@ from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAut
 from environment import Environment
 from pydantic import BaseModel
 from error import Error
-import time
 import uuid
-import traceback
-
-class PresentationLogger:
-    def __init__(self):
-        self.logger = logging.getLogger("presentation")
-
-    def error(self, message: str):
-        self.logger.error(message)
-
-    def warning(self, message: str):
-        self.logger.warning(message)
-
-    def info(self, message: str):
-        self.logger.info(message)
-
-    def debug(self, message: str):
-        self.logger.debug(message)
+from logger import Logger
 
 class PresentationRequest(Request):
+    UNKNOWN_REQUEST_ID = "unknown"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def get_refresh_token(self) -> str:
         return self.cookies.get("refresh_token", "")
+
+    def get_request_id(self) -> str:
+        if self.state is not None and self.state.request_id is not None:
+            return self.state.request_id
+        else:
+            return self.UNKNOWN_REQUEST_ID
 
 class PresentationRequestBody(BaseModel):
     pass
@@ -89,7 +80,7 @@ class PresentationBase:
     responses: dict[int | str, dict[str, Any]] | None = None
     dependencies: Sequence[Annotated[Any, Depends]] | None = None
 
-    def __init__(self, logger: PresentationLogger):
+    def __init__(self, logger: Logger):
         self.logger = logger
 
     def setup(self, app: fastapi.FastAPI):
@@ -109,66 +100,25 @@ class PresentationBase:
         pass
 
 class PresentationMiddleware(BaseHTTPMiddleware):
-    REQUEST_LOG_TEMPLATE = """
-Request:
-    ID: {id}
-    Client Host: {client_host}
-    URI: {uri}
-    Method: {method}
-"""
-    RESPONSE_LOG_TEMPLATE = """
-Response:
-    ID: {id}
-    Client Host: {client_host}
-    URI: {uri}
-    Status Code: {status_code}
-    Response Time: {response_time}s
-"""
-    def __init__(self, app: ASGIApp, logger: PresentationLogger):
+    def __init__(self, app: ASGIApp, logger: Logger):
         super().__init__(app=app)
         self.logger = logger
 
     async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]):
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
-        start_time = time.time()
-        self.logger.info(self.REQUEST_LOG_TEMPLATE.format(
-            id=request_id,
-            client_host=request.client.host if request.client is not None else "unknown",
-            uri=request.url.path,
-            method=request.method,
-        ))
+        self.logger.info("Request received", request_id=request_id)
         response = await call_next(request)
-        response_time = time.time() - start_time
-        self.logger.info(self.RESPONSE_LOG_TEMPLATE.format(
-            id=request_id,
-            client_host=request.client.host if request.client is not None else "unknown",
-            uri=request.url.path,
-            method=request.method,
-            status_code=response.status_code,
-            response_time=response_time,
-        ))
+        self.logger.info("Response sent", request_id=request_id)
         return response
 
 class PresentationExceptionHandler:
-    EXCEPTION_LOG_TEMPLATE = """
-Unexpected Error:
-    Request ID: {request_id}
-    Traceback: {traceback}
-"""
-    ERROR_LOG_TEMPLATE = """
-Error:
-    Request ID: {request_id}
-    Message: {message}
-"""
-    UNKNOWN_REQUEST_ID = "unknown"
-
-    def __init__(self, logger: PresentationLogger):
+    def __init__(self, logger: Logger):
         self.logger = logger
 
     @classmethod
     def create(cls) -> "PresentationExceptionHandler":
-        return cls(logger=PresentationLogger())
+        return cls(logger=Logger("presentation_exception_handler"))
 
     def setup(self, app: fastapi.FastAPI):
         app.add_exception_handler(Error, self.error_handler)
@@ -178,11 +128,8 @@ Error:
         if request.state is not None and request.state.request_id is not None:
             request_id = request.state.request_id
         else:
-            request_id = self.UNKNOWN_REQUEST_ID
-        self.logger.error(self.EXCEPTION_LOG_TEMPLATE.format(
-            request_id=request_id,
-            traceback=traceback.format_exc(),
-        ))
+            request_id = None
+        self.logger.unexpected_error(exc, request_id=request_id)
         return PresentationJSONResponse(
             status=500,
             content={
@@ -194,19 +141,14 @@ Error:
         if request.state is not None and request.state.request_id is not None:
             request_id = request.state.request_id
         else:
-            request_id = self.UNKNOWN_REQUEST_ID
-        # エラーをそのままログに載せるのは機密性の観点から避けるべきだが、ログから調査ができなくなるため出力する
-        self.logger.error(self.ERROR_LOG_TEMPLATE.format(
-            request_id=request_id,
-            message=str(exc),
-        ))
+            request_id = None
+        self.logger.error(Error(exc), request_id=request_id)
         return PresentationJSONResponse(
             status=500,
             content={
                 "message": "Internal Server Error",
             },
         )
-
 
 PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
 
