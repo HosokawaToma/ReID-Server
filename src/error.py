@@ -1,5 +1,6 @@
 class Error(Exception):
     def __init__(self, exception_classes: "Exception | Error | None" = None):
+        super().__init__()
         if exception_classes is None:
             self.exception_classes = []
         elif isinstance(exception_classes, Error):
