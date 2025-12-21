@@ -125,6 +125,9 @@ class PresentationExceptionHandler:
         app.add_exception_handler(Exception, self.exception_handler)
 
     async def exception_handler(self, request: Request, exc: Exception):
+        """
+        実装上想定していない例外が発生した場合の処理
+        """
         if request.state is not None and request.state.request_id is not None:
             request_id = request.state.request_id
         else:
@@ -138,6 +141,10 @@ class PresentationExceptionHandler:
         )
 
     async def error_handler(self, request: Request, exc: Exception):
+        """
+        実装上想定したエラーだが、ユーザに表示する必要のないエラーが発生した場合の処理
+        ユーザに表示する必要がないため、500エラーを返す
+        """
         if request.state is not None and request.state.request_id is not None:
             request_id = request.state.request_id
         else:
