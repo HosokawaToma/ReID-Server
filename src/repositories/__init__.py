@@ -185,7 +185,7 @@ class RepositoryStorage:
                 image_stream = io.BytesIO(file_content)
                 return RepositoryStorageImage(
                     name=params.name,
-                    image=Image.open(image_stream),
+                    image=Image.open(image_stream).copy(),
                 )
         except FileNotFoundError as error:
             raise RepositoryStorageImageNotFoundError(error) from error
