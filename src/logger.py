@@ -6,9 +6,8 @@ class Logger:
     def __init__(self, name: str):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(logging.INFO)
-        if not self.logger.handlers:
-            self.logger.addHandler(logging.StreamHandler())
-            self.logger.addHandler(logging.FileHandler(f"{name}.log"))
+        self.logger.addHandler(logging.StreamHandler())
+        self.logger.addHandler(logging.FileHandler(f"{name}.log"))
 
     def unexpected_error(self, exception: Exception, request_id: str | None = None):
         self.logger.error(f"""
