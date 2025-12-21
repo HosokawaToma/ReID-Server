@@ -174,7 +174,7 @@ class RepositoryStorage:
         try:
             if image.image.format is None:
                 raise RepositoryStorageImageInvalidFormatError()
-            image.image.save(self.images_directory /f"{image.name}.{image.image.format.lower()}")
+            image.image.save(self.images_directory / f"{image.name}.{image.image.format.lower()}")
         except ValueError as error:
             raise RepositoryStorageImageInvalidSaveError(error) from error
         except OSError as error:
