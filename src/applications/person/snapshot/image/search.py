@@ -32,8 +32,8 @@ class ApplicationPersonSnapshotImageSearch:
     def search(self, params: ApplicationPersonSnapshotImageSearchParams) -> ApplicationPersonSnapshotImageSearchItem:
         try:
             person_snapshot = self.repository_person_snapshot.find_first(filters=RepositoryPersonSnapshotFilters(ids=[params.id]))
-            if person_snapshot is None:
-                raise ApplicationPersonSnapshotImageSearchNotFoundError()
-            return ApplicationPersonSnapshotImageSearchItem(image=person_snapshot.image)
         except Error as error:
             raise ApplicationPersonSnapshotImageSearchError(error) from error
+        if person_snapshot is None:
+            raise ApplicationPersonSnapshotImageSearchNotFoundError()
+        return ApplicationPersonSnapshotImageSearchItem(image=person_snapshot.image)
