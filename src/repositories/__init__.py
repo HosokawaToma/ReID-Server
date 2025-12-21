@@ -20,6 +20,9 @@ from error import Error
 class RepositoryDatabaseError(Error):
     pass
 
+class RepositoryDatabaseTransactionError(RepositoryDatabaseError):
+    pass
+
 class RepositoryDatabaseOpenError(RepositoryDatabaseError):
     pass
 
@@ -82,8 +85,8 @@ class RepositoryDatabase:
         try:
             if exc_type is not None:
                 self._session.rollback()
-            else:
-                self._session.commit()
+                raise RepositoryDatabaseTransactionError(exc_value) from exc_value
+            self._session.commit()
         except SQLAlchemyError as error:
             self._session.rollback()
             raise RepositoryDatabaseCommitError(error) from error
