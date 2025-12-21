@@ -16,6 +16,7 @@ from datetime import datetime
 from domain.person.snapshot_sequence import DomainPersonSnapshotSequence
 from PIL import Image
 
+
 @dataclass
 class RepositoryPersonSnapshotFilters:
     ids: list[uuid.UUID] | None = None
@@ -44,32 +45,53 @@ class RepositoryPersonSnapshotFilters:
             string_list.append(f"person_ids: {self.person_ids}")
         return ", ".join(string_list)
 
+
 @dataclass
 class RepositoryPersonSnapshotOrdering:
     KEY_TIMESTAMP_ASC: ClassVar[Literal["timestamp_asc"]] = "timestamp_asc"
     KEY_TIMESTAMP_DESC: ClassVar[Literal["timestamp_desc"]] = "timestamp_desc"
     ordering: list[Literal["timestamp_asc", "timestamp_desc"] | torch.Tensor]
 
-TaskName = Literal["person_snapshot:feature_extraction", "person_snapshot:identify"]
+
+TaskName = Literal["person_snapshot:feature_extraction",
+                   "person_snapshot:identify"]
+
 
 class RepositoryPersonSnapshotError(Error):
     pass
+
+
 class RepositoryPersonSnapshotFindError(RepositoryPersonSnapshotError):
     pass
+
+
 class RepositoryPersonSnapshotFindNotFoundError(RepositoryPersonSnapshotFindError):
     pass
+
+
 class RepositoryPersonSnapshotSaveError(RepositoryPersonSnapshotError):
     pass
+
+
 class RepositoryPersonSnapshotUpdateError(RepositoryPersonSnapshotError):
     pass
+
+
 class RepositoryPersonSnapshotDeleteError(RepositoryPersonSnapshotError):
     pass
+
+
 class RepositoryPersonSnapshotNextQueueError(RepositoryPersonSnapshotError):
     pass
+
+
 class RepositoryPersonSnapshotPushQueueError(RepositoryPersonSnapshotError):
     pass
+
+
 class RepositoryPersonSnapshotFindImageError(RepositoryPersonSnapshotError):
     pass
+
 
 class RepositoryPersonSnapshot:
     def __init__(
@@ -86,32 +108,41 @@ class RepositoryPersonSnapshot:
     def create(cls, environment: Environment) -> "RepositoryPersonSnapshot":
         return cls(
             database=RepositoryDatabase.create(environment),
-            storage=RepositoryStorage.create(environment, directory="person_snapshots"),
+            storage=RepositoryStorage.create(
+                environment, directory="person_snapshots"),
             redis=RepositoryRedis.create(environment),
         )
 
     def _build_filters(self, query: Query, filters: RepositoryPersonSnapshotFilters) -> Query:
         if filters.ids is not None:
-            query = query.filter(MigrationModelPersonSnapshot.id.in_(filters.ids))
+            query = query.filter(
+                MigrationModelPersonSnapshot.id.in_(filters.ids))
         if filters.not_ids is not None:
-            query = query.filter(MigrationModelPersonSnapshot.id.notin_(filters.not_ids))
+            query = query.filter(
+                MigrationModelPersonSnapshot.id.notin_(filters.not_ids))
         if filters.camera_ids is not None:
-            query = query.filter(MigrationModelPersonSnapshot.camera_id.in_(filters.camera_ids))
+            query = query.filter(
+                MigrationModelPersonSnapshot.camera_id.in_(filters.camera_ids))
         if filters.view_ids is not None:
-            query = query.filter(MigrationModelPersonSnapshot.view_id.in_(filters.view_ids))
+            query = query.filter(
+                MigrationModelPersonSnapshot.view_id.in_(filters.view_ids))
         if filters.timestamp_after is not None:
-            query = query.filter(MigrationModelPersonSnapshot.timestamp >= filters.timestamp_after)
+            query = query.filter(
+                MigrationModelPersonSnapshot.timestamp >= filters.timestamp_after)
         if filters.timestamp_before is not None:
-            query = query.filter(MigrationModelPersonSnapshot.timestamp <= filters.timestamp_before)
+            query = query.filter(
+                MigrationModelPersonSnapshot.timestamp <= filters.timestamp_before)
         if filters.person_ids is not None:
-            query = query.filter(MigrationModelPersonSnapshot.person_id.in_(filters.person_ids))
+            query = query.filter(
+                MigrationModelPersonSnapshot.person_id.in_(filters.person_ids))
         return query
 
     def _build_ordering(self, query: Query, ordering: RepositoryPersonSnapshotOrdering) -> Query:
         order_by = []
         for order in ordering.ordering:
             if isinstance(order, torch.Tensor):
-                order_by.append(MigrationModelPersonSnapshot.feature.op("<=>")(order.cpu().numpy().tolist()))
+                order_by.append(MigrationModelPersonSnapshot.feature.op(
+                    "<=>")(order.cpu().numpy().tolist()))
             elif order == RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_ASC:
                 order_by.append(MigrationModelPersonSnapshot.timestamp.asc())
             elif order == RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_DESC:
@@ -127,7 +158,8 @@ class RepositoryPersonSnapshot:
             view_id=int(str(model.view_id)),
             timestamp=datetime.fromisoformat(str(model.timestamp)),
             person_id=uuid.UUID(str(model.person_id)),
-            feature=torch.tensor(model.feature) if model.feature is not None else None,
+            feature=torch.tensor(
+                model.feature) if model.feature is not None else None,
             image=image,
         )
 
@@ -140,7 +172,8 @@ class RepositoryPersonSnapshot:
                     view_id=snapshot.view_id,
                     timestamp=snapshot.timestamp,
                     person_id=snapshot.person_id,
-                    feature=snapshot.feature.cpu().numpy().tolist() if snapshot.feature is not None else None
+                    feature=snapshot.feature.cpu().numpy().tolist(
+                    ) if snapshot.feature is not None else None
                 ))
                 self.storage.image_save(RepositoryStorageImage(
                     name=str(snapshot.id),
@@ -192,7 +225,8 @@ class RepositoryPersonSnapshot:
                 if len(models) != len(images):
                     raise RepositoryPersonSnapshotFindNotFoundError()
                 return DomainPersonSnapshotSequence(
-                    person_snapshots=[self._model_to_domain(model, image.image) for model, image in zip(models, images)],
+                    person_snapshots=[self._model_to_domain(
+                        model, image.image) for model, image in zip(models, images)],
                 )
         except Error as error:
             raise RepositoryPersonSnapshotFindError(error) from error
@@ -204,7 +238,8 @@ class RepositoryPersonSnapshot:
         try:
             with self.database as session:
                 query = session.query(MigrationModelPersonSnapshot)
-                query = query.filter(MigrationModelPersonSnapshot.id == person_snapshot.id)
+                query = query.filter(
+                    MigrationModelPersonSnapshot.id == person_snapshot.id)
                 query.update(
                     {
                         MigrationModelPersonSnapshot.camera_id: person_snapshot.camera_id,
@@ -238,7 +273,8 @@ class RepositoryPersonSnapshot:
             data = self.redis.dequeue(task_name)
             with self.database as session:
                 query = session.query(MigrationModelPersonSnapshot)
-                query = query.filter(MigrationModelPersonSnapshot.id == uuid.UUID(data["id"]))
+                query = query.filter(
+                    MigrationModelPersonSnapshot.id == uuid.UUID(data["id"]))
                 model = query.first()
                 if model is None:
                     raise RepositoryPersonSnapshotNextQueueError()
