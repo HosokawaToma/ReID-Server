@@ -42,22 +42,22 @@ class ApplicationPersonFlowSearch:
         )
 
     def search(self, params: ApplicationPersonFlowSearchParams) -> list[ApplicationPersonFlowSearchItem]:
+        filters = RepositoryPersonSnapshotFilters(
+            timestamp_after=params.timestamp_after,
+            timestamp_before=params.timestamp_before,
+            person_ids=[params.person_id],
+        )
         try:
-            filters = RepositoryPersonSnapshotFilters(
-                timestamp_after=params.timestamp_after,
-                timestamp_before=params.timestamp_before,
-                person_ids=[params.person_id],
-            )
             person_snapshots = self.repository_person_snapshot.find(filters=filters)
             flows = person_snapshots.to_flows()
-            if flows is None:
-                raise ApplicationPersonFlowSearchNoFlowsFoundError()
-            return [ApplicationPersonFlowSearchItem(
-                person_id=params.person_id,
-                source_camera_id=flow.source_camera_id,
-                target_camera_id=flow.target_camera_id,
-                source_timestamp=flow.source_timestamp,
-                target_timestamp=flow.target_timestamp,
-            ) for flow in flows.flows]
         except Error as error:
             raise ApplicationPersonFlowSearchError(error) from error
+        if flows is None:
+            raise ApplicationPersonFlowSearchNoFlowsFoundError()
+        return [ApplicationPersonFlowSearchItem(
+            person_id=params.person_id,
+            source_camera_id=flow.source_camera_id,
+            target_camera_id=flow.target_camera_id,
+            source_timestamp=flow.source_timestamp,
+            target_timestamp=flow.target_timestamp,
+        ) for flow in flows.flows]

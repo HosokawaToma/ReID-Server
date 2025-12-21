@@ -35,22 +35,22 @@ class ApplicationPersonFlowWeightSearch:
         )
 
     def search(self, params: ApplicationPersonFlowWeightSearchParams | None = None) -> list[ApplicationPersonFlowWeightSearchItem]:
+        filters = None
+        if params is not None:
+            filters = RepositoryPersonSnapshotFilters(
+                timestamp_after=params.timestamp_after,
+                timestamp_before=params.timestamp_before,
+                person_ids=params.person_ids,
+            )
         try:
-            filters = None
-            if params is not None:
-                filters = RepositoryPersonSnapshotFilters(
-                    timestamp_after=params.timestamp_after,
-                    timestamp_before=params.timestamp_before,
-                    person_ids=params.person_ids,
-                )
             person_snapshots = self.repository_person_snapshot.find(filters=filters)
             flows = person_snapshots.to_flows()
-            if flows is None:
-                raise ApplicationPersonFlowWeightSearchNoFlowsFoundError()
-            return [ApplicationPersonFlowWeightSearchItem(
-                target_camera_id=flow_weight.target_camera_id,
-                source_camera_id=flow_weight.source_camera_id,
-                weight=flow_weight.weight,
-            ) for flow_weight in flows.to_weights()]
         except Error as error:
             raise ApplicationPersonFlowWeightSearchError(error) from error
+        if flows is None:
+            raise ApplicationPersonFlowWeightSearchNoFlowsFoundError()
+        return [ApplicationPersonFlowWeightSearchItem(
+            target_camera_id=flow_weight.target_camera_id,
+            source_camera_id=flow_weight.source_camera_id,
+            weight=flow_weight.weight,
+        ) for flow_weight in flows.to_weights()]
