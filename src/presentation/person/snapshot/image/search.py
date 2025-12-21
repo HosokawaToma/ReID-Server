@@ -1,7 +1,7 @@
 from environment import Environment
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearch
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearchParams
-from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearchError
+from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearchNotFoundError
 from presentation import PresentationBase
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationRequest
@@ -49,7 +49,7 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
                 ApplicationPersonSnapshotImageSearchParams(id=id)
             )
             return PresentationImageResponse(status=200, image=person_snapshot.image)
-        except ApplicationPersonSnapshotImageSearchError as error:
+        except ApplicationPersonSnapshotImageSearchNotFoundError as error:
             self.logger.error(error, request_id=request.get_request_id())
             return PresentationJSONResponse(
                 status=404,
