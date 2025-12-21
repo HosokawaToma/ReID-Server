@@ -230,11 +230,10 @@ class RepositoryPersonSnapshot:
                 query = session.query(MigrationModelPersonSnapshot)
                 query = self._build_filters(query, filters)
                 models = query.all()
-                model_ids = [str(model.id) for model in models]
                 for model in models:
                     session.delete(model)
-            self.storage.image_delete_all(
-                [RepositoryStorageImageName(name=model_id) for model_id in model_ids])
+                self.storage.image_delete_all(
+                    [RepositoryStorageImageName(name=str(model.id)) for model in models])
         except Error as error:
             raise RepositoryPersonSnapshotDeleteError(error) from error
 
