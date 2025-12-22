@@ -6,13 +6,6 @@ from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
 from environment import Environment
 from error import Error
-from dataclasses import dataclass
-import uuid
-
-
-@dataclass
-class ApplicationPersonSnapshotBackgroundIdentifyParams:
-    person_snapshot_id: uuid.UUID
 
 
 class ApplicationPersonSnapshotBackgroundIdentifyError(Error):
@@ -37,7 +30,7 @@ class ApplicationPersonSnapshotBackgroundIdentify:
 
     def identify(self) -> DomainPersonSnapshot:
         try:
-            person_snapshot = self.repository_person_snapshot.next_queue(task_name="person_snapshot:identify")
+            person_snapshot = self.repository_person_snapshot.next_identify()
             if not person_snapshot.has_feature():
                 raise ApplicationPersonSnapshotBackgroundIdentifyFeatureNotExtractedError()
             nearest_person_snapshot = self.repository_person_snapshot.find_first(

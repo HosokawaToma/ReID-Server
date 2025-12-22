@@ -46,6 +46,7 @@ class ApplicationPersonSnapshotRefresh:
                 ),
             )
             for person_snapshot in person_snapshots:
-                self.repository_person_snapshot.push_queue(task_name="person_snapshot:feature_extraction", person_snapshot=person_snapshot)
+                self.repository_person_snapshot.save(person_snapshot)
+                self.repository_person_snapshot.push_feature_extraction(person_snapshot)
         except Error as error:
             raise ApplicationPersonSnapshotRefreshError(error) from error

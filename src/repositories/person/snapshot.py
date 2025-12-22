@@ -268,9 +268,9 @@ class RepositoryPersonSnapshot:
         except Error as error:
             raise RepositoryPersonSnapshotDeleteError(error) from error
 
-    def next_queue(self, task_name: TaskName) -> DomainPersonSnapshot:
+    def next_feature_extraction(self) -> DomainPersonSnapshot:
         try:
-            data = self.redis.dequeue(task_name)
+            data = self.redis.dequeue("person_snapshot:feature_extraction")
             with self.database as session:
                 query = session.query(MigrationModelPersonSnapshot)
                 query = query.filter(
@@ -285,10 +285,38 @@ class RepositoryPersonSnapshot:
         except Error as error:
             raise RepositoryPersonSnapshotNextQueueError(error) from error
 
-    def push_queue(self, task_name: TaskName, person_snapshot: DomainPersonSnapshot) -> None:
+    def push_feature_extraction(self, person_snapshot: DomainPersonSnapshot) -> None:
         try:
             self.redis.push(
-                key=task_name,
+                key="person_snapshot:feature_extraction",
+                value={
+                    "id": str(person_snapshot.id),
+                }
+            )
+        except Error as error:
+            raise RepositoryPersonSnapshotPushQueueError(error) from error
+
+    def next_identify(self) -> DomainPersonSnapshot:
+        try:
+            data = self.redis.dequeue("person_snapshot:identify")
+            with self.database as session:
+                query = session.query(MigrationModelPersonSnapshot)
+                query = query.filter(
+                    MigrationModelPersonSnapshot.id == uuid.UUID(data["id"]))
+                model = query.first()
+                if model is None:
+                    raise RepositoryPersonSnapshotNextQueueError()
+                image = self.storage.image_find_one(RepositoryStorageImageName(
+                    name=str(model.id),
+                )).image
+                return self._model_to_domain(model, image)
+        except Error as error:
+            raise RepositoryPersonSnapshotNextQueueError(error) from error
+
+    def push_identify(self, person_snapshot: DomainPersonSnapshot) -> None:
+        try:
+            self.redis.push(
+                key="person_snapshot:identify",
                 value={
                     "id": str(person_snapshot.id),
                 }

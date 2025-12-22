@@ -6,8 +6,6 @@ from error import Error
 from domain.frame_image import DomainFrameImage
 from environment import Environment
 import uuid
-from PIL import Image
-from typing import Literal
 from datetime import datetime
 
 
@@ -23,8 +21,6 @@ class RepositoryFrameImageFindImageError(RepositoryFrameImageError):
     pass
 class RepositoryFrameImageDeleteError(RepositoryFrameImageError):
     pass
-
-QueueName = Literal["frame_image:person_snapshot_create"]
 
 class RepositoryFrameImage:
     def __init__(self, storage: RepositoryStorage, redis: RepositoryRedis):
@@ -52,9 +48,17 @@ class RepositoryFrameImage:
         except Error as error:
             raise RepositoryFrameImageSaveError(error) from error
 
-    def next_queue(self, queue_name: QueueName) -> DomainFrameImage:
+    def delete(self, frame_image: DomainFrameImage) -> None:
         try:
-            data = self.redis.dequeue(queue_name)
+            self.storage.image_delete(RepositoryStorageImageName(
+                name=str(frame_image.id),
+            ))
+        except Error as error:
+            raise RepositoryFrameImageDeleteError(error) from error
+
+    def next_person_snapshot_create(self) -> DomainFrameImage:
+        try:
+            data = self.redis.dequeue("frame_image:person_snapshot_create")
             return DomainFrameImage(
                 id=uuid.UUID(data["id"]),
                 image=self.storage.image_find_one(RepositoryStorageImageName(
@@ -66,10 +70,10 @@ class RepositoryFrameImage:
         except Error as error:
             raise RepositoryFrameImageNextQueueError(error) from error
 
-    def push_queue(self, queue_name: QueueName, frame_image: DomainFrameImage) -> None:
+    def push_person_snapshot_create(self, frame_image: DomainFrameImage) -> None:
         try:
             self.redis.push(
-                key=queue_name,
+                key="frame_image:person_snapshot_create",
                 value={
                     "id": str(frame_image.id),
                     "camera_id": str(frame_image.camera_id),
@@ -79,18 +83,3 @@ class RepositoryFrameImage:
             )
         except Error as error:
             raise RepositoryFrameImagePushQueueError(error) from error
-
-    def find_image(self, id: uuid.UUID) -> Image.Image:
-        try:
-            return self.storage.image_find_one(RepositoryStorageImageName(
-                name=str(id))).image
-        except Error as error:
-            raise RepositoryFrameImageFindImageError(error) from error
-
-    def delete(self, frame_image: DomainFrameImage) -> None:
-        try:
-            self.storage.image_delete(RepositoryStorageImageName(
-                name=str(frame_image.id),
-            ))
-        except Error as error:
-            raise RepositoryFrameImageDeleteError(error) from error

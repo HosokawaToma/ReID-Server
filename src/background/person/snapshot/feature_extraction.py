@@ -16,7 +16,7 @@ class BackgroundPersonSnapshotFeatureExtraction(Background):
     def create(cls, environment: Environment) -> "BackgroundPersonSnapshotFeatureExtraction":
         return cls(
             application=ApplicationPersonSnapshotBackgroundFeatureExtraction.create(environment),
-            logger=Logger("person_snapshot_feature_extraction"),
+            logger=Logger("background_person_snapshot_feature_extraction"),
         )
 
     @property

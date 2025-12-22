@@ -30,7 +30,7 @@ class PresentationPersonSnapshotCreate(PresentationBase):
     @classmethod
     def create(cls, environment: Environment) -> "PresentationPersonSnapshotCreate":
         return cls(
-            logger=Logger("person_snapshot_create"),
+            logger=Logger("presentation_person_snapshot_create"),
             application=ApplicationPersonSnapshotCreate.create(
                 environment=environment,
             ),

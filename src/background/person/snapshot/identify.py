@@ -19,7 +19,7 @@ class BackgroundPersonSnapshotIdentify(Background):
     @classmethod
     def create(cls, environment: Environment) -> "BackgroundPersonSnapshotIdentify":
         return cls(
-            logger=Logger("person_snapshot_identify"),
+            logger=Logger("background_person_snapshot_identify"),
             application=ApplicationPersonSnapshotBackgroundIdentify.create(environment),
         )
 

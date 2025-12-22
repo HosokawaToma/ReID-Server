@@ -25,7 +25,7 @@ class PresentationAdminAuthTokenRefresh(PresentationBase):
     @classmethod
     def create(cls, environment: Environment) -> "PresentationAdminAuthTokenRefresh":
         return cls(
-            logger=Logger("admin_auth_token_refresh"),
+            logger=Logger("presentation_admin_auth_token_refresh"),
             application=ApplicationAdminClientAuthTokenRefresh.create(environment=environment),
         )
 

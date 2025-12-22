@@ -40,7 +40,7 @@ class PresentationPersonFlowSearch(PresentationBase):
     @classmethod
     def create(cls, environment: Environment) -> "PresentationPersonFlowSearch":
         return cls(
-            logger=Logger("person_flow_search"),
+            logger=Logger("presentation_person_flow_search"),
             application=ApplicationPersonFlowSearch.create(environment=environment),
         )
 

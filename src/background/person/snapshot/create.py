@@ -19,7 +19,7 @@ class BackgroundPersonSnapshotCreate(Background):
     @classmethod
     def create(cls, environment: Environment) -> "BackgroundPersonSnapshotCreate":
         return cls(
-            logger=Logger("person_snapshot_create"),
+            logger=Logger("background_person_snapshot_create"),
             application=ApplicationPersonSnapshotBackgroundCreate.create(environment),
         )
     def handle(self) -> str:

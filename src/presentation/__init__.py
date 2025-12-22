@@ -1,4 +1,3 @@
-import logging
 import fastapi
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
@@ -7,7 +6,6 @@ from fastapi.responses import JSONResponse
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
 import abc
-from functools import lru_cache
 from typing import Any, Annotated, Sequence, Callable, Awaitable
 from enum import Enum
 from PIL import Image
@@ -165,7 +163,6 @@ class PresentationExceptionHandler:
 
 PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
 
-@lru_cache
 def get_admin_client_auth_application(
     environment: Environment = Depends(Environment)
 ) -> ApplicationAdminClientAuthOAuth2:
