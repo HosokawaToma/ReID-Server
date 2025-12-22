@@ -77,11 +77,13 @@ class RepositoryFrameImage:
                 query = session.query(MigrationModelFrameImage)
                 query = query.filter(
                     MigrationModelFrameImage.id == frame_image.id)
-                models = query.all()
-                for model in models:
-                    session.delete(model)
-                self.storage.image_delete_all(
-                    [RepositoryStorageImageName(name=str(model.id)) for model in models])
+                model = query.first()
+                if model is None:
+                    raise RepositoryFrameImageDeleteError()
+                session.delete(model)
+                self.storage.image_delete(RepositoryStorageImageName(
+                    name=str(model.id),
+                ))
         except Error as error:
             raise RepositoryFrameImageDeleteError(error) from error
 
