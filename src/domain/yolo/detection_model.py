@@ -5,11 +5,13 @@ from PIL import Image
 
 
 class DomainYoloDetectionModel:
+    PERSON_CLASS_ID: int = 0
+    CLASSES: list[int] = [PERSON_CLASS_ID]
     def __init__(self):
         self.model = YOLO("./resources/models/yolo11x.pt")
 
     def extract(self, image: Image.Image) -> list[DomainYoloBoundingBox]:
-        results = self.model(image, verbose=False)
+        results = self.model(image, classes=self.CLASSES, verbose=False)
         items: Results = results[0]
         if items.boxes is None:
             return []
