@@ -18,11 +18,11 @@ class DomainPersonSnapshotJunkError(DomainPersonSnapshotError):
     pass
 
 
-class DomainPersonSnapshotPersonIdNotSetError(DomainPersonSnapshotError):
+class DomainPersonSnapshotDateNotSameError(DomainPersonSnapshotError):
     pass
 
 
-class DomainPersonSnapshotDateNotSameError(DomainPersonSnapshotError):
+class DomainPersonSnapshotPersonOtherIdNotSetError(DomainPersonSnapshotError):
     pass
 
 
@@ -80,18 +80,25 @@ class DomainPersonSnapshot:
             raise DomainPersonSnapshotJunkError()
         self.feature = reid_model.extract_feature(self.image, self.camera_id, self.view_id)
 
-    def person_reid(self, other: "DomainPersonSnapshot") -> None:
+    def person_reid(self, other: "DomainPersonSnapshot | None" = None) -> None:
         """
         特徴量が閾値以上の場合、同一人物と見做し、同じperson_idを設定する
-        人物IDが未設定のPersonSnapshotは、採用対象外のためエラーを発生させる
+        比較対象が未設定の場合、新しい人物と見做し、新しいperson_idを設定する
+        ジャンクのPersonSnapshotは、採用対象外のためエラーを発生させる
         日付が異なるPersonSnapshotは、必ず異なる人物と見做すためエラーを発生させる
+        人物IDが未設定のPersonSnapshotは、採用対象外のためエラーを発生させる
         特徴量が未設定のPersonSnapshotは、採用対象外のためエラーを発生させる
-        :params DomainPersonSnapshot other: 比較対象のPersonSnapshot
+        :params DomainPersonSnapshot | None other: 比較対象のPersonSnapshot
         """
-        if other.person_id is None:
-            raise DomainPersonSnapshotPersonIdNotSetError()
+        self.person_id = uuid.uuid4()
+        if other is None:
+            return
+        if self.is_junk or other.is_junk:
+            raise DomainPersonSnapshotJunkError()
         if datetime.combine(self.timestamp.date(), datetime.min.time()) != datetime.combine(other.timestamp.date(), datetime.min.time()):
             raise DomainPersonSnapshotDateNotSameError()
+        if other.person_id is None:
+            raise DomainPersonSnapshotPersonOtherIdNotSetError()
         if self.feature is None or other.feature is None:
             raise DomainPersonSnapshotFeatureNotSetError()
         if torch.nn.functional.cosine_similarity(self.feature, other.feature, dim=0).item() > self.MATCH_THRESHOLD:

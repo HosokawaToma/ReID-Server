@@ -15,6 +15,7 @@ from error import Error
 from datetime import datetime
 from domain.person.snapshot_sequence import DomainPersonSnapshotSequence
 from PIL import Image
+import sqlalchemy as sa
 
 
 @dataclass
@@ -27,6 +28,8 @@ class RepositoryPersonSnapshotFilters:
     timestamp_before: datetime | None = None
     is_junk: bool | None = None
     person_ids: list[uuid.UUID] | None = None
+    has_person_id: bool | None = None
+    has_feature: bool | None = None
 
     def __str__(self) -> str:
         string_list = []
@@ -46,6 +49,10 @@ class RepositoryPersonSnapshotFilters:
             string_list.append(f"is_junk: {self.is_junk}")
         if self.person_ids is not None:
             string_list.append(f"person_ids: {self.person_ids}")
+        if self.has_person_id is not None:
+            string_list.append(f"has_person_id: {self.has_person_id}")
+        if self.has_feature is not None:
+            string_list.append(f"has_feature: {self.has_feature}")
         return ", ".join(string_list)
 
 
@@ -141,6 +148,13 @@ class RepositoryPersonSnapshot:
         if filters.person_ids is not None:
             query = query.filter(
                 MigrationModelPersonSnapshot.person_id.in_(filters.person_ids))
+        if filters.has_person_id is not None:
+            query = query.filter(
+                MigrationModelPersonSnapshot.person_id.isnot(sa.null()))
+        if filters.has_feature is not None:
+            query = query.filter(
+                MigrationModelPersonSnapshot.feature.isnot(sa.null()))
+
         return query
 
     def _build_ordering(self, query: Query, ordering: RepositoryPersonSnapshotOrdering) -> Query:
@@ -163,7 +177,8 @@ class RepositoryPersonSnapshot:
             camera_id=int(str(model.camera_id)),
             view_id=int(str(model.view_id)),
             timestamp=datetime.fromisoformat(str(model.timestamp)),
-            person_id=uuid.UUID(str(model.person_id)),
+            is_junk=bool(model.is_junk),
+            person_id=uuid.UUID(str(model.person_id)) if model.person_id is not None else None,
             feature=torch.tensor(
                 model.feature) if model.feature is not None else None,
             image=image,
@@ -177,6 +192,7 @@ class RepositoryPersonSnapshot:
                     camera_id=snapshot.camera_id,
                     view_id=snapshot.view_id,
                     timestamp=snapshot.timestamp,
+                    is_junk=snapshot.is_junk,
                     person_id=snapshot.person_id,
                     feature=snapshot.feature.cpu().numpy().tolist(
                     ) if snapshot.feature is not None else None
