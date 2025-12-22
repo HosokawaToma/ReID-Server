@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from domain.person.snapshot import DomainPersonSnapshot
+from dto.person_snapshot import DtoPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
@@ -9,9 +9,6 @@ from error import Error
 
 
 class ApplicationPersonSnapshotBackgroundIdentifyError(Error):
-    pass
-
-class ApplicationPersonSnapshotBackgroundIdentifyFeatureNotExtractedError(ApplicationPersonSnapshotBackgroundIdentifyError):
     pass
 
 class ApplicationPersonSnapshotBackgroundIdentify:
@@ -28,24 +25,33 @@ class ApplicationPersonSnapshotBackgroundIdentify:
                 environment),
         )
 
-    def identify(self) -> DomainPersonSnapshot:
+    def identify(self) -> DtoPersonSnapshot:
         try:
             person_snapshot = self.repository_person_snapshot.next_identify()
-            if not person_snapshot.has_feature():
-                raise ApplicationPersonSnapshotBackgroundIdentifyFeatureNotExtractedError()
             nearest_person_snapshot = self.repository_person_snapshot.find_first(
                 filters=RepositoryPersonSnapshotFilters(
                     not_ids=[person_snapshot.id],
                     timestamp_after=datetime.combine(
                         person_snapshot.timestamp.date(), datetime.min.time()),
-                    timestamp_before=person_snapshot.timestamp),
+                    timestamp_before=person_snapshot.timestamp,
+                    is_junk=False,
+                    has_person_id=True,
+                    has_feature=True,
+                    ),
                 ordering=RepositoryPersonSnapshotOrdering([
                     person_snapshot.feature, # type: ignore
                     RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_DESC]),
             )
-            if nearest_person_snapshot is not None:
-                person_snapshot.person_reid(nearest_person_snapshot)
-                self.repository_person_snapshot.update(person_snapshot)
-            return person_snapshot
+            person_snapshot.person_reid(nearest_person_snapshot)
+            self.repository_person_snapshot.update(person_snapshot)
+            return DtoPersonSnapshot(
+                id=person_snapshot.id,
+                camera_id=person_snapshot.camera_id,
+                view_id=person_snapshot.view_id,
+                timestamp=person_snapshot.timestamp,
+                is_junk=person_snapshot.is_junk,
+                person_id=person_snapshot.person_id,
+                feature=person_snapshot.feature,
+            )
         except Error as error:
             raise ApplicationPersonSnapshotBackgroundIdentifyError(error) from error

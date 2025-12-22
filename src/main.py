@@ -9,6 +9,7 @@ from presentation.person.snapshot.create import PresentationPersonSnapshotCreate
 from background.person.snapshot.create import BackgroundPersonSnapshotCreate
 from background.person.snapshot.feature_extraction import BackgroundPersonSnapshotFeatureExtraction
 from background.person.snapshot.identify import BackgroundPersonSnapshotIdentify
+from background.person.snapshot.junk_detection import BackgroundPersonSnapshotJunkDetection
 from presentation.person.snapshot.refresh import PresentationPersonSnapshotRefresh
 from presentation.person.snapshot.search import PresentationPersonSnapshotSearch
 from presentation.person.flow.search import PresentationPersonFlowSearch
@@ -26,6 +27,7 @@ class ServerApp:
         background_person_snapshot_create: BackgroundPersonSnapshotCreate,
         background_person_snapshot_feature_extraction: BackgroundPersonSnapshotFeatureExtraction,
         background_person_snapshot_identify: BackgroundPersonSnapshotIdentify,
+        background_person_snapshot_junk_detection: BackgroundPersonSnapshotJunkDetection,
         admin_auth_login: PresentationAdminAuthLogin,
         admin_auth_token_refresh: PresentationAdminAuthTokenRefresh,
         person_snapshot_create: PresentationPersonSnapshotCreate,
@@ -42,6 +44,7 @@ class ServerApp:
         self.background_person_snapshot_create = background_person_snapshot_create
         self.background_person_snapshot_feature_extraction = background_person_snapshot_feature_extraction
         self.background_person_snapshot_identify = background_person_snapshot_identify
+        self.background_person_snapshot_junk_detection = background_person_snapshot_junk_detection
         self.admin_auth_login = admin_auth_login
         self.admin_auth_token_refresh = admin_auth_token_refresh
         self.person_snapshot_create = person_snapshot_create
@@ -71,6 +74,9 @@ class ServerApp:
                 environment=environment,
             ),
             background_person_snapshot_identify=BackgroundPersonSnapshotIdentify.create(
+                environment=environment,
+            ),
+            background_person_snapshot_junk_detection=BackgroundPersonSnapshotJunkDetection.create(
                 environment=environment,
             ),
             admin_auth_login=PresentationAdminAuthLogin.create(
@@ -115,6 +121,7 @@ class ServerApp:
         self.background_person_snapshot_create.setup(self.fastapi_app)
         self.background_person_snapshot_feature_extraction.setup(self.fastapi_app)
         self.background_person_snapshot_identify.setup(self.fastapi_app)
+        self.background_person_snapshot_junk_detection.setup(self.fastapi_app)
         self.admin_auth_login.setup(self.fastapi_app)
         self.admin_auth_token_refresh.setup(self.fastapi_app)
         self.person_snapshot_create.setup(self.fastapi_app)

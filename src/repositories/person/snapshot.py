@@ -15,6 +15,7 @@ from error import Error
 from datetime import datetime
 from domain.person.snapshot_sequence import DomainPersonSnapshotSequence
 from PIL import Image
+import sqlalchemy as sa
 
 
 @dataclass
@@ -25,7 +26,10 @@ class RepositoryPersonSnapshotFilters:
     view_ids: list[int] | None = None
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
+    is_junk: bool | None = None
     person_ids: list[uuid.UUID] | None = None
+    has_person_id: bool | None = None
+    has_feature: bool | None = None
 
     def __str__(self) -> str:
         string_list = []
@@ -41,8 +45,14 @@ class RepositoryPersonSnapshotFilters:
             string_list.append(f"timestamp_after: {self.timestamp_after}")
         if self.timestamp_before is not None:
             string_list.append(f"timestamp_before: {self.timestamp_before}")
+        if self.is_junk is not None:
+            string_list.append(f"is_junk: {self.is_junk}")
         if self.person_ids is not None:
             string_list.append(f"person_ids: {self.person_ids}")
+        if self.has_person_id is not None:
+            string_list.append(f"has_person_id: {self.has_person_id}")
+        if self.has_feature is not None:
+            string_list.append(f"has_feature: {self.has_feature}")
         return ", ".join(string_list)
 
 
@@ -132,9 +142,26 @@ class RepositoryPersonSnapshot:
         if filters.timestamp_before is not None:
             query = query.filter(
                 MigrationModelPersonSnapshot.timestamp <= filters.timestamp_before)
+        if filters.is_junk is not None:
+            query = query.filter(
+                MigrationModelPersonSnapshot.is_junk == filters.is_junk)
         if filters.person_ids is not None:
             query = query.filter(
                 MigrationModelPersonSnapshot.person_id.in_(filters.person_ids))
+        if filters.has_person_id is not None:
+            if filters.has_person_id:
+                query = query.filter(
+                    MigrationModelPersonSnapshot.person_id.isnot(sa.null()))
+            else:
+                query = query.filter(
+                    MigrationModelPersonSnapshot.person_id.is_(sa.null()))
+        if filters.has_feature is not None:
+            if filters.has_feature:
+                query = query.filter(
+                    MigrationModelPersonSnapshot.feature.isnot(sa.null()))
+            else:
+                query = query.filter(
+                    MigrationModelPersonSnapshot.feature.is_(sa.null()))
         return query
 
     def _build_ordering(self, query: Query, ordering: RepositoryPersonSnapshotOrdering) -> Query:
@@ -157,7 +184,8 @@ class RepositoryPersonSnapshot:
             camera_id=int(str(model.camera_id)),
             view_id=int(str(model.view_id)),
             timestamp=datetime.fromisoformat(str(model.timestamp)),
-            person_id=uuid.UUID(str(model.person_id)),
+            is_junk=bool(model.is_junk),
+            person_id=uuid.UUID(str(model.person_id)) if model.person_id is not None else None,
             feature=torch.tensor(
                 model.feature) if model.feature is not None else None,
             image=image,
@@ -171,6 +199,7 @@ class RepositoryPersonSnapshot:
                     camera_id=snapshot.camera_id,
                     view_id=snapshot.view_id,
                     timestamp=snapshot.timestamp,
+                    is_junk=snapshot.is_junk,
                     person_id=snapshot.person_id,
                     feature=snapshot.feature.cpu().numpy().tolist(
                     ) if snapshot.feature is not None else None
@@ -245,6 +274,7 @@ class RepositoryPersonSnapshot:
                         MigrationModelPersonSnapshot.camera_id: person_snapshot.camera_id,
                         MigrationModelPersonSnapshot.view_id: person_snapshot.view_id,
                         MigrationModelPersonSnapshot.timestamp: person_snapshot.timestamp,
+                        MigrationModelPersonSnapshot.is_junk: person_snapshot.is_junk,
                         MigrationModelPersonSnapshot.person_id: person_snapshot.person_id,
                         MigrationModelPersonSnapshot.feature: person_snapshot.feature.cpu().numpy().tolist() if person_snapshot.feature is not None else None,
                     }
@@ -267,6 +297,34 @@ class RepositoryPersonSnapshot:
                     [RepositoryStorageImageName(name=str(model.id)) for model in models])
         except Error as error:
             raise RepositoryPersonSnapshotDeleteError(error) from error
+
+    def next_junk_detection(self) -> DomainPersonSnapshot:
+        try:
+            data = self.redis.dequeue("person_snapshot:junk_detection")
+            with self.database as session:
+                query = session.query(MigrationModelPersonSnapshot)
+                query = query.filter(
+                    MigrationModelPersonSnapshot.id == uuid.UUID(data["id"]))
+                model = query.first()
+                if model is None:
+                    raise RepositoryPersonSnapshotNextQueueError()
+                image = self.storage.image_find_one(RepositoryStorageImageName(
+                    name=str(model.id),
+                )).image
+                return self._model_to_domain(model, image)
+        except Error as error:
+            raise RepositoryPersonSnapshotNextQueueError(error) from error
+
+    def push_junk_detection(self, person_snapshot: DomainPersonSnapshot) -> None:
+        try:
+            self.redis.push(
+                key="person_snapshot:junk_detection",
+                value={
+                    "id": str(person_snapshot.id),
+                }
+            )
+        except Error as error:
+            raise RepositoryPersonSnapshotPushQueueError(error) from error
 
     def next_feature_extraction(self) -> DomainPersonSnapshot:
         try:

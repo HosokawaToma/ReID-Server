@@ -7,6 +7,32 @@ from PIL import Image
 from domain.yolo.pose_model import DomainYoloPoseModel
 from domain.yolo.segment_model import DomainYoloSegmentModel
 from modules.reid.model import ModuleReIDModel
+from error import Error
+
+
+class DomainPersonSnapshotError(Error):
+    pass
+
+
+class DomainPersonSnapshotSelfJunkError(DomainPersonSnapshotError):
+    pass
+
+
+class DomainPersonSnapshotOtherJunkError(DomainPersonSnapshotError):
+    pass
+
+
+class DomainPersonSnapshotDateNotSameError(DomainPersonSnapshotError):
+    pass
+
+
+class DomainPersonSnapshotPersonOtherIdNotSetError(DomainPersonSnapshotError):
+    pass
+
+
+class DomainPersonSnapshotFeatureNotSetError(DomainPersonSnapshotError):
+    pass
+
 
 @dataclass
 class DomainPersonSnapshot:
@@ -15,11 +41,26 @@ class DomainPersonSnapshot:
     camera_id: int
     view_id: int
     timestamp: datetime
+    is_junk: bool = True
     feature: torch.Tensor | None = None
-    person_id: uuid.UUID = field(default_factory=uuid.uuid4)
+    person_id: uuid.UUID | None = None
     id: uuid.UUID = field(default_factory=uuid.uuid4)
 
-    def is_full_body(self, pose_model: DomainYoloPoseModel) -> bool:
+    def detect_junk(self, pose_model: DomainYoloPoseModel, segment_model: DomainYoloSegmentModel) -> None:
+        """
+        不採用なPersonSnapshotかどうかを検出する
+        :param DomainYoloPoseModel pose_model: 姿勢推定モデル
+        :param DomainYoloSegmentModel segment_model: 個別物体推定モデル
+        """
+        if not self._is_full_body(pose_model):
+            self.is_junk = True
+            return
+        if not self._is_one_person(segment_model):
+            self.is_junk = True
+            return
+        self.is_junk = False
+
+    def _is_full_body(self, pose_model: DomainYoloPoseModel) -> bool:
         key_points = pose_model.extract(self.image)
         if len(key_points) != 1:
             return False
@@ -27,20 +68,44 @@ class DomainPersonSnapshot:
             return False
         return True
 
-    def is_one_person(self, segment_model: DomainYoloSegmentModel) -> bool:
+    def _is_one_person(self, segment_model: DomainYoloSegmentModel) -> bool:
         masks = segment_model.extract(self.image)
         if len(masks) != 1:
             return False
         return True
 
     def extract_feature(self, reid_model: ModuleReIDModel) -> None:
+        """
+        画像から特徴量を抽出する
+        ジャンクのPersonSnapshotは、採用対象外のためエラーを発生させる
+        :param ModuleReIDModel reid_model: 特徴量抽出モデル
+        """
+        if self.is_junk:
+            raise DomainPersonSnapshotSelfJunkError()
         self.feature = reid_model.extract_feature(self.image, self.camera_id, self.view_id)
 
-    def has_feature(self) -> bool:
-        return self.feature is not None
-
-    def person_reid(self, other: "DomainPersonSnapshot") -> None:
-        if self.feature is None or other.feature is None:
+    def person_reid(self, other: "DomainPersonSnapshot | None" = None) -> None:
+        """
+        特徴量が閾値以上の場合、同一人物と見做し、同じperson_idを設定する
+        比較対象が未設定の場合、新しい人物と見做し、新しいperson_idを設定する
+        ジャンクのPersonSnapshotは、採用対象外のためエラーを発生させる
+        日付が異なるPersonSnapshotは、必ず異なる人物と見做すためエラーを発生させる
+        人物IDが未設定のPersonSnapshotは、採用対象外のためエラーを発生させる
+        特徴量が未設定のPersonSnapshotは、採用対象外のためエラーを発生させる
+        :param DomainPersonSnapshot | None other: 比較対象のPersonSnapshot
+        """
+        if self.is_junk:
+            raise DomainPersonSnapshotSelfJunkError()
+        self.person_id = uuid.uuid4()
+        if other is None:
             return
+        if other.is_junk:
+            raise DomainPersonSnapshotOtherJunkError()
+        if datetime.combine(self.timestamp.date(), datetime.min.time()) != datetime.combine(other.timestamp.date(), datetime.min.time()):
+            raise DomainPersonSnapshotDateNotSameError()
+        if other.person_id is None:
+            raise DomainPersonSnapshotPersonOtherIdNotSetError()
+        if self.feature is None or other.feature is None:
+            raise DomainPersonSnapshotFeatureNotSetError()
         if torch.nn.functional.cosine_similarity(self.feature, other.feature, dim=0).item() > self.MATCH_THRESHOLD:
             self.person_id = other.person_id
