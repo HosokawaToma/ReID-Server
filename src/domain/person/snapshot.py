@@ -14,7 +14,11 @@ class DomainPersonSnapshotError(Error):
     pass
 
 
-class DomainPersonSnapshotJunkError(DomainPersonSnapshotError):
+class DomainPersonSnapshotSelfJunkError(DomainPersonSnapshotError):
+    pass
+
+
+class DomainPersonSnapshotOtherJunkError(DomainPersonSnapshotError):
     pass
 
 
@@ -77,7 +81,7 @@ class DomainPersonSnapshot:
         :param ModuleReIDModel reid_model: 特徴量抽出モデル
         """
         if self.is_junk:
-            raise DomainPersonSnapshotJunkError()
+            raise DomainPersonSnapshotSelfJunkError()
         self.feature = reid_model.extract_feature(self.image, self.camera_id, self.view_id)
 
     def person_reid(self, other: "DomainPersonSnapshot | None" = None) -> None:
@@ -90,11 +94,13 @@ class DomainPersonSnapshot:
         特徴量が未設定のPersonSnapshotは、採用対象外のためエラーを発生させる
         :param DomainPersonSnapshot | None other: 比較対象のPersonSnapshot
         """
+        if self.is_junk:
+            raise DomainPersonSnapshotSelfJunkError()
         self.person_id = uuid.uuid4()
         if other is None:
             return
-        if self.is_junk or other.is_junk:
-            raise DomainPersonSnapshotJunkError()
+        if other.is_junk:
+            raise DomainPersonSnapshotOtherJunkError()
         if datetime.combine(self.timestamp.date(), datetime.min.time()) != datetime.combine(other.timestamp.date(), datetime.min.time()):
             raise DomainPersonSnapshotDateNotSameError()
         if other.person_id is None:
