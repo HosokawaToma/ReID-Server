@@ -46,11 +46,11 @@ class ApplicationPersonSnapshotBackgroundCreate:
             for person_snapshot in person_snapshots:
                 if not person_snapshot.is_full_body(self.pose_model):
                     if not self.is_delete_unnecessary_images:
-                        self.repository_frame_image.save(frame_image)
+                        self.repository_person_snapshot.save(person_snapshot)
                     continue
                 if not person_snapshot.is_one_person(self.segment_model):
                     if not self.is_delete_unnecessary_images:
-                        self.repository_frame_image.save(frame_image)
+                        self.repository_person_snapshot.save(person_snapshot)
                     continue
                 self.repository_person_snapshot.save(person_snapshot)
                 self.repository_person_snapshot.push_feature_extraction(person_snapshot)
