@@ -45,8 +45,8 @@ class DomainPersonSnapshot:
     def detect_junk(self, pose_model: DomainYoloPoseModel, segment_model: DomainYoloSegmentModel) -> None:
         """
         不採用なPersonSnapshotかどうかを検出する
-        :params DomainYoloPoseModel pose_model: 姿勢推定モデル
-        :params DomainYoloSegmentModel segment_model: 個別物体推定モデル
+        :param DomainYoloPoseModel pose_model: 姿勢推定モデル
+        :param DomainYoloSegmentModel segment_model: 個別物体推定モデル
         """
         if not self._is_full_body(pose_model):
             self.is_junk = True
@@ -74,7 +74,7 @@ class DomainPersonSnapshot:
         """
         画像から特徴量を抽出する
         ジャンクのPersonSnapshotは、採用対象外のためエラーを発生させる
-        :params ModuleReIDModel reid_model: 特徴量抽出モデル
+        :param ModuleReIDModel reid_model: 特徴量抽出モデル
         """
         if self.is_junk:
             raise DomainPersonSnapshotJunkError()
@@ -88,7 +88,7 @@ class DomainPersonSnapshot:
         日付が異なるPersonSnapshotは、必ず異なる人物と見做すためエラーを発生させる
         人物IDが未設定のPersonSnapshotは、採用対象外のためエラーを発生させる
         特徴量が未設定のPersonSnapshotは、採用対象外のためエラーを発生させる
-        :params DomainPersonSnapshot | None other: 比較対象のPersonSnapshot
+        :param DomainPersonSnapshot | None other: 比較対象のPersonSnapshot
         """
         self.person_id = uuid.uuid4()
         if other is None:
