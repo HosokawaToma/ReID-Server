@@ -149,12 +149,19 @@ class RepositoryPersonSnapshot:
             query = query.filter(
                 MigrationModelPersonSnapshot.person_id.in_(filters.person_ids))
         if filters.has_person_id is not None:
-            query = query.filter(
-                MigrationModelPersonSnapshot.person_id.isnot(sa.null()))
+            if filters.has_person_id:
+                query = query.filter(
+                    MigrationModelPersonSnapshot.person_id.isnot(sa.null()))
+            else:
+                query = query.filter(
+                    MigrationModelPersonSnapshot.person_id.is_(sa.null()))
         if filters.has_feature is not None:
-            query = query.filter(
-                MigrationModelPersonSnapshot.feature.isnot(sa.null()))
-
+            if filters.has_feature:
+                query = query.filter(
+                    MigrationModelPersonSnapshot.feature.isnot(sa.null()))
+            else:
+                query = query.filter(
+                    MigrationModelPersonSnapshot.feature.is_(sa.null()))
         return query
 
     def _build_ordering(self, query: Query, ordering: RepositoryPersonSnapshotOrdering) -> Query:
