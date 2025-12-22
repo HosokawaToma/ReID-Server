@@ -85,9 +85,9 @@ class Environment:
         value = os.getenv(key)
         if value is None:
             raise ValueError(f"{key} is not set")
-        if value.lower() == "true":
+        if value in ["true", "True", "1", "yes", "Yes", "YES"]:
             return True
-        elif value.lower() == "false":
+        elif value in ["false", "False", "0", "no", "No", "NO"]:
             return False
         else:
             raise ValueError(f"{key} is not a valid boolean")
