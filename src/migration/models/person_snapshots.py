@@ -13,5 +13,5 @@ class MigrationModelPersonSnapshot(Base):
     camera_id = Column[int](Integer, nullable=False)
     view_id = Column[int](Integer, nullable=False)
     timestamp = Column[datetime](DateTime, nullable=False)
-    person_id = Column[uuid.UUID](UUID(as_uuid=True), nullable=False)
+    person_id = Column[uuid.UUID](UUID(as_uuid=True), nullable=True)
     feature = Column[Vector](Vector(1280), nullable=True)
