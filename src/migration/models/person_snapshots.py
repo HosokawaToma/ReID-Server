@@ -1,4 +1,4 @@
-from sqlalchemy import Column, UUID, Integer, DateTime
+from sqlalchemy import Column, UUID, Integer, DateTime, Boolean
 from sqlalchemy.orm import declarative_base
 import uuid
 from pgvector.sqlalchemy import Vector
@@ -13,5 +13,6 @@ class MigrationModelPersonSnapshot(Base):
     camera_id = Column[int](Integer, nullable=False)
     view_id = Column[int](Integer, nullable=False)
     timestamp = Column[datetime](DateTime, nullable=False)
+    is_junk = Column[bool](Boolean, nullable=False)
     person_id = Column[uuid.UUID](UUID(as_uuid=True), nullable=True)
     feature = Column[Vector](Vector(1280), nullable=True)

@@ -11,9 +11,6 @@ from error import Error
 class ApplicationPersonSnapshotBackgroundIdentifyError(Error):
     pass
 
-class ApplicationPersonSnapshotBackgroundIdentifyFeatureNotExtractedError(ApplicationPersonSnapshotBackgroundIdentifyError):
-    pass
-
 class ApplicationPersonSnapshotBackgroundIdentify:
     def __init__(
         self,
@@ -31,14 +28,14 @@ class ApplicationPersonSnapshotBackgroundIdentify:
     def identify(self) -> DomainPersonSnapshot:
         try:
             person_snapshot = self.repository_person_snapshot.next_identify()
-            if not person_snapshot.has_feature():
-                raise ApplicationPersonSnapshotBackgroundIdentifyFeatureNotExtractedError()
             nearest_person_snapshot = self.repository_person_snapshot.find_first(
                 filters=RepositoryPersonSnapshotFilters(
                     not_ids=[person_snapshot.id],
                     timestamp_after=datetime.combine(
                         person_snapshot.timestamp.date(), datetime.min.time()),
-                    timestamp_before=person_snapshot.timestamp),
+                    timestamp_before=person_snapshot.timestamp,
+                    is_junk=False,
+                    ),
                 ordering=RepositoryPersonSnapshotOrdering([
                     person_snapshot.feature, # type: ignore
                     RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_DESC]),

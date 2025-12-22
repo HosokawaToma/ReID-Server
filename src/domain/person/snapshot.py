@@ -14,6 +14,10 @@ class DomainPersonSnapshotError(Error):
     pass
 
 
+class DomainPersonSnapshotJunkError(DomainPersonSnapshotError):
+    pass
+
+
 class DomainPersonSnapshotPersonIdNotSetError(DomainPersonSnapshotError):
     pass
 
@@ -33,11 +37,26 @@ class DomainPersonSnapshot:
     camera_id: int
     view_id: int
     timestamp: datetime
+    is_junk: bool = True
     feature: torch.Tensor | None = None
     person_id: uuid.UUID | None = None
     id: uuid.UUID = field(default_factory=uuid.uuid4)
 
-    def is_full_body(self, pose_model: DomainYoloPoseModel) -> bool:
+    def detect_junk(self, pose_model: DomainYoloPoseModel, segment_model: DomainYoloSegmentModel) -> None:
+        """
+        不採用なPersonSnapshotかどうかを検出する
+        :params DomainYoloPoseModel pose_model: 姿勢推定モデル
+        :params DomainYoloSegmentModel segment_model: 個別物体推定モデル
+        """
+        if not self._is_full_body(pose_model):
+            self.is_junk = True
+            return
+        if not self._is_one_person(segment_model):
+            self.is_junk = True
+            return
+        self.is_junk = False
+
+    def _is_full_body(self, pose_model: DomainYoloPoseModel) -> bool:
         key_points = pose_model.extract(self.image)
         if len(key_points) != 1:
             return False
@@ -45,17 +64,21 @@ class DomainPersonSnapshot:
             return False
         return True
 
-    def is_one_person(self, segment_model: DomainYoloSegmentModel) -> bool:
+    def _is_one_person(self, segment_model: DomainYoloSegmentModel) -> bool:
         masks = segment_model.extract(self.image)
         if len(masks) != 1:
             return False
         return True
 
     def extract_feature(self, reid_model: ModuleReIDModel) -> None:
+        """
+        画像から特徴量を抽出する
+        ジャンクのPersonSnapshotは、採用対象外のためエラーを発生させる
+        :params ModuleReIDModel reid_model: 特徴量抽出モデル
+        """
+        if self.is_junk:
+            raise DomainPersonSnapshotJunkError()
         self.feature = reid_model.extract_feature(self.image, self.camera_id, self.view_id)
-
-    def has_feature(self) -> bool:
-        return self.feature is not None
 
     def person_reid(self, other: "DomainPersonSnapshot") -> None:
         """
@@ -63,6 +86,7 @@ class DomainPersonSnapshot:
         人物IDが未設定のPersonSnapshotは、採用対象外のためエラーを発生させる
         日付が異なるPersonSnapshotは、必ず異なる人物と見做すためエラーを発生させる
         特徴量が未設定のPersonSnapshotは、採用対象外のためエラーを発生させる
+        :params DomainPersonSnapshot other: 比較対象のPersonSnapshot
         """
         if other.person_id is None:
             raise DomainPersonSnapshotPersonIdNotSetError()
