@@ -13,6 +13,7 @@ class Environment:
     public_ip: str = field(init=False)
     admin_client_id: str = field(init=False)
     admin_client_password: str = field(init=False)
+    is_delete_unnecessary_images: bool = field(init=False)
     jwt_secret_key: str = field(init=False)
     jwt_algorithm: str = field(init=False)
     jwt_expire_minutes: int = field(init=False)
@@ -42,6 +43,7 @@ class Environment:
         self.public_ip = self._get_string("PUBLIC_IP")
         self.admin_client_id = self._get_string("ADMIN_CLIENT_ID")
         self.admin_client_password = self._get_string("ADMIN_CLIENT_PASSWORD")
+        self.is_delete_unnecessary_images = self._get_bool("IS_DELETE_UNNECESSARY_IMAGES")
         self.jwt_secret_key = self._get_string("JWT_SECRET_KEY")
         self.jwt_algorithm = self._get_string("JWT_ALGORITHM")
         self.jwt_expire_minutes = self._get_int("JWT_EXPIRE_MINUTES")
@@ -78,3 +80,14 @@ class Environment:
             return int(value)
         except ValueError:
             raise ValueError(f"{key} is not a valid integer")
+
+    def _get_bool(self, key: str) -> bool:
+        value = os.getenv(key)
+        if value is None:
+            raise ValueError(f"{key} is not set")
+        if value.lower() == "true":
+            return True
+        elif value.lower() == "false":
+            return False
+        else:
+            raise ValueError(f"{key} is not a valid boolean")
