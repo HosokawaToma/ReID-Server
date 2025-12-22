@@ -30,7 +30,7 @@ class PresentationAdminAuthLogin(PresentationBase):
     @classmethod
     def create(cls, environment: Environment) -> "PresentationAdminAuthLogin":
         return cls(
-            logger=Logger("admin_auth_login"),
+            logger=Logger("presentation_admin_auth_login"),
             application=ApplicationAdminClientAuthLogin.create(environment=environment),
         )
 

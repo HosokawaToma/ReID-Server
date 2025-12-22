@@ -41,7 +41,7 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
     @classmethod
     def create(cls, environment: Environment) -> "PresentationPersonFlowWeightSearch":
         return cls(
-            logger=Logger("person_flow_weight_search"),
+            logger=Logger("presentation_person_flow_weight_search"),
             application_person_flow_weight_search=ApplicationPersonFlowWeightSearch.create(environment=environment),
         )
 

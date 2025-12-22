@@ -210,9 +210,12 @@ class RepositoryStorage:
             with open(image_name, "rb") as file:
                 file_content = file.read()
                 image_stream = io.BytesIO(file_content)
+                image = Image.open(image_stream)
+                copied_image = image.copy()
+                copied_image.format = image.format
                 return RepositoryStorageImage(
                     name=params.name,
-                    image=Image.open(image_stream).copy(),
+                    image=copied_image,
                 )
         except FileNotFoundError as error:
             raise RepositoryStorageImageNotFoundError(error) from error

@@ -35,7 +35,7 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
     @classmethod
     def create(cls, environment: Environment) -> "PresentationPersonSnapshotRefresh":
         return cls(
-            logger=Logger("person_snapshot_refresh"),
+            logger=Logger("presentation_person_snapshot_refresh"),
             application=ApplicationPersonSnapshotRefresh.create(
                 environment=environment,
             ),

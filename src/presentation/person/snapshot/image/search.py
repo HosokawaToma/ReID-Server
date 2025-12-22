@@ -39,7 +39,7 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
     @classmethod
     def create(cls, environment: Environment) -> "PresentationPersonSnapshotImageSearch":
         return cls(
-            logger=Logger("person_snapshot_image_search"),
+            logger=Logger("presentation_person_snapshot_image_search"),
             application_person_snapshot_image_search=ApplicationPersonSnapshotImageSearch.create(environment),
         )
 
