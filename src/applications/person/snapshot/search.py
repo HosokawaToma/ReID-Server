@@ -17,6 +17,7 @@ class ApplicationPersonSnapshotSearchFilters:
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
     person_ids: list[uuid.UUID] | None = None
+    is_junk: bool | None = None
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
 
@@ -62,6 +63,7 @@ class ApplicationPersonSnapshotSearch:
                     not_ids=filters.not_ids,
                     camera_ids=filters.camera_ids,
                     view_ids=filters.view_ids,
+                    is_junk=filters.is_junk,
                     person_ids=filters.person_ids,
                     timestamp_after=filters.timestamp_after,
                     timestamp_before=filters.timestamp_before,
