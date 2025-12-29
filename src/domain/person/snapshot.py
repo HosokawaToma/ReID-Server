@@ -52,7 +52,7 @@ class DomainPersonSnapshot:
 
     @is_junk.setter
     def is_junk(self, value: bool) -> None:
-        if value == True:
+        if value:
             self.feature = None
             self.person_id = None
         self._is_junk = value
