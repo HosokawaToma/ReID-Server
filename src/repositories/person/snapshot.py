@@ -174,7 +174,7 @@ class RepositoryPersonSnapshot:
                     camera_id=snapshot.camera_id,
                     view_id=snapshot.view_id,
                     timestamp=snapshot.timestamp,
-                    _is_junk=snapshot.is_junk,
+                    is_junk=snapshot.is_junk,
                     person_id=snapshot.person_id,
                     feature=snapshot.feature.cpu().numpy().tolist(
                     ) if snapshot.feature is not None else None
