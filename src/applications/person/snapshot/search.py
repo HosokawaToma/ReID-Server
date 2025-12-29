@@ -7,8 +7,10 @@ import uuid
 from datetime import datetime
 from error import Error
 
+
 class ApplicationPersonSnapshotSearchError(Error):
     pass
+
 
 @dataclass
 class ApplicationPersonSnapshotSearchFilters:
@@ -21,10 +23,12 @@ class ApplicationPersonSnapshotSearchFilters:
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
 
+
 @dataclass
 class ApplicationPersonSnapshotSearchOrdering:
     timestamp_asc: bool | None = None
     timestamp_desc: bool | None = None
+
 
 @dataclass
 class ApplicationPersonSnapshotSearchItem:
@@ -32,7 +36,9 @@ class ApplicationPersonSnapshotSearchItem:
     camera_id: int
     view_id: int
     timestamp: datetime
+    is_junk: bool
     person_id: uuid.UUID | None
+
 
 class ApplicationPersonSnapshotSearch:
     def __init__(
@@ -71,18 +77,22 @@ class ApplicationPersonSnapshotSearch:
             if ordering is not None:
                 ordering_list = []
                 if ordering.timestamp_asc:
-                    ordering_list.append(RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_ASC)
+                    ordering_list.append(
+                        RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_ASC)
                 if ordering.timestamp_desc:
-                    ordering_list.append(RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_DESC)
+                    ordering_list.append(
+                        RepositoryPersonSnapshotOrdering.KEY_TIMESTAMP_DESC)
                 repository_ordering = RepositoryPersonSnapshotOrdering(
                     ordering=ordering_list,
                 )
-            person_snapshots = self.person_snapshot_repository.find(filters=repository_filters, ordering=repository_ordering)
+            person_snapshots = self.person_snapshot_repository.find(
+                filters=repository_filters, ordering=repository_ordering)
             return [ApplicationPersonSnapshotSearchItem(
                 id=person_snapshot.id,
                 camera_id=person_snapshot.camera_id,
                 view_id=person_snapshot.view_id,
                 timestamp=person_snapshot.timestamp,
+                is_junk=person_snapshot.is_junk,
                 person_id=person_snapshot.person_id,
             ) for person_snapshot in person_snapshots]
         except Error as error:

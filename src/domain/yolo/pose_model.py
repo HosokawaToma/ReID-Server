@@ -7,7 +7,7 @@ class DomainYoloPoseModel:
     def __init__(self):
         self.model = YOLO("./resources/models/yolo11x-pose.pt")
 
-    def extract(self, image: Image.Image) -> list[DomainYoloKeyPoints]:
+    def _extract(self, image: Image.Image) -> list[DomainYoloKeyPoints]:
         results = self.model(image, verbose=False)
         items: Results = results[0]
         keypoints: list[DomainYoloKeyPoints] = []
@@ -24,3 +24,11 @@ class DomainYoloPoseModel:
                 confidences=confs,
             ))
         return keypoints
+
+    def is_full_body(self, image: Image.Image) -> bool:
+        key_points = self._extract(image)
+        if len(key_points) != 1:
+            return False
+        if not key_points[0].is_confidence():
+            return False
+        return True

@@ -159,7 +159,7 @@ class RepositoryPersonSnapshot:
             camera_id=int(str(model.camera_id)),
             view_id=int(str(model.view_id)),
             timestamp=datetime.fromisoformat(str(model.timestamp)),
-            is_junk=bool(model.is_junk),
+            _is_junk=bool(model.is_junk),
             person_id=uuid.UUID(str(model.person_id)) if model.person_id is not None else None,
             feature=torch.tensor(
                 model.feature) if model.feature is not None else None,
@@ -174,7 +174,7 @@ class RepositoryPersonSnapshot:
                     camera_id=snapshot.camera_id,
                     view_id=snapshot.view_id,
                     timestamp=snapshot.timestamp,
-                    is_junk=snapshot.is_junk,
+                    _is_junk=snapshot.is_junk,
                     person_id=snapshot.person_id,
                     feature=snapshot.feature.cpu().numpy().tolist(
                     ) if snapshot.feature is not None else None
@@ -249,7 +249,7 @@ class RepositoryPersonSnapshot:
                         MigrationModelPersonSnapshot.camera_id: person_snapshot.camera_id,
                         MigrationModelPersonSnapshot.view_id: person_snapshot.view_id,
                         MigrationModelPersonSnapshot.timestamp: person_snapshot.timestamp,
-                        MigrationModelPersonSnapshot.is_junk: person_snapshot.is_junk,
+                        MigrationModelPersonSnapshot.is_junk: person_snapshot._is_junk,
                         MigrationModelPersonSnapshot.person_id: person_snapshot.person_id,
                         MigrationModelPersonSnapshot.feature: person_snapshot.feature.cpu().numpy().tolist() if person_snapshot.feature is not None else None,
                     }
