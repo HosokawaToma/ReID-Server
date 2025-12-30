@@ -10,8 +10,10 @@ from typing import Literal
 from datetime import datetime
 from presentation import PresentationJSONResponse
 from presentation import PresentationAdminClientAuthenticated
+import uuid
 
 class PresentationFrameSearchFilters(PresentationRequestBody):
+    ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
     timestamp_after: datetime | None = None
@@ -56,6 +58,7 @@ class PresentationFrameSearch(PresentationBase):
         filters = None
         if request is not None and request.filters is not None:
             filters = DtoFrameImageFilter(
+                ids=request.filters.ids,
                 camera_ids=request.filters.camera_ids,
                 view_ids=request.filters.view_ids,
                 timestamp_after=request.filters.timestamp_after,
