@@ -15,6 +15,7 @@ from presentation.person.snapshot.search import PresentationPersonSnapshotSearch
 from presentation.person.flow.search import PresentationPersonFlowSearch
 from presentation.person.flow.weight.search import PresentationPersonFlowWeightSearch
 from presentation.person.snapshot.image.search import PresentationPersonSnapshotImageSearch
+from presentation.frame.search import PresentationFrameSearch
 from presentation import PresentationExceptionHandler, PresentationMiddleware
 from logger import Logger
 
@@ -36,6 +37,7 @@ class ServerApp:
         person_flow_search: PresentationPersonFlowSearch,
         person_flow_weight_search: PresentationPersonFlowWeightSearch,
         person_snapshot_image_search: PresentationPersonSnapshotImageSearch,
+        frame_search: PresentationFrameSearch,
         presentation_exception_handler: PresentationExceptionHandler,
     ):
         self.app_host = app_host
@@ -53,6 +55,7 @@ class ServerApp:
         self.person_flow_search = person_flow_search
         self.person_flow_weight_search = person_flow_weight_search
         self.person_snapshot_image_search = person_snapshot_image_search
+        self.frame_search = frame_search
         self.presentation_exception_handler = presentation_exception_handler
 
     @classmethod
@@ -103,6 +106,9 @@ class ServerApp:
             person_snapshot_image_search=PresentationPersonSnapshotImageSearch.create(
                 environment=environment,
             ),
+            frame_search=PresentationFrameSearch.create(
+                environment=environment,
+            ),
             presentation_exception_handler=PresentationExceptionHandler.create(),
         )
 
@@ -130,6 +136,7 @@ class ServerApp:
         self.person_flow_search.setup(self.fastapi_app)
         self.person_flow_weight_search.setup(self.fastapi_app)
         self.person_snapshot_image_search.setup(self.fastapi_app)
+        self.frame_search.setup(self.fastapi_app)
         self.presentation_exception_handler.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.app_host, port=self.app_port)
 

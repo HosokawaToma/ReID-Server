@@ -6,15 +6,23 @@ from repositories import RepositoryDatabase
 from migration.models.frame_images import MigrationModelFrameImage
 from error import Error
 from domain.frame_image import DomainFrameImage
+from domain.frame_image.filter import DomainFrameImageFilter
+from domain.frame_image.ordering import DomainFrameImageOrdering
 from environment import Environment
+from domain.frame_image.meta_data import DomainFrameImageMetaData
 import uuid
 from datetime import datetime
 from PIL import Image
+from sqlalchemy.orm import Query
 
 
 class RepositoryFrameImageError(Error):
     pass
 class RepositoryFrameImageSaveError(RepositoryFrameImageError):
+    pass
+class RepositoryFrameImageFindError(RepositoryFrameImageError):
+    pass
+class RepositoryFrameImageOrderingError(RepositoryFrameImageError):
     pass
 class RepositoryFrameImageNextQueueError(RepositoryFrameImageError):
     pass
@@ -55,6 +63,14 @@ class RepositoryFrameImage:
             timestamp=datetime.fromisoformat(str(model.timestamp)),
         )
 
+    def _model_to_domain_meta_data(self, model: MigrationModelFrameImage) -> DomainFrameImageMetaData:
+        return DomainFrameImageMetaData(
+            id=uuid.UUID(str(model.id)),
+            camera_id=int(str(model.camera_id)),
+            view_id=int(str(model.view_id)),
+            timestamp=datetime.fromisoformat(str(model.timestamp)),
+        )
+
     def save(self, frame_image: DomainFrameImage) -> None:
         try:
             with self.database as session:
@@ -70,6 +86,44 @@ class RepositoryFrameImage:
                 ))
         except Error as error:
             raise RepositoryFrameImageSaveError(error) from error
+
+    def _build_filters(self, query: Query, filters: DomainFrameImageFilter) -> Query:
+        if filters.camera_ids is not None:
+            query = query.filter(
+                MigrationModelFrameImage.camera_id.in_(filters.camera_ids))
+        if filters.view_ids is not None:
+            query = query.filter(
+                MigrationModelFrameImage.view_id.in_(filters.view_ids))
+        if filters.timestamp_after is not None:
+            query = query.filter(
+                MigrationModelFrameImage.timestamp >= filters.timestamp_after)
+        if filters.timestamp_before is not None:
+            query = query.filter(
+                MigrationModelFrameImage.timestamp <= filters.timestamp_before)
+        return query
+
+    def _build_ordering(self, query: Query, ordering: DomainFrameImageOrdering) -> Query:
+        for order in ordering.ordering:
+            if order == DomainFrameImageOrdering.KEY_TIMESTAMP_ASC:
+                query = query.order_by(MigrationModelFrameImage.timestamp.asc())
+            elif order == DomainFrameImageOrdering.KEY_TIMESTAMP_DESC:
+                query = query.order_by(MigrationModelFrameImage.timestamp.desc())
+            else:
+                raise RepositoryFrameImageOrderingError()
+        return query
+
+    def meta_data_find_all(self, filters: DomainFrameImageFilter | None = None, ordering: DomainFrameImageOrdering | None = None) -> list[DomainFrameImageMetaData]:
+        try:
+            with self.database as session:
+                query = session.query(MigrationModelFrameImage)
+                if filters is not None:
+                    query = self._build_filters(query, filters)
+                if ordering is not None:
+                    query = self._build_ordering(query, ordering)
+                models = query.all()
+                return [self._model_to_domain_meta_data(model) for model in models]
+        except Error as error:
+            raise RepositoryFrameImageFindError(error) from error
 
     def delete(self, frame_image: DomainFrameImage) -> None:
         try:
