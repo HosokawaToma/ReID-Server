@@ -112,6 +112,24 @@ class RepositoryFrameImage:
                 raise RepositoryFrameImageOrderingError()
         return query
 
+    def find_first(self, filters: DomainFrameImageFilter | None = None, ordering: DomainFrameImageOrdering | None = None) -> DomainFrameImage:
+        try:
+            with self.database as session:
+                query = session.query(MigrationModelFrameImage)
+                if filters is not None:
+                    query = self._build_filters(query, filters)
+                if ordering is not None:
+                    query = self._build_ordering(query, ordering)
+                models = query.all()
+                if len(models) == 0:
+                    raise RepositoryFrameImageFindError()
+                image = self.storage.image_find_one(RepositoryStorageImageName(
+                    name=str(models[0].id),
+                )).image
+                return self._model_to_domain(models[0], image)
+        except Error as error:
+            raise RepositoryFrameImageFindError(error) from error
+
     def meta_data_find_all(self, filters: DomainFrameImageFilter | None = None, ordering: DomainFrameImageOrdering | None = None) -> list[DomainFrameImageMetaData]:
         try:
             with self.database as session:

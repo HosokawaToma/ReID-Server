@@ -29,6 +29,8 @@ class DomainFrameImageOrdering:
     @classmethod
     def from_dto(cls, dto: DtoFrameImageOrdering) -> "DomainFrameImageOrdering":
         ordering = cls()
+        if dto.ordering is None:
+            return ordering
         for ordering_type in dto.ordering:
             if ordering_type == cls.KEY_TIMESTAMP_ASC:
                 ordering.add_timestamp_asc()
