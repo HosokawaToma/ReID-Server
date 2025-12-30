@@ -19,13 +19,10 @@ class PresentationFrameSearchFilters(PresentationRequestBody):
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
 
-class PresentationFrameSearchOrdering(PresentationRequestBody):
-    ordering: list[Literal["timestamp_asc", "timestamp_desc"]]
-
 @dataclass
 class PresentationFrameSearchRequestBody(PresentationRequestBody):
     filters: PresentationFrameSearchFilters | None = None
-    ordering: PresentationFrameSearchOrdering | None = None
+    ordering: list[Literal["timestamp_asc", "timestamp_desc"]] | None = None
 
 class PresentationFrameSearch(PresentationBase):
     router_path = "/frame/search"
@@ -67,7 +64,7 @@ class PresentationFrameSearch(PresentationBase):
         ordering = None
         if request is not None and request.ordering is not None:
             ordering = DtoFrameImageOrdering(
-                ordering=request.ordering.ordering,
+                ordering=request.ordering,
             )
         frames = self.application.search(
             filters=filters,
