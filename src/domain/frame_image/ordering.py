@@ -13,6 +13,10 @@ class DomainFrameImageOrdering:
     ordering: list[Literal["timestamp_asc", "timestamp_desc"]] = field(default_factory=list)
 
     def add_timestamp_asc(self) -> None:
+        """
+        時刻の昇順を表す timestamp_asc を追加する．
+        すでに timestamp_asc と timestamp_desc が存在する場合は追加しない．
+        """
         if self.KEY_TIMESTAMP_ASC not in self.ordering:
             return
         if self.KEY_TIMESTAMP_DESC not in self.ordering:
@@ -20,6 +24,10 @@ class DomainFrameImageOrdering:
         self.ordering.append(self.KEY_TIMESTAMP_ASC)
 
     def add_timestamp_desc(self) -> None:
+        """
+        時刻の降順を表す timestamp_desc を追加する．
+        すでに timestamp_desc と timestamp_asc が存在する場合は追加しない．
+        """
         if self.KEY_TIMESTAMP_DESC not in self.ordering:
             return
         if self.KEY_TIMESTAMP_ASC not in self.ordering:
