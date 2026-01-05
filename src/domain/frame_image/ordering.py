@@ -15,7 +15,7 @@ class DomainFrameImageOrdering:
     def add_timestamp_asc(self) -> None:
         """
         時刻の昇順を表す timestamp_asc を追加する．
-        すでに timestamp_asc と timestamp_desc が存在する場合は追加しない．
+        すでに時刻の昇順（timestamp_asc）または時刻の降順（timestamp_desc）が存在する場合は追加しない．
         """
         if self.KEY_TIMESTAMP_ASC not in self.ordering:
             return
@@ -26,7 +26,7 @@ class DomainFrameImageOrdering:
     def add_timestamp_desc(self) -> None:
         """
         時刻の降順を表す timestamp_desc を追加する．
-        すでに timestamp_desc と timestamp_asc が存在する場合は追加しない．
+        すでに時刻の降順（timestamp_desc）または時刻の昇順（timestamp_asc）が存在する場合は追加しない．
         """
         if self.KEY_TIMESTAMP_DESC not in self.ordering:
             return
