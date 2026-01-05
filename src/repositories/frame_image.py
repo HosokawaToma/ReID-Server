@@ -88,6 +88,9 @@ class RepositoryFrameImage:
             raise RepositoryFrameImageSaveError(error) from error
 
     def _build_filters(self, query: Query, filters: DomainFrameImageFilter) -> Query:
+        if filters.ids is not None:
+            query = query.filter(
+                MigrationModelFrameImage.id.in_(filters.ids))
         if filters.camera_ids is not None:
             query = query.filter(
                 MigrationModelFrameImage.camera_id.in_(filters.camera_ids))
