@@ -3,7 +3,6 @@ from environment import Environment
 from dto.frame_image import DtoFrameImage
 import uuid
 from domain.frame_image.filter import DomainFrameImageFilter
-from domain.frame_image.ordering import DomainFrameImageOrdering
 
 class ApplicationFrameImageSearch:
     def __init__(self, repository_frame_image: RepositoryFrameImage):
