@@ -5,8 +5,6 @@ from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationImageResponse
 from presentation import PresentationRequest
 from logger import Logger
-from dto.frame_image.filter import DtoFrameImageFilter
-from dto.frame_image.ordering import DtoFrameImageOrdering
 import uuid
 
 class PresentationFrameImageSearch(PresentationBase):
