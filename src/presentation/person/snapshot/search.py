@@ -9,21 +9,26 @@ from environment import Environment
 from datetime import datetime
 import uuid
 
+
 class PresentationPersonSnapshotSearchFilters(PresentationRequestBody):
     ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
     person_ids: list[uuid.UUID] | None = None
+    is_junk: bool | None = None
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
+
 
 class PresentationPersonSnapshotSearchOrdering(PresentationRequestBody):
     timestamp_asc: bool | None = None
     timestamp_desc: bool | None = None
 
+
 class PresentationPersonSnapshotSearchRequest(PresentationRequestBody):
     filters: PresentationPersonSnapshotSearchFilters | None = None
     ordering: PresentationPersonSnapshotSearchOrdering | None = None
+
 
 class PresentationPersonSnapshotSearch(PresentationBase):
     router_path = "/person/snapshot/search"
@@ -66,6 +71,7 @@ class PresentationPersonSnapshotSearch(PresentationBase):
                 camera_ids=request.filters.camera_ids,
                 view_ids=request.filters.view_ids,
                 person_ids=request.filters.person_ids,
+                is_junk=request.filters.is_junk,
                 timestamp_after=request.filters.timestamp_after,
                 timestamp_before=request.filters.timestamp_before,
             )
@@ -74,7 +80,7 @@ class PresentationPersonSnapshotSearch(PresentationBase):
             ordering = ApplicationPersonSnapshotSearchOrdering(
                 timestamp_asc=request.ordering.timestamp_asc,
                 timestamp_desc=request.ordering.timestamp_desc,
-                )
+            )
         items = self.application_person_snapshot_search.search(
             filters=filters,
             ordering=ordering,
@@ -88,6 +94,7 @@ class PresentationPersonSnapshotSearch(PresentationBase):
                         "camera_id": item.camera_id,
                         "view_id": item.view_id,
                         "timestamp": item.timestamp.isoformat(),
+                        "is_junk": item.is_junk,
                         "person_id": str(item.person_id),
                     } for item in items
                 ],

@@ -46,7 +46,6 @@ class ApplicationPersonSnapshotRefresh:
                 ),
             )
             for person_snapshot in person_snapshots:
-                self.repository_person_snapshot.save(person_snapshot)
-                self.repository_person_snapshot.push_feature_extraction(person_snapshot)
+                self.repository_person_snapshot.push_junk_detection(person_snapshot)
         except Error as error:
             raise ApplicationPersonSnapshotRefreshError(error) from error

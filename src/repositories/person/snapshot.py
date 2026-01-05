@@ -31,31 +31,6 @@ class RepositoryPersonSnapshotFilters:
     has_person_id: bool | None = None
     has_feature: bool | None = None
 
-    def __str__(self) -> str:
-        string_list = []
-        if self.ids is not None:
-            string_list.append(f"ids: {self.ids}")
-        if self.not_ids is not None:
-            string_list.append(f"not_ids: {self.not_ids}")
-        if self.camera_ids is not None:
-            string_list.append(f"camera_ids: {self.camera_ids}")
-        if self.view_ids is not None:
-            string_list.append(f"view_ids: {self.view_ids}")
-        if self.timestamp_after is not None:
-            string_list.append(f"timestamp_after: {self.timestamp_after}")
-        if self.timestamp_before is not None:
-            string_list.append(f"timestamp_before: {self.timestamp_before}")
-        if self.is_junk is not None:
-            string_list.append(f"is_junk: {self.is_junk}")
-        if self.person_ids is not None:
-            string_list.append(f"person_ids: {self.person_ids}")
-        if self.has_person_id is not None:
-            string_list.append(f"has_person_id: {self.has_person_id}")
-        if self.has_feature is not None:
-            string_list.append(f"has_feature: {self.has_feature}")
-        return ", ".join(string_list)
-
-
 @dataclass
 class RepositoryPersonSnapshotOrdering:
     KEY_TIMESTAMP_ASC: ClassVar[Literal["timestamp_asc"]] = "timestamp_asc"
@@ -184,7 +159,7 @@ class RepositoryPersonSnapshot:
             camera_id=int(str(model.camera_id)),
             view_id=int(str(model.view_id)),
             timestamp=datetime.fromisoformat(str(model.timestamp)),
-            is_junk=bool(model.is_junk),
+            _is_junk=bool(model.is_junk),
             person_id=uuid.UUID(str(model.person_id)) if model.person_id is not None else None,
             feature=torch.tensor(
                 model.feature) if model.feature is not None else None,
@@ -274,7 +249,7 @@ class RepositoryPersonSnapshot:
                         MigrationModelPersonSnapshot.camera_id: person_snapshot.camera_id,
                         MigrationModelPersonSnapshot.view_id: person_snapshot.view_id,
                         MigrationModelPersonSnapshot.timestamp: person_snapshot.timestamp,
-                        MigrationModelPersonSnapshot.is_junk: person_snapshot.is_junk,
+                        MigrationModelPersonSnapshot.is_junk: person_snapshot._is_junk,
                         MigrationModelPersonSnapshot.person_id: person_snapshot.person_id,
                         MigrationModelPersonSnapshot.feature: person_snapshot.feature.cpu().numpy().tolist() if person_snapshot.feature is not None else None,
                     }
