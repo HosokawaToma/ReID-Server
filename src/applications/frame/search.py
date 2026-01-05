@@ -23,7 +23,7 @@ class ApplicationFrameSearch:
         ordering_domain = None
         if ordering is not None:
             ordering_domain = DomainFrameImageOrdering.from_dto(ordering)
-        meta_data = self.repository_frame_image.meta_data_find_all(
+        meta_data_list = self.repository_frame_image.meta_data_find_all(
             filters=filters_domain,
             ordering=ordering_domain,
         )
@@ -32,4 +32,4 @@ class ApplicationFrameSearch:
             camera_id=meta_data.camera_id,
             view_id=meta_data.view_id,
             timestamp=meta_data.timestamp,
-        ) for meta_data in meta_data]
+        ) for meta_data in meta_data_list]
