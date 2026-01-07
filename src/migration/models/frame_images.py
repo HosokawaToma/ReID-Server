@@ -13,9 +13,10 @@ class MigrationModelFrameImage(Base):
     timestamp = Column[datetime](DateTime, nullable=False, primary_key=True)
     __table_args__ = (
         Index(
-            name='index_timestamp_brin',
+            'index_timestamp_brin',
+            'timestamp',
             postgresql_using='brin',
-            postgresql_ops={'pages_per_range': '64'}
+            postgresql_with={'pages_per_range': '64'}
         ),
         {"postgresql_partition_by": "RANGE (timestamp)"}
     )
