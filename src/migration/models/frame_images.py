@@ -10,7 +10,7 @@ class MigrationModelFrameImage(Base):
     id = Column[uuid.UUID](UUID(as_uuid=True), primary_key=True)
     camera_id = Column[int](Integer, nullable=False)
     view_id = Column[int](Integer, nullable=False)
-    timestamp = Column[datetime](DateTime, nullable=False, index=True)
+    timestamp = Column[datetime](DateTime, nullable=False)
     __table_args__ = (
         Index(
             'index_timestamp_brin',
