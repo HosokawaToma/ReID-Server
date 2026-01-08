@@ -20,6 +20,8 @@ from pydantic import BaseModel
 from error import Error
 import uuid
 from logger import Logger
+import asyncio
+
 
 class PresentationRequest(Request):
     UNKNOWN_REQUEST_ID = "unknown"
@@ -36,11 +38,13 @@ class PresentationRequest(Request):
         else:
             return self.UNKNOWN_REQUEST_ID
 
+
 class PresentationRequestBody(BaseModel):
     pass
 
+
 class PresentationJSONResponse(JSONResponse):
-    REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 # 1 day
+    REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24  # 1 day
 
     def __init__(self, status: int, content: dict[str, Any]):
         super().__init__(content=content, status_code=status)
@@ -56,8 +60,10 @@ class PresentationJSONResponse(JSONResponse):
             samesite="strict",
         )
 
+
 class PresentationImageResponseError(Exception):
     pass
+
 
 class PresentationImageResponse(StreamingResponse):
     def __init__(self, status: int, image: Image.Image):
@@ -68,6 +74,7 @@ class PresentationImageResponse(StreamingResponse):
         img_buffer.seek(0)
         super().__init__(content=img_buffer,
                          media_type=f"image/{image.format.lower()}", status_code=status)
+
 
 class PresentationBase:
     router_path: str
@@ -93,9 +100,17 @@ class PresentationBase:
             dependencies=self.dependencies,
         )
 
+    async def run_sync(self, func: Callable, *args, **kwargs) -> Any:
+        """
+        同期的な関数を非同期で実行するヘルパーメソッド。
+        イベントループをブロックしないように、別スレッドで実行します。
+        """
+        return await asyncio.to_thread(func, *args, **kwargs)
+
     @abc.abstractmethod
     async def handle(self, *args, **kwargs) -> PresentationJSONResponse | PresentationImageResponse:
         pass
+
 
 class PresentationMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp, logger: Logger):
@@ -109,6 +124,7 @@ class PresentationMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         self.logger.api_response_info(request_id=request_id, response_status_code=response.status_code)
         return response
+
 
 class PresentationExceptionHandler:
     def __init__(self, logger: Logger):
@@ -163,19 +179,25 @@ class PresentationExceptionHandler:
             },
         )
 
-PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
+
+PresentationTypeAuthorization = Annotated[str, Depends(
+    OAuth2PasswordBearer(tokenUrl="token"))]
+
 
 def get_admin_client_auth_application(
     environment: Environment = Depends(Environment)
 ) -> ApplicationAdminClientAuthOAuth2:
     return ApplicationAdminClientAuthOAuth2.create(environment)
 
+
 def admin_client_authenticated(
     token: PresentationTypeAuthorization,
-    application: ApplicationAdminClientAuthOAuth2 = Depends(get_admin_client_auth_application),
+    application: ApplicationAdminClientAuthOAuth2 = Depends(
+        get_admin_client_auth_application),
 ) -> str:
     try:
-        result = application.oauth2(ApplicationAdminClientAuthOAuth2Params(token=token))
+        result = application.oauth2(
+            ApplicationAdminClientAuthOAuth2Params(token=token))
     except ApplicationAdminClientAuthOAuth2Error as error:
         raise HTTPException(
             status_code=401,
@@ -184,11 +206,14 @@ def admin_client_authenticated(
         )
     return result.admin_client_id
 
-PresentationAdminClientAuthenticated = Annotated[str, Depends(admin_client_authenticated)]
+
+PresentationAdminClientAuthenticated = Annotated[str, Depends(
+    admin_client_authenticated)]
 
 
 class PresentationImageError(Exception):
     pass
+
 
 class PresentationImage:
     async def __call__(self, image: UploadFile) -> Image.Image:
@@ -196,8 +221,10 @@ class PresentationImage:
         pil_image = Image.open(io.BytesIO(content))
         pil_image.load()
         if pil_image.format is None:
-            raise PresentationImageError(f"image format is None: {image.filename}")
+            raise PresentationImageError(
+                f"image format is None: {image.filename}")
         return pil_image
+
 
 PresentationTypeImage = Annotated[Image.Image, Depends(PresentationImage())]
 

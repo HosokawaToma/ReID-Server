@@ -11,10 +11,12 @@ from logger import Logger
 from datetime import datetime
 import uuid
 
+
 class PresentationPersonFlowSearchRequestBody(PresentationRequestBody):
     person_id: uuid.UUID
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
+
 
 class PresentationPersonFlowSearch(PresentationBase):
     router_path = "/person/flow/search"
@@ -41,7 +43,8 @@ class PresentationPersonFlowSearch(PresentationBase):
     def create(cls, environment: Environment) -> "PresentationPersonFlowSearch":
         return cls(
             logger=Logger("presentation_person_flow_search"),
-            application=ApplicationPersonFlowSearch.create(environment=environment),
+            application=ApplicationPersonFlowSearch.create(
+                environment=environment),
         )
 
     async def handle(
@@ -56,7 +59,7 @@ class PresentationPersonFlowSearch(PresentationBase):
             timestamp_before=body.timestamp_before,
         )
         try:
-            items = self.application.search(params=params)
+            items = await self.run_sync(self.application.search, params=params)
         except ApplicationPersonFlowSearchNoFlowsFoundError as error:
             self.logger.api_response_info(request_id=request.get_request_id(), response_status_code=404)
             return PresentationJSONResponse(status=404, content={

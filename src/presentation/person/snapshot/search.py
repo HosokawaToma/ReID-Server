@@ -81,7 +81,8 @@ class PresentationPersonSnapshotSearch(PresentationBase):
                 timestamp_asc=request.ordering.timestamp_asc,
                 timestamp_desc=request.ordering.timestamp_desc,
             )
-        items = self.application_person_snapshot_search.search(
+        items = await self.run_sync(
+            self.application_person_snapshot_search.search,
             filters=filters,
             ordering=ordering,
         )

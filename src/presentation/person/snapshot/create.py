@@ -9,6 +9,7 @@ from presentation import PresentationJSONResponse
 from logger import Logger
 from environment import Environment
 
+
 class PresentationPersonSnapshotCreate(PresentationBase):
     router_path = "/person/snapshot/create"
     methods = ["POST"]
@@ -19,6 +20,7 @@ class PresentationPersonSnapshotCreate(PresentationBase):
         200: {"description": "Person snapshot created"},
         400: {"description": "Bad request"},
     }
+
     def __init__(
         self,
         logger: Logger,
@@ -44,7 +46,8 @@ class PresentationPersonSnapshotCreate(PresentationBase):
         camera_id: PresentationTypeInt,
         view_id: PresentationTypeInt,
     ):
-        self.application.save(
+        await self.run_sync(
+            self.application.save,
             ApplicationPersonSnapshotCreateParams(
                 image=image,
                 timestamp=timestamp,
