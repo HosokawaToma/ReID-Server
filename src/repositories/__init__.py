@@ -176,8 +176,9 @@ class RepositoryStorage:
     def _fetch_image_name(self, name: str) -> str:
         match_file_names: list[str] = []
         for extension in self.IMAGE_EXTENSIONS:
-            if os.path.exists(self.images_directory / f"{name}.{extension}"):
-                match_file_names.append(str(self.images_directory / f"{name}.{extension}"))
+            file_path = self.images_directory / f"{name}.{extension}"
+            if os.path.exists(file_path):
+                match_file_names.append(str(file_path))
         if len(match_file_names) == 0:
             raise RepositoryStorageImageNotFoundError()
         if len(match_file_names) > 1:
