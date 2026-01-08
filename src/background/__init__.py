@@ -40,6 +40,7 @@ class Background:
     async def run(self) -> None:
         while not self.event.is_set():
             try:
+                self.logger.info(f"Background {self.name} executing...")
                 message = await asyncio.to_thread(self.handle)
                 self.logger.info(
                     f"Background {self.name} executed successfully: {message}")
