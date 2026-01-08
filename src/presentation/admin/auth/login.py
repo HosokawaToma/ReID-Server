@@ -43,7 +43,7 @@ class PresentationAdminAuthLogin(PresentationBase):
                 ),
             )
         except ApplicationAdminClientAuthLoginInvalidCredentialsError as error:
-            self.logger.error(error, request_id=request.get_request_id())
+            self.logger.api_response_info(request_id=request.get_request_id(), response_status_code=401)
             return PresentationJSONResponse(status=401, content={
                 "message": "Invalid credentials",
             })

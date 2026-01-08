@@ -61,7 +61,7 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
         try:
             items = self.application_person_flow_weight_search.search(params=params)
         except ApplicationPersonFlowWeightSearchError as error:
-            self.logger.error(error, request_id=request.get_request_id())
+            self.logger.api_response_info(request_id=request.get_request_id(), response_status_code=404)
             return PresentationJSONResponse(status=404, content={
                 "message": "Person flow weight not found",
             })
