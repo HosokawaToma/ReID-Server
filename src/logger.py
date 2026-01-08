@@ -22,11 +22,6 @@ class Logger:
     Timestamp: {datetime.datetime.now().isoformat()}
 """)
 
-    def info(self, message: str):
-        self.logger.info(f"""Info: {message}
-    Timestamp: {datetime.datetime.now().isoformat()}
-""")
-
     def api_request_info(self, request_id: str, request_path: str, request_method: str):
         self.logger.info(f"""API Request: id: {request_id}, path: {request_path}, method: {request_method}
     Timestamp: {datetime.datetime.now().isoformat()}
@@ -34,5 +29,10 @@ class Logger:
 
     def api_response_info(self, request_id: str, response_status_code: int):
         self.logger.info(f"""API Response: id: {request_id}, status: {response_status_code}
+    Timestamp: {datetime.datetime.now().isoformat()}
+""")
+
+    def background_info(self, background_id: str, name: str, message: str):
+        self.logger.info(f"""Background: id: {background_id}, name: {name}, message: {message}
     Timestamp: {datetime.datetime.now().isoformat()}
 """)
