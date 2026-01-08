@@ -174,10 +174,15 @@ class RepositoryStorage:
         )
 
     def _fetch_image_name(self, name: str) -> str:
+        match_file_names: list[str] = []
         for extension in self.IMAGE_EXTENSIONS:
             if os.path.exists(self.images_directory / f"{name}.{extension}"):
-                return os.path.join(self.images_directory, f"{name}.{extension}")
-        raise RepositoryStorageImageNotFoundError()
+                match_file_names.append(str(self.images_directory / f"{name}.{extension}"))
+        if len(match_file_names) == 0:
+            raise RepositoryStorageImageNotFoundError()
+        if len(match_file_names) > 1:
+            raise RepositoryStorageImageMultipleError()
+        return match_file_names[0]
 
     def image_save(self, image: RepositoryStorageImage) -> None:
         try:
