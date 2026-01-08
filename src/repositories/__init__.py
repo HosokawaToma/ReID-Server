@@ -159,6 +159,8 @@ class RepositoryStorageImageCPUCountNoneError(RepositoryStorageImageError):
 
 
 class RepositoryStorage:
+    IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"]
+
     def __init__(self, path: Path, directory: str):
         self.storage_directory = path
         self.images_directory = self.storage_directory / directory
@@ -172,14 +174,16 @@ class RepositoryStorage:
         )
 
     def _fetch_image_name(self, name: str) -> str:
-        image_names = glob.glob(
-            str(self.images_directory / f"{name}.*"))
-        if len(image_names) == 0:
+        match_file_names: list[str] = []
+        for extension in self.IMAGE_EXTENSIONS:
+            file_path = self.images_directory / f"{name}.{extension}"
+            if os.path.exists(file_path):
+                match_file_names.append(str(file_path))
+        if len(match_file_names) == 0:
             raise RepositoryStorageImageNotFoundError()
-        if len(image_names) > 1:
+        if len(match_file_names) > 1:
             raise RepositoryStorageImageMultipleError()
-        image_name = image_names[0]
-        return image_name
+        return match_file_names[0]
 
     def image_save(self, image: RepositoryStorageImage) -> None:
         try:
