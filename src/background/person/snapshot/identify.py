@@ -23,6 +23,6 @@ class BackgroundPersonSnapshotIdentify(Background):
             application=ApplicationPersonSnapshotBackgroundIdentify.create(environment),
         )
 
-    def handle(self) -> str:
+    def handle(self) -> None:
         person_snapshot = self.application.identify()
-        return f"person snapshot id: {person_snapshot.id} identified as person id: {person_snapshot.person_id}"
+        self.logger.info(f"person snapshot id: {person_snapshot.id} identified as person id: {person_snapshot.person_id}")
