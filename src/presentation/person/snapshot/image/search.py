@@ -10,10 +10,11 @@ from presentation import PresentationJSONResponse
 from presentation import PresentationImageResponse
 import uuid
 
+
 class PresentationPersonSnapshotImageSearch(PresentationBase):
     router_path = "/person/snapshot/image/search/{id}"
     methods = ["GET"]
-    tags= ["Person Snapshot Image"]
+    tags = ["Person Snapshot Image"]
     summary = "Search person snapshot image"
     description = "Search person snapshot image by image id"
     responses = {
@@ -32,7 +33,7 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
         self,
         logger: Logger,
         application_person_snapshot_image_search: ApplicationPersonSnapshotImageSearch
-        ):
+    ):
         super().__init__(logger=logger)
         self.application_person_snapshot_image_search = application_person_snapshot_image_search
 
@@ -40,12 +41,14 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
     def create(cls, environment: Environment) -> "PresentationPersonSnapshotImageSearch":
         return cls(
             logger=Logger("presentation_person_snapshot_image_search"),
-            application_person_snapshot_image_search=ApplicationPersonSnapshotImageSearch.create(environment),
+            application_person_snapshot_image_search=ApplicationPersonSnapshotImageSearch.create(
+                environment),
         )
 
     async def handle(self, admin_client_id: PresentationAdminClientAuthenticated, request: PresentationRequest, id: uuid.UUID):
         try:
-            person_snapshot = self.application_person_snapshot_image_search.search(
+            person_snapshot = await self.run_sync(
+                self.application_person_snapshot_image_search.search,
                 ApplicationPersonSnapshotImageSearchParams(id=id)
             )
             return PresentationImageResponse(status=200, image=person_snapshot.image)

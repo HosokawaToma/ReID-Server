@@ -6,11 +6,13 @@ from environment import Environment
 from logger import Logger
 from datetime import datetime
 
+
 class PresentationPersonSnapshotRefreshRequest(PresentationRequestBody):
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
+
 
 class PresentationPersonSnapshotRefresh(PresentationBase):
     router_path = "/person/snapshot/refresh"
@@ -54,5 +56,5 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
                 camera_ids=request.camera_ids,
                 view_ids=request.view_ids,
             )
-        self.application.refresh(params=params)
+        await self.run_sync(self.application.refresh, params=params)
         return PresentationJSONResponse(status=200, content={"message": "Person snapshots refreshed"})

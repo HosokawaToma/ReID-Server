@@ -7,6 +7,7 @@ from applications.admin_client.auth.token_refresh import ApplicationAdminClientA
 from applications.admin_client.auth.token_refresh import ApplicationAdminClientAuthTokenRefreshParams
 from applications.admin_client.auth.token_refresh import ApplicationAdminClientAuthTokenRefreshError
 
+
 class PresentationAdminAuthTokenRefresh(PresentationBase):
     router_path = "/admin/auth/token/refresh"
     methods = ["POST"]
@@ -26,12 +27,14 @@ class PresentationAdminAuthTokenRefresh(PresentationBase):
     def create(cls, environment: Environment) -> "PresentationAdminAuthTokenRefresh":
         return cls(
             logger=Logger("presentation_admin_auth_token_refresh"),
-            application=ApplicationAdminClientAuthTokenRefresh.create(environment=environment),
+            application=ApplicationAdminClientAuthTokenRefresh.create(
+                environment=environment),
         )
 
     async def handle(self, request: PresentationRequest):
         try:
-            result = self.application.refresh(
+            result = await self.run_sync(
+                self.application.refresh,
                 ApplicationAdminClientAuthTokenRefreshParams(
                     refresh_token=request.get_refresh_token(),
                 ),
@@ -41,6 +44,7 @@ class PresentationAdminAuthTokenRefresh(PresentationBase):
             return PresentationJSONResponse(status=401, content={
                 "message": "Invalid token",
             })
-        response = PresentationJSONResponse(status=200, content={"token": result.token})
+        response = PresentationJSONResponse(
+            status=200, content={"token": result.token})
         response.set_refresh_token(refresh_token=result.refresh_token)
         return response
