@@ -105,9 +105,9 @@ class PresentationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]):
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
-        self.logger.info("Request received", request_id=request_id)
+        self.logger.api_request_info(request_id=request_id, request_path=request.url.path, request_method=request.method)
         response = await call_next(request)
-        self.logger.info("Response sent", request_id=request_id)
+        self.logger.api_response_info(request_id=request_id, response_status_code=response.status_code)
         return response
 
 class PresentationExceptionHandler:
@@ -130,10 +130,11 @@ class PresentationExceptionHandler:
         :return PresentationJSONResponse: 500エラー
         """
         if request.state is not None and request.state.request_id is not None:
-            request_id = request.state.request_id
-        else:
-            request_id = None
-        self.logger.unexpected_error(exc, request_id=request_id)
+            self.logger.api_response_info(
+                request_id=request.state.request_id,
+                response_status_code=500,
+            )
+        self.logger.unexpected_error(exc)
         return PresentationJSONResponse(
             status=500,
             content={
@@ -150,10 +151,11 @@ class PresentationExceptionHandler:
         :return PresentationJSONResponse: 500エラー
         """
         if request.state is not None and request.state.request_id is not None:
-            request_id = request.state.request_id
-        else:
-            request_id = None
-        self.logger.error(Error(exc), request_id=request_id)
+            self.logger.api_response_info(
+                request_id=request.state.request_id,
+                response_status_code=500,
+            )
+        self.logger.error(Error(exc))
         return PresentationJSONResponse(
             status=500,
             content={

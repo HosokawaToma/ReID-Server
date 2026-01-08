@@ -22,6 +22,5 @@ class BackgroundPersonSnapshotCreate(Background):
             logger=Logger("background_person_snapshot_create"),
             application=ApplicationPersonSnapshotBackgroundCreate.create(environment),
         )
-    def handle(self) -> str:
+    def handle(self) -> None:
         self.application.save()
-        return "person snapshot created"

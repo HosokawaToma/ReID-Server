@@ -50,7 +50,7 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
             )
             return PresentationImageResponse(status=200, image=person_snapshot.image)
         except ApplicationPersonSnapshotImageSearchNotFoundError as error:
-            self.logger.error(error, request_id=request.get_request_id())
+            self.logger.api_response_info(request_id=request.get_request_id(), response_status_code=404)
             return PresentationJSONResponse(
                 status=404,
                 content={

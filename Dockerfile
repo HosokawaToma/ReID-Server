@@ -12,7 +12,7 @@ RUN groupadd -g ${GROUP_ID} ${USER_NAME} && \
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
-    apt-get install -y python3.10 python3-pip python3.10-distutils libgl1-mesa-glx libglib2.0-0 && \
+    apt-get install -y python3.10 python3-pip python3.10-distutils libgl1-mesa-glx libglib2.0-0 tzdata && \
     rm -rf /var/lib/apt/lists/*
 
 RUN ln -sf /usr/bin/python3.10 /usr/bin/python && \
