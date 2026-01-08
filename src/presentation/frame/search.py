@@ -66,7 +66,8 @@ class PresentationFrameSearch(PresentationBase):
             ordering = DtoFrameImageOrdering(
                 ordering=request.ordering,
             )
-        frames = self.application.search(
+        frames = await self.run_sync(
+            self.application.search,
             filters=filters,
             ordering=ordering,
         )
