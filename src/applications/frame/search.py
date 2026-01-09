@@ -5,8 +5,9 @@ from dto.frame_image.meta_data import DtoFrameImageMetaData
 from dto.frame_image.filter import DtoFrameImageFilter
 from dto.frame_image.ordering import DtoFrameImageOrdering
 from environment import Environment
+from applications import ApplicationBase
 
-class ApplicationFrameSearch:
+class ApplicationFrameSearch(ApplicationBase):
     def __init__(self, repository_frame_image: RepositoryFrameImage):
         self.repository_frame_image = repository_frame_image
 

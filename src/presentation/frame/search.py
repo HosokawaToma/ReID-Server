@@ -1,6 +1,5 @@
 from applications.frame.search import ApplicationFrameSearch
-from environment import Environment
-from presentation import PresentationBase
+from presentation import PresentationBase, get_application
 from logger import Logger
 from presentation import PresentationRequestBody
 from dto.frame_image.filter import DtoFrameImageFilter
@@ -36,21 +35,20 @@ class PresentationFrameSearch(PresentationBase):
         },
     }
 
-    def __init__(self, logger: Logger, application: ApplicationFrameSearch):
+    def __init__(self, logger: Logger):
         super().__init__(logger=logger)
-        self.application = application
 
     @classmethod
-    def create(cls, environment: Environment) -> "PresentationFrameSearch":
+    def create(cls) -> "PresentationFrameSearch":
         return cls(
             logger=Logger("presentation_frame_search"),
-            application=ApplicationFrameSearch.create(environment),
         )
 
     async def handle(
         self,
         admin_client_id: PresentationAdminClientAuthenticated,
         request: PresentationFrameSearchRequestBody | None = None,
+        application: ApplicationFrameSearch = get_application(ApplicationFrameSearch),
     ) -> PresentationJSONResponse:
         filters = None
         if request is not None and request.filters is not None:
@@ -67,7 +65,7 @@ class PresentationFrameSearch(PresentationBase):
                 ordering=request.ordering,
             )
         frames = await self.run_sync(
-            self.application.search,
+            application.search,
             filters=filters,
             ordering=ordering,
         )
