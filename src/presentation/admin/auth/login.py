@@ -4,7 +4,6 @@ from logger import Logger
 from presentation import PresentationRequest
 from presentation import PresentationRequestBody
 from presentation import PresentationJSONResponse
-from environment import Environment
 from applications.admin_client.auth.login import ApplicationAdminClientAuthLogin
 from applications.admin_client.auth.login import ApplicationAdminClientAuthLoginParams
 from applications.admin_client.auth.login import ApplicationAdminClientAuthLoginInvalidCredentialsError
@@ -30,7 +29,7 @@ class PresentationAdminAuthLogin(PresentationBase):
         super().__init__(logger=logger)
 
     @classmethod
-    def create(cls, environment: Environment) -> "PresentationAdminAuthLogin":
+    def create(cls) -> "PresentationAdminAuthLogin":
         return cls(
             logger=Logger("presentation_admin_auth_login"),
         )

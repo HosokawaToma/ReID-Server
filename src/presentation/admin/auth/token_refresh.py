@@ -2,7 +2,6 @@ from presentation import PresentationBase, get_application
 from logger import Logger
 from presentation import PresentationRequest
 from presentation import PresentationJSONResponse
-from environment import Environment
 from applications.admin_client.auth.token_refresh import ApplicationAdminClientAuthTokenRefresh
 from applications.admin_client.auth.token_refresh import ApplicationAdminClientAuthTokenRefreshParams
 from applications.admin_client.auth.token_refresh import ApplicationAdminClientAuthTokenRefreshError
@@ -23,7 +22,7 @@ class PresentationAdminAuthTokenRefresh(PresentationBase):
         super().__init__(logger=logger)
 
     @classmethod
-    def create(cls, environment: Environment) -> "PresentationAdminAuthTokenRefresh":
+    def create(cls) -> "PresentationAdminAuthTokenRefresh":
         return cls(
             logger=Logger("presentation_admin_auth_token_refresh"),
         )

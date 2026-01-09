@@ -1,5 +1,4 @@
 from applications.frame.image.search import ApplicationFrameImageSearch
-from environment import Environment
 from presentation import PresentationBase, get_application
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationImageResponse
@@ -23,7 +22,7 @@ class PresentationFrameImageSearch(PresentationBase):
         super().__init__(logger=logger)
 
     @classmethod
-    def create(cls, environment: Environment) -> "PresentationFrameImageSearch":
+    def create(cls) -> "PresentationFrameImageSearch":
         return cls(
             logger=Logger("presentation_frame_image_search"),
         )
