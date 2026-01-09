@@ -5,6 +5,7 @@ from datetime import datetime
 from error import Error
 import uuid
 from dataclasses import dataclass
+from applications import ApplicationBase
 
 @dataclass
 class ApplicationPersonFlowSearchParams:
@@ -26,7 +27,7 @@ class ApplicationPersonFlowSearchError(Error):
 class ApplicationPersonFlowSearchNoFlowsFoundError(ApplicationPersonFlowSearchError):
     pass
 
-class ApplicationPersonFlowSearch:
+class ApplicationPersonFlowSearch(ApplicationBase):
     def __init__(
         self,
         repository_person_snapshot: RepositoryPersonSnapshot,
