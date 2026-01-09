@@ -2,9 +2,9 @@ from presentation import PresentationBase, PresentationJSONResponse, Presentatio
 from applications.person.snapshot.refresh import ApplicationPersonSnapshotRefresh
 from applications.person.snapshot.refresh import ApplicationPersonSnapshotRefreshParams
 from presentation import PresentationAdminClientAuthenticated
-from environment import Environment
 from logger import Logger
 from datetime import datetime
+from presentation import get_application
 
 
 class PresentationPersonSnapshotRefreshRequest(PresentationRequestBody):
@@ -29,24 +29,20 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
     def __init__(
         self,
         logger: Logger,
-        application: ApplicationPersonSnapshotRefresh,
     ):
         super().__init__(logger)
-        self.application = application
 
     @classmethod
-    def create(cls, environment: Environment) -> "PresentationPersonSnapshotRefresh":
+    def create(cls) -> "PresentationPersonSnapshotRefresh":
         return cls(
             logger=Logger("presentation_person_snapshot_refresh"),
-            application=ApplicationPersonSnapshotRefresh.create(
-                environment=environment,
-            ),
         )
 
     async def handle(
         self,
         admin_client_id: PresentationAdminClientAuthenticated,
         request: PresentationPersonSnapshotRefreshRequest | None = None,
+        application: ApplicationPersonSnapshotRefresh = get_application(ApplicationPersonSnapshotRefresh),
     ):
         params = None
         if request is not None:
@@ -56,5 +52,5 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
                 camera_ids=request.camera_ids,
                 view_ids=request.view_ids,
             )
-        await self.run_sync(self.application.refresh, params=params)
+        await self.run_sync(application.refresh, params=params)
         return PresentationJSONResponse(status=200, content={"message": "Person snapshots refreshed"})
