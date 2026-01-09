@@ -1,4 +1,4 @@
-from presentation import PresentationBase
+from presentation import PresentationBase, get_application
 from logger import Logger
 from presentation import PresentationRequest
 from presentation import PresentationJSONResponse
@@ -19,22 +19,23 @@ class PresentationAdminAuthTokenRefresh(PresentationBase):
         401: {"description": "Invalid token"},
     }
 
-    def __init__(self, logger: Logger, application: ApplicationAdminClientAuthTokenRefresh):
+    def __init__(self, logger: Logger):
         super().__init__(logger=logger)
-        self.application = application
 
     @classmethod
     def create(cls, environment: Environment) -> "PresentationAdminAuthTokenRefresh":
         return cls(
             logger=Logger("presentation_admin_auth_token_refresh"),
-            application=ApplicationAdminClientAuthTokenRefresh.create(
-                environment=environment),
         )
 
-    async def handle(self, request: PresentationRequest):
+    async def handle(
+        self,
+        request: PresentationRequest,
+        application: ApplicationAdminClientAuthTokenRefresh = get_application(ApplicationAdminClientAuthTokenRefresh),
+    ):
         try:
             result = await self.run_sync(
-                self.application.refresh,
+                application.refresh,
                 ApplicationAdminClientAuthTokenRefreshParams(
                     refresh_token=request.get_refresh_token(),
                 ),

@@ -3,6 +3,7 @@ from domain.token_converter import DomainTokenConverter
 from environment import Environment
 from error import Error
 from dataclasses import dataclass
+from applications import ApplicationBase
 
 @dataclass
 class ApplicationAdminClientAuthTokenRefreshParams:
@@ -19,7 +20,7 @@ class ApplicationAdminClientAuthTokenRefreshError(Error):
 class ApplicationAdminClientAuthTokenRefreshInvalidRefreshTokenError(ApplicationAdminClientAuthTokenRefreshError):
     pass
 
-class ApplicationAdminClientAuthTokenRefresh:
+class ApplicationAdminClientAuthTokenRefresh(ApplicationBase):
     def __init__(
         self,
         admin_client: DomainAdminClient,
