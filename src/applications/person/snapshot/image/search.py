@@ -5,6 +5,7 @@ from environment import Environment
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from error import Error
+from applications import ApplicationBase
 
 class ApplicationPersonSnapshotImageSearchError(Error):
     pass
@@ -19,7 +20,7 @@ class ApplicationPersonSnapshotImageSearchItem:
 class ApplicationPersonSnapshotImageSearchParams:
     id: uuid.UUID
 
-class ApplicationPersonSnapshotImageSearch:
+class ApplicationPersonSnapshotImageSearch(ApplicationBase):
     def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot):
         self.repository_person_snapshot = repository_person_snapshot
 

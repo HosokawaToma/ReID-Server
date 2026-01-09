@@ -5,6 +5,7 @@ from applications.person.snapshot.image.search import ApplicationPersonSnapshotI
 from presentation import PresentationBase
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationRequest
+from presentation import get_application
 from logger import Logger
 from presentation import PresentationJSONResponse
 from presentation import PresentationImageResponse
@@ -32,23 +33,25 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
     def __init__(
         self,
         logger: Logger,
-        application_person_snapshot_image_search: ApplicationPersonSnapshotImageSearch
     ):
         super().__init__(logger=logger)
-        self.application_person_snapshot_image_search = application_person_snapshot_image_search
 
     @classmethod
-    def create(cls, environment: Environment) -> "PresentationPersonSnapshotImageSearch":
+    def create(cls) -> "PresentationPersonSnapshotImageSearch":
         return cls(
             logger=Logger("presentation_person_snapshot_image_search"),
-            application_person_snapshot_image_search=ApplicationPersonSnapshotImageSearch.create(
-                environment),
         )
 
-    async def handle(self, admin_client_id: PresentationAdminClientAuthenticated, request: PresentationRequest, id: uuid.UUID):
+    async def handle(
+        self,
+        admin_client_id: PresentationAdminClientAuthenticated,
+        request: PresentationRequest,
+        id: uuid.UUID,
+        application: ApplicationPersonSnapshotImageSearch = get_application(ApplicationPersonSnapshotImageSearch),
+    ):
         try:
             person_snapshot = await self.run_sync(
-                self.application_person_snapshot_image_search.search,
+                application.search,
                 ApplicationPersonSnapshotImageSearchParams(id=id)
             )
             return PresentationImageResponse(status=200, image=person_snapshot.image)
