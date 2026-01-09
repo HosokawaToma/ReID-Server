@@ -5,10 +5,9 @@ from presentation import PresentationBase, PresentationRequestBody
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationJSONResponse
 from logger import Logger
-from environment import Environment
 from datetime import datetime
 import uuid
-
+from presentation import get_application
 
 class PresentationPersonSnapshotSearchFilters(PresentationRequestBody):
     ids: list[uuid.UUID] | None = None
@@ -45,24 +44,20 @@ class PresentationPersonSnapshotSearch(PresentationBase):
     def __init__(
         self,
         logger: Logger,
-        application_person_snapshot_search: ApplicationPersonSnapshotSearch,
     ):
         super().__init__(logger=logger)
-        self.application_person_snapshot_search = application_person_snapshot_search
 
     @classmethod
-    def create(cls, environment: Environment) -> "PresentationPersonSnapshotSearch":
+    def create(cls) -> "PresentationPersonSnapshotSearch":
         return cls(
             logger=Logger("presentation_person_snapshot_search"),
-            application_person_snapshot_search=ApplicationPersonSnapshotSearch.create(
-                environment=environment,
-            ),
         )
 
     async def handle(
         self,
         admin_client_id: PresentationAdminClientAuthenticated,
         request: PresentationPersonSnapshotSearchRequest | None = None,
+        application: ApplicationPersonSnapshotSearch = get_application(ApplicationPersonSnapshotSearch),
     ):
         filters = None
         if request is not None and request.filters is not None:
@@ -82,7 +77,7 @@ class PresentationPersonSnapshotSearch(PresentationBase):
                 timestamp_desc=request.ordering.timestamp_desc,
             )
         items = await self.run_sync(
-            self.application_person_snapshot_search.search,
+            application.search,
             filters=filters,
             ordering=ordering,
         )
