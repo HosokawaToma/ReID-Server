@@ -1,4 +1,5 @@
 from presentation import PresentationBase
+from presentation import get_application
 from logger import Logger
 from presentation import PresentationRequest
 from presentation import PresentationRequestBody
@@ -25,22 +26,24 @@ class PresentationAdminAuthLogin(PresentationBase):
         401: {"description": "Invalid credentials"},
     }
 
-    def __init__(self, logger: Logger, application: ApplicationAdminClientAuthLogin):
+    def __init__(self, logger: Logger):
         super().__init__(logger=logger)
-        self.application = application
 
     @classmethod
     def create(cls, environment: Environment) -> "PresentationAdminAuthLogin":
         return cls(
             logger=Logger("presentation_admin_auth_login"),
-            application=ApplicationAdminClientAuthLogin.create(
-                environment=environment),
         )
 
-    async def handle(self, request: PresentationRequest, body: PresentationAdminAuthLoginRequestBody):
+    async def handle(
+        self,
+        request: PresentationRequest,
+        body: PresentationAdminAuthLoginRequestBody,
+        application: ApplicationAdminClientAuthLogin = get_application(ApplicationAdminClientAuthLogin),
+    ):
         try:
             result = await self.run_sync(
-                self.application.login,
+                application.login,
                 ApplicationAdminClientAuthLoginParams(
                     id=body.id,
                     password=body.password,
