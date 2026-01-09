@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import uuid
 from datetime import datetime
 from error import Error
+from applications import ApplicationBase
 
 
 class ApplicationPersonSnapshotSearchError(Error):
@@ -40,7 +41,7 @@ class ApplicationPersonSnapshotSearchItem:
     person_id: uuid.UUID | None
 
 
-class ApplicationPersonSnapshotSearch:
+class ApplicationPersonSnapshotSearch(ApplicationBase):
     def __init__(
         self,
         person_snapshot_repository: RepositoryPersonSnapshot,

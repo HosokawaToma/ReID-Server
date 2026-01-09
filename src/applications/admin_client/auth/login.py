@@ -3,6 +3,7 @@ from domain.token_converter import DomainTokenConverter
 from environment import Environment
 from error import Error
 from dataclasses import dataclass
+from applications import ApplicationBase
 
 @dataclass
 class ApplicationAdminClientAuthLoginParams:
@@ -20,7 +21,7 @@ class ApplicationAdminClientAuthLoginError(Error):
 class ApplicationAdminClientAuthLoginInvalidCredentialsError(ApplicationAdminClientAuthLoginError):
     pass
 
-class ApplicationAdminClientAuthLogin:
+class ApplicationAdminClientAuthLogin(ApplicationBase):
     def __init__(
         self,
         admin_client: DomainAdminClient,

@@ -1,4 +1,5 @@
 from presentation import PresentationBase
+from presentation import get_application
 from presentation import PresentationRequest
 from presentation import PresentationRequestBody
 from presentation import PresentationJSONResponse
@@ -6,7 +7,6 @@ from presentation import PresentationAdminClientAuthenticated
 from applications.person.flow.search import ApplicationPersonFlowSearch
 from applications.person.flow.search import ApplicationPersonFlowSearchParams
 from applications.person.flow.search import ApplicationPersonFlowSearchNoFlowsFoundError
-from environment import Environment
 from logger import Logger
 from datetime import datetime
 import uuid
@@ -34,17 +34,13 @@ class PresentationPersonFlowSearch(PresentationBase):
     def __init__(
         self,
         logger: Logger,
-        application: ApplicationPersonFlowSearch,
     ):
         super().__init__(logger=logger)
-        self.application = application
 
     @classmethod
-    def create(cls, environment: Environment) -> "PresentationPersonFlowSearch":
+    def create(cls) -> "PresentationPersonFlowSearch":
         return cls(
             logger=Logger("presentation_person_flow_search"),
-            application=ApplicationPersonFlowSearch.create(
-                environment=environment),
         )
 
     async def handle(
@@ -52,6 +48,7 @@ class PresentationPersonFlowSearch(PresentationBase):
         admin_client_id: PresentationAdminClientAuthenticated,
         request: PresentationRequest,
         body: PresentationPersonFlowSearchRequestBody,
+        application: ApplicationPersonFlowSearch = get_application(ApplicationPersonFlowSearch),
     ):
         params = ApplicationPersonFlowSearchParams(
             person_id=body.person_id,
@@ -59,7 +56,7 @@ class PresentationPersonFlowSearch(PresentationBase):
             timestamp_before=body.timestamp_before,
         )
         try:
-            items = await self.run_sync(self.application.search, params=params)
+            items = await self.run_sync(application.search, params=params)
         except ApplicationPersonFlowSearchNoFlowsFoundError as error:
             self.logger.api_response_info(request_id=request.get_request_id(), response_status_code=404)
             return PresentationJSONResponse(status=404, content={

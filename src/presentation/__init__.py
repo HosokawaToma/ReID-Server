@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
 import abc
-from typing import Any, Annotated, Sequence, Callable, Awaitable
+from typing import Any, Annotated, Sequence, Callable, Awaitable, Type, TypeVar, Generic
 from enum import Enum
 from PIL import Image
 import io
@@ -21,6 +21,7 @@ from error import Error
 import uuid
 from logger import Logger
 import asyncio
+from applications import ApplicationBase
 
 
 class PresentationRequest(Request):
@@ -178,6 +179,25 @@ class PresentationExceptionHandler:
                 "message": "Internal Server Error",
             },
         )
+
+
+T = TypeVar("T", bound=ApplicationBase)
+
+
+def get_environment():
+    return Environment()
+
+
+class AppFactory(Generic[T]):
+    def __init__(self, app_type: Type[T]):
+        self.app_type = app_type
+
+    def __call__(self, environment: Environment = Depends(get_environment)) -> T:
+        return self.app_type.create(environment)
+
+
+def get_application(app_type: Type[T]) -> T:
+    return Depends(AppFactory(app_type))
 
 
 PresentationTypeAuthorization = Annotated[str, Depends(

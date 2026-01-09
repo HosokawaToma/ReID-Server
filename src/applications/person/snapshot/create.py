@@ -6,6 +6,7 @@ from datetime import datetime
 from dataclasses import dataclass
 from environment import Environment
 from error import Error
+from applications import ApplicationBase
 
 
 @dataclass
@@ -18,7 +19,7 @@ class ApplicationPersonSnapshotCreateParams:
 class ApplicationPersonSnapshotCreateError(Error):
     pass
 
-class ApplicationPersonSnapshotCreate:
+class ApplicationPersonSnapshotCreate(ApplicationBase):
     def __init__(
         self,
         repository_frame_image: RepositoryFrameImage,

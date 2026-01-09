@@ -3,8 +3,9 @@ from environment import Environment
 from dto.frame_image import DtoFrameImage
 import uuid
 from domain.frame_image.filter import DomainFrameImageFilter
+from applications import ApplicationBase
 
-class ApplicationFrameImageSearch:
+class ApplicationFrameImageSearch(ApplicationBase):
     def __init__(self, repository_frame_image: RepositoryFrameImage):
         self.repository_frame_image = repository_frame_image
 

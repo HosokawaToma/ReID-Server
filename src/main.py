@@ -85,36 +85,16 @@ class ServerApp:
             background_person_snapshot_junk_detection=BackgroundPersonSnapshotJunkDetection.create(
                 environment=environment,
             ),
-            admin_auth_login=PresentationAdminAuthLogin.create(
-                environment=environment,
-            ),
-            admin_auth_token_refresh=PresentationAdminAuthTokenRefresh.create(
-                environment=environment,
-            ),
-            person_snapshot_create=PresentationPersonSnapshotCreate.create(
-                environment=environment,
-            ),
-            person_snapshot_refresh=PresentationPersonSnapshotRefresh.create(
-                environment=environment,
-            ),
-            person_snapshot_search=PresentationPersonSnapshotSearch.create(
-                environment=environment,
-            ),
-            person_flow_search=PresentationPersonFlowSearch.create(
-                environment=environment,
-            ),
-            person_flow_weight_search=PresentationPersonFlowWeightSearch.create(
-                environment=environment,
-            ),
-            person_snapshot_image_search=PresentationPersonSnapshotImageSearch.create(
-                environment=environment,
-            ),
-            frame_search=PresentationFrameSearch.create(
-                environment=environment,
-            ),
-            frame_image_search=PresentationFrameImageSearch.create(
-                environment=environment,
-            ),
+            admin_auth_login=PresentationAdminAuthLogin.create(),
+            admin_auth_token_refresh=PresentationAdminAuthTokenRefresh.create(),
+            person_snapshot_create=PresentationPersonSnapshotCreate.create(),
+            person_snapshot_refresh=PresentationPersonSnapshotRefresh.create(),
+            person_snapshot_search=PresentationPersonSnapshotSearch.create(),
+            person_flow_search=PresentationPersonFlowSearch.create(),
+            person_flow_weight_search=PresentationPersonFlowWeightSearch.create(),
+            person_snapshot_image_search=PresentationPersonSnapshotImageSearch.create(),
+            frame_search=PresentationFrameSearch.create(),
+            frame_image_search=PresentationFrameImageSearch.create(),
             presentation_exception_handler=PresentationExceptionHandler.create(),
         )
 

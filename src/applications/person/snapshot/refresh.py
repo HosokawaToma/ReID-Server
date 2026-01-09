@@ -5,6 +5,7 @@ from environment import Environment
 from datetime import datetime
 from dataclasses import dataclass
 from error import Error
+from applications import ApplicationBase
 
 @dataclass
 class ApplicationPersonSnapshotRefreshParams:
@@ -16,7 +17,7 @@ class ApplicationPersonSnapshotRefreshParams:
 class ApplicationPersonSnapshotRefreshError(Error):
     pass
 
-class ApplicationPersonSnapshotRefresh:
+class ApplicationPersonSnapshotRefresh(ApplicationBase):
     def __init__(
         self,
         repository_person_snapshot: RepositoryPersonSnapshot,

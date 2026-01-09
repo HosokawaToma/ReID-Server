@@ -3,11 +3,11 @@ from applications.person.flow.weight.search import ApplicationPersonFlowWeightSe
 from applications.person.flow.weight.search import ApplicationPersonFlowWeightSearchError
 from presentation import PresentationBase
 from presentation import PresentationAdminClientAuthenticated
+from presentation import get_application
 from presentation import PresentationRequest
 from logger import Logger
 from presentation import PresentationRequestBody
 from presentation import PresentationJSONResponse
-from environment import Environment
 from dataclasses import dataclass
 from datetime import datetime
 import uuid
@@ -35,17 +35,13 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
     def __init__(
         self,
         logger: Logger,
-        application_person_flow_weight_search: ApplicationPersonFlowWeightSearch,
     ):
         super().__init__(logger=logger)
-        self.application_person_flow_weight_search = application_person_flow_weight_search
 
     @classmethod
-    def create(cls, environment: Environment) -> "PresentationPersonFlowWeightSearch":
+    def create(cls) -> "PresentationPersonFlowWeightSearch":
         return cls(
             logger=Logger("presentation_person_flow_weight_search"),
-            application_person_flow_weight_search=ApplicationPersonFlowWeightSearch.create(
-                environment=environment),
         )
 
     async def handle(
@@ -53,6 +49,7 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
         admin_client_id: PresentationAdminClientAuthenticated,
         request: PresentationRequest,
         body: PresentationPersonFlowWeightSearchRequestBody | None = None,
+        application: ApplicationPersonFlowWeightSearch = get_application(ApplicationPersonFlowWeightSearch),
     ):
         params = None
         if body is not None:
@@ -62,7 +59,7 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
                 timestamp_before=body.timestamp_before,
             )
         try:
-            items = await self.run_sync(self.application_person_flow_weight_search.search, params=params)
+            items = await self.run_sync(application.search, params=params)
         except ApplicationPersonFlowWeightSearchError as error:
             self.logger.api_response_info(request_id=request.get_request_id(), response_status_code=404)
             return PresentationJSONResponse(status=404, content={

@@ -1,6 +1,5 @@
 from applications.frame.image.search import ApplicationFrameImageSearch
-from environment import Environment
-from presentation import PresentationBase
+from presentation import PresentationBase, get_application
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationImageResponse
 from presentation import PresentationRequest
@@ -19,15 +18,13 @@ class PresentationFrameImageSearch(PresentationBase):
         },
     }
 
-    def __init__(self, logger: Logger, application: ApplicationFrameImageSearch):
+    def __init__(self, logger: Logger):
         super().__init__(logger=logger)
-        self.application = application
 
     @classmethod
-    def create(cls, environment: Environment) -> "PresentationFrameImageSearch":
+    def create(cls) -> "PresentationFrameImageSearch":
         return cls(
             logger=Logger("presentation_frame_image_search"),
-            application=ApplicationFrameImageSearch.create(environment),
         )
 
     async def handle(
@@ -35,9 +32,10 @@ class PresentationFrameImageSearch(PresentationBase):
         admin_client_id: PresentationAdminClientAuthenticated,
         request: PresentationRequest,
         id: uuid.UUID,
+        application: ApplicationFrameImageSearch = get_application(ApplicationFrameImageSearch),
     ) -> PresentationImageResponse:
         image = await self.run_sync(
-            self.application.search,
+            application.search,
             id=id,
         )
         return PresentationImageResponse(status=200, image=image.image)

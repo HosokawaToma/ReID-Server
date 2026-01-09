@@ -7,7 +7,7 @@ from presentation import PresentationTypeDatetime
 from presentation import PresentationTypeInt
 from presentation import PresentationJSONResponse
 from logger import Logger
-from environment import Environment
+from presentation import get_application
 
 
 class PresentationPersonSnapshotCreate(PresentationBase):
@@ -24,18 +24,13 @@ class PresentationPersonSnapshotCreate(PresentationBase):
     def __init__(
         self,
         logger: Logger,
-        application: ApplicationPersonSnapshotCreate,
     ):
         super().__init__(logger=logger)
-        self.application = application
 
     @classmethod
-    def create(cls, environment: Environment) -> "PresentationPersonSnapshotCreate":
+    def create(cls) -> "PresentationPersonSnapshotCreate":
         return cls(
             logger=Logger("presentation_person_snapshot_create"),
-            application=ApplicationPersonSnapshotCreate.create(
-                environment=environment,
-            ),
         )
 
     async def handle(
@@ -45,9 +40,10 @@ class PresentationPersonSnapshotCreate(PresentationBase):
         timestamp: PresentationTypeDatetime,
         camera_id: PresentationTypeInt,
         view_id: PresentationTypeInt,
+        application: ApplicationPersonSnapshotCreate = get_application(ApplicationPersonSnapshotCreate),
     ):
         await self.run_sync(
-            self.application.save,
+            application.save,
             ApplicationPersonSnapshotCreateParams(
                 image=image,
                 timestamp=timestamp,
