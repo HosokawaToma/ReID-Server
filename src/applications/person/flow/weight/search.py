@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime
 from environment import Environment
 from error import Error
+from applications import ApplicationBase
 
 @dataclass
 class ApplicationPersonFlowWeightSearchParams:
@@ -24,7 +25,7 @@ class ApplicationPersonFlowWeightSearchError(Error):
 class ApplicationPersonFlowWeightSearchNoFlowsFoundError(ApplicationPersonFlowWeightSearchError):
     pass
 
-class ApplicationPersonFlowWeightSearch:
+class ApplicationPersonFlowWeightSearch(ApplicationBase):
     def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot):
         self.repository_person_snapshot = repository_person_snapshot
 
