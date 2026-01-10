@@ -1,25 +1,10 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from environment import Environment
-from datetime import datetime
 from error import Error
-import uuid
-from dataclasses import dataclass
 from applications import ApplicationBase
-
-@dataclass
-class ApplicationPersonFlowSearchParams:
-    person_id: uuid.UUID
-    timestamp_after: datetime | None = None
-    timestamp_before: datetime | None = None
-
-@dataclass
-class ApplicationPersonFlowSearchItem:
-    person_id: uuid.UUID
-    source_camera_id: int
-    target_camera_id: int
-    source_timestamp: datetime
-    target_timestamp: datetime
+from dto.person.flow import DtoPersonFlow
+from dto.person.flow.query import DtoPersonFlowQuery
 
 class ApplicationPersonFlowSearchError(Error):
     pass
@@ -42,11 +27,11 @@ class ApplicationPersonFlowSearch(ApplicationBase):
             ),
         )
 
-    def search(self, params: ApplicationPersonFlowSearchParams) -> list[ApplicationPersonFlowSearchItem]:
+    def search(self, query: DtoPersonFlowQuery) -> list[DtoPersonFlow]:
         filters = RepositoryPersonSnapshotFilters(
-            timestamp_after=params.timestamp_after,
-            timestamp_before=params.timestamp_before,
-            person_ids=[params.person_id],
+            timestamp_after=query.timestamp_after,
+            timestamp_before=query.timestamp_before,
+            person_ids=[query.person_id],
         )
         try:
             person_snapshots = self.repository_person_snapshot.find(filters=filters)
@@ -55,8 +40,8 @@ class ApplicationPersonFlowSearch(ApplicationBase):
             raise ApplicationPersonFlowSearchError(error) from error
         if flows is None:
             raise ApplicationPersonFlowSearchNoFlowsFoundError()
-        return [ApplicationPersonFlowSearchItem(
-            person_id=params.person_id,
+        return [DtoPersonFlow(
+            person_id=query.person_id,
             source_camera_id=flow.source_camera_id,
             target_camera_id=flow.target_camera_id,
             source_timestamp=flow.source_timestamp,
