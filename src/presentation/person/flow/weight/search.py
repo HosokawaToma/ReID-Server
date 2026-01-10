@@ -1,6 +1,6 @@
 from applications.person.flow.weight.search import ApplicationPersonFlowWeightSearch
-from applications.person.flow.weight.search import ApplicationPersonFlowWeightSearchParams
 from applications.person.flow.weight.search import ApplicationPersonFlowWeightSearchError
+from dto.person.flow.weight.query import DtoPersonFlowWeightQuery
 from presentation import PresentationBase
 from presentation import PresentationAdminClientAuthenticated
 from presentation import get_application
@@ -51,15 +51,15 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
         body: PresentationPersonFlowWeightSearchRequestBody | None = None,
         application: ApplicationPersonFlowWeightSearch = get_application(ApplicationPersonFlowWeightSearch),
     ):
-        params = None
+        query = None
         if body is not None:
-            params = ApplicationPersonFlowWeightSearchParams(
+            query = DtoPersonFlowWeightQuery(
                 person_ids=body.person_ids,
                 timestamp_after=body.timestamp_after,
                 timestamp_before=body.timestamp_before,
             )
         try:
-            items = await self.run_sync(application.search, params=params)
+            items = await self.run_sync(application.search, query=query)
         except ApplicationPersonFlowWeightSearchError as error:
             self.logger.api_response_info(request_id=request.get_request_id(), response_status_code=404)
             return PresentationJSONResponse(status=404, content={
