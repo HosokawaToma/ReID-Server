@@ -34,6 +34,7 @@ RUN pip install -r requirements.txt --timeout=600
 COPY ./src ./src
 COPY ./resources ./resources
 COPY ./alembic.ini ./alembic.ini
+COPY ./pytest.ini ./pytest.ini
 
 RUN mkdir -p ./.cache && chmod 777 ./.cache
 
