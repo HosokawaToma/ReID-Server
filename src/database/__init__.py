@@ -48,6 +48,11 @@ class Database:
         )
 
     def __enter__(self) -> Session:
+        """
+        データベースのセッションを開く。
+        :return Session: セッション
+        :raise DatabaseOpenError: セッションを開くに失敗した場合
+        """
         if self._session is not None:
             raise DatabaseOpenError()
         try:
@@ -66,13 +71,24 @@ class Database:
             exc_value: BaseException | None,
             traceback: TracebackType | None
         ) -> None:
+        """
+        データベースのセッションを閉じる。
+        例外が発生した場合はロールバックを行う。
+        例外が発生しなかった場合はコミットを行う。
+        :param Type[BaseException] | None exc_type: 例外の型
+        :param BaseException | None exc_value: 例外の値
+        :param TracebackType | None traceback: トレースバックバック
+        :raise DatabaseCloseError: セッションが開かれていない場合
+        :raise DatabaseCommitError: コミットに失敗した場合
+        :raise DatabaseRollbackError: ロールバックに失敗した場合
+        """
         if self._session is None:
-            raise DatabaseOpenError()
+            raise DatabaseCloseError()
         try:
             if exc_type is not None:
                 self._session.rollback()
                 if exc_value is not None:
-                    raise exc_value from exc_value
+                   raise
                 else:
                     raise exc_type()
             self._session.commit()
