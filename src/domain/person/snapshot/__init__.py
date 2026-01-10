@@ -36,6 +36,18 @@ class DomainPersonSnapshotFeatureNotSetError(DomainPersonSnapshotError):
 
 @dataclass
 class DomainPersonSnapshot:
+    """
+    非推奨
+    代わりに DomainPersonSnapshotImage, DomainPersonSnapshotFeature を使用する
+    :param Image.Image image: 画像
+    :param int camera_id: カメラID
+    :param int view_id: ビューID
+    :param datetime timestamp: タイムスタンプ
+    :param bool _is_junk: ジャンクフラグ
+    :param torch.Tensor | None feature: 特徴量
+    :param uuid.UUID | None person_id: 人物ID
+    :param uuid.UUID | None id: ID
+    """
     MATCH_THRESHOLD: ClassVar[float] = 0.895
     image: Image.Image
     camera_id: int
