@@ -42,8 +42,8 @@ class TestEnvironment:
     }
 
     @pytest.mark.unit
-    def test_環境変数が正しく読み込まれる(self):
-        """環境変数が正しく読み込まれることを確認"""
+    def test_successfully_initialized(self):
+        """正常に初期化されることを確認"""
         with patch.dict(os.environ, self.DEFAULT_ENV_VARS):
             env = Environment()
 
@@ -53,15 +53,15 @@ class TestEnvironment:
             assert env.is_delete_unnecessary_images is False
 
     @pytest.mark.unit
-    def test_必須環境変数が設定されていない場合に例外が発生する(self):
-        """必須環境変数が設定されていない場合に例外が発生することを確認"""
+    def test_required_environment_variables_are_not_set(self):
+        """必須環境変数が設定されていない場合に例外が発生する"""
         with patch.dict(os.environ, {}, clear=True):
             with pytest.raises(ValueError):
                 Environment()
 
     @pytest.mark.unit
-    def test_整数値が正しくパースされる(self):
-        """整数値の環境変数が正しくパースされることを確認"""
+    def test_integer_values_are_parsed_correctly(self):
+        """整数値の環境変数が正しくパースされる"""
         with patch.dict(os.environ, self.DEFAULT_ENV_VARS):
             env = Environment()
 
@@ -71,8 +71,8 @@ class TestEnvironment:
             assert env.jwt_expire_minutes == 30
 
     @pytest.mark.unit
-    def test_不正な整数値で例外が発生する(self):
-        """不正な整数値で例外が発生することを確認"""
+    def test_invalid_integer_values_raise_exception(self):
+        """不正な整数値で例外が発生する"""
         env_vars = self.DEFAULT_ENV_VARS.copy()
         env_vars["APP_PORT"] = "not_a_number"
         with patch.dict(os.environ, env_vars):
@@ -80,8 +80,8 @@ class TestEnvironment:
                 Environment()
 
     @pytest.mark.unit
-    def test_ブール値が正しくパースされる(self):
-        """ブール値の環境変数が正しくパースされることを確認"""
+    def test_boolean_values_are_parsed_correctly(self):
+        """ブール値の環境変数が正しくパースされる"""
         test_cases = [
             ("true", True),
             ("True", True),
@@ -106,8 +106,8 @@ class TestEnvironment:
 
 
     @pytest.mark.unit
-    def test_不正なブール値で例外が発生する(self):
-        """不正なブール値で例外が発生することを確認"""
+    def test_invalid_boolean_values_raise_exception(self):
+        """不正なブール値で例外が発生する"""
         env_vars = self.DEFAULT_ENV_VARS.copy()
         env_vars["IS_DELETE_UNNECESSARY_IMAGES"] = "invalid"
         with patch.dict(os.environ, env_vars):
