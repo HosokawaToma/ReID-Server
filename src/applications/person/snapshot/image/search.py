@@ -23,8 +23,7 @@ class ApplicationPersonSnapshotImageSearch(ApplicationBase):
 
     def search(self, id: DtoId) -> DtoImage:
         try:
-            return DtoImage(
-                image=self.repository_image.find_person_snapshot(id.id).image,
-            )
+            image = self.repository_image.find_person_snapshot(id.id)
+            return image.to_dto()
         except Error as error:
             raise ApplicationPersonSnapshotImageSearchError(error) from error
