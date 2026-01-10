@@ -4,6 +4,9 @@ import uuid
 
 @dataclass
 class DtoPersonSnapshotMetaData:
+    """
+    人物検出のメタデータを表すDTO。
+    """
     id: uuid.UUID
     camera_id: int
     view_id: int
