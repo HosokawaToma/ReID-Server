@@ -51,7 +51,7 @@ class Database:
         """
         データベースのセッションを開く。
         :return Session: セッション
-        :raise DatabaseOpenError: セッションを開くに失敗した場合
+        :raise DatabaseOpenError: セッションを開くことに失敗した場合
         """
         if self._session is not None:
             raise DatabaseOpenError()
@@ -77,10 +77,9 @@ class Database:
         例外が発生しなかった場合はコミットを行う。
         :param Type[BaseException] | None exc_type: 例外の型
         :param BaseException | None exc_value: 例外の値
-        :param TracebackType | None traceback: トレースバックバック
+        :param TracebackType | None traceback: トレースバック
         :raise DatabaseCloseError: セッションが開かれていない場合
         :raise DatabaseCommitError: コミットに失敗した場合
-        :raise DatabaseRollbackError: ロールバックに失敗した場合
         """
         if self._session is None:
             raise DatabaseCloseError()
