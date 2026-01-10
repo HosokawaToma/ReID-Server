@@ -48,9 +48,10 @@ class RepositoryUtilStorage:
         """
         ストレージ内の画像を検索する
         :param str name: 画像名（拡張子なし）
-        :param Path path: 検索対象ディレクトリ
+        :param Path directory: 検索対象ディレクトリ
         :return Path: 画像パス
-        :raise RepositoryStorageNotFoundError: 画像が見つからない場合
+        :raise RepositoryUtilStorageNotFoundError: 画像が見つからない場合
+        :raise RepositoryUtilStorageMultipleError: 画像が複数見つかった場合
         """
         match_file_names: list[Path] = []
         for extension in self.IMAGE_EXTENSIONS:
@@ -68,12 +69,12 @@ class RepositoryUtilStorage:
         画像を開く
         :param Path path: 画像パス
         :return Image.Image: 画像
-        :raise RepositoryStorageNotFoundError: 画像が見つからない場合
-        :raise RepositoryStoragePermissionError: 画像にアクセスできない場合
-        :raise RepositoryStorageIsADirectoryError: 画像がディレクトリの場合
-        :raise RepositoryStorageUnidentifiedImageError: 画像が不明な形式の場合
-        :raise RepositoryStorageDecompressionBombError: 画像が圧縮爆弾の場合
-        :raise RepositoryStorageOSError: 画像を読み込めない場合
+        :raise RepositoryUtilStorageNotFoundError: 画像が見つからない場合
+        :raise RepositoryUtilStoragePermissionError: 画像にアクセスできない場合
+        :raise RepositoryUtilStorageIsADirectoryError: 画像がディレクトリの場合
+        :raise RepositoryUtilStorageUnidentifiedImageError: 画像が不明な形式の場合
+        :raise RepositoryUtilStorageDecompressionBombError: 画像が圧縮爆弾の場合
+        :raise RepositoryUtilStorageOSError: 画像を読み込めない場合
         """
         try:
             return Image.open(path)
