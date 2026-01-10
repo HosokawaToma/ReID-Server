@@ -104,3 +104,12 @@ class TestEnvironment:
                 env = Environment()
                 assert env.is_delete_unnecessary_images == expected
 
+
+    @pytest.mark.unit
+    def test_不正なブール値で例外が発生する(self):
+        """不正なブール値で例外が発生することを確認"""
+        env_vars = self.DEFAULT_ENV_VARS.copy()
+        env_vars["IS_DELETE_UNNECESSARY_IMAGES"] = "invalid"
+        with patch.dict(os.environ, env_vars):
+            with pytest.raises(ValueError):
+                Environment()
