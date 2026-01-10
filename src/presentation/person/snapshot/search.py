@@ -1,6 +1,6 @@
 from applications.person.snapshot.search import ApplicationPersonSnapshotSearch
-from applications.person.snapshot.search import ApplicationPersonSnapshotSearchQuery
-from applications.person.snapshot.search import ApplicationPersonSnapshotSearchSortByKey
+from dto.person.snapshot.query import DtoPersonSnapshotQuery
+from dto.person.snapshot.query import DtoPersonSnapshotQuerySortByKey
 from presentation import PresentationBase, PresentationRequestBody
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationJSONResponse
@@ -8,6 +8,12 @@ from logger import Logger
 from datetime import datetime
 import uuid
 from presentation import get_application
+from enum import Enum
+
+class PresentationPersonSnapshotSearchSortByKey(str, Enum):
+    TIMESTAMP_ASC = "timestamp_asc"
+    TIMESTAMP_DESC = "timestamp_desc"
+
 
 class PresentationPersonSnapshotSearchRequestBody(PresentationRequestBody):
     ids: list[uuid.UUID] | None = None
@@ -17,7 +23,7 @@ class PresentationPersonSnapshotSearchRequestBody(PresentationRequestBody):
     person_ids: list[uuid.UUID] | None = None
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
-    sort_by_list: list[ApplicationPersonSnapshotSearchSortByKey] | None = None
+    sort_by_list: list[PresentationPersonSnapshotSearchSortByKey] | None = None
 
 class PresentationPersonSnapshotSearch(PresentationBase):
     router_path = "/person/snapshot/search"
@@ -51,7 +57,7 @@ class PresentationPersonSnapshotSearch(PresentationBase):
     ):
         query = None
         if request is not None:
-            query = ApplicationPersonSnapshotSearchQuery(
+            query = DtoPersonSnapshotQuery(
                 ids=request.ids,
                 camera_ids=request.camera_ids,
                 view_ids=request.view_ids,
@@ -59,7 +65,10 @@ class PresentationPersonSnapshotSearch(PresentationBase):
                 person_ids=request.person_ids,
                 timestamp_after=request.timestamp_after,
                 timestamp_before=request.timestamp_before,
-                sort_by_list=request.sort_by_list,
+                sort_by_list=[
+                    DtoPersonSnapshotQuerySortByKey(sort_by.value)
+                    for sort_by in request.sort_by_list
+                ] if request.sort_by_list is not None else None,
             )
         items = await self.run_sync(
             application.search,
