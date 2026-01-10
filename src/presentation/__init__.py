@@ -15,7 +15,7 @@ from fastapi import Request, Response
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Error
 from dto.admin_client.auth.token import DtoAdminClientAuthToken
-from dto.id import DtoId
+from dto.admin_client.id import DtoAdminClientId
 from environment import Environment
 from pydantic import BaseModel
 from error import Error
@@ -215,7 +215,7 @@ def admin_client_authenticated(
     token: PresentationTypeAuthorization,
     application: ApplicationAdminClientAuthOAuth2 = Depends(
         get_admin_client_auth_application),
-) -> DtoId:
+) -> DtoAdminClientId:
     try:
         result = application.oauth2(
             DtoAdminClientAuthToken(token=token))
@@ -228,7 +228,7 @@ def admin_client_authenticated(
     return result
 
 
-PresentationAdminClientAuthenticated = Annotated[DtoId, Depends(
+PresentationAdminClientAuthenticated = Annotated[DtoAdminClientId, Depends(
     admin_client_authenticated)]
 
 

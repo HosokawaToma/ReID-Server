@@ -3,7 +3,7 @@ from domain.token_converter import DomainTokenConverter
 from environment import Environment
 from error import Error
 from dto.admin_client.auth.token import DtoAdminClientAuthToken
-from dto.id import DtoId
+from dto.admin_client.id import DtoAdminClientId
 
 
 class ApplicationAdminClientAuthOAuth2Error(Error):
@@ -28,8 +28,8 @@ class ApplicationAdminClientAuthOAuth2:
             ),
         )
 
-    def oauth2(self, token: DtoAdminClientAuthToken) -> DtoId:
+    def oauth2(self, token: DtoAdminClientAuthToken) -> DtoAdminClientId:
         admin_client_id = self.admin_client.verify_token(token.token, self.token_converter)
         if admin_client_id is None:
             raise ApplicationAdminClientAuthOAuth2InvalidTokenError()
-        return DtoId(id=admin_client_id.id)
+        return DtoAdminClientId(id=admin_client_id.id)

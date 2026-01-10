@@ -8,7 +8,3 @@ class DomainId:
     :param uuid.UUID id: ID
     """
     id: uuid.UUID
-
-    @classmethod
-    def from_string(cls, string: str) -> "DomainId":
-        return cls(id=uuid.UUID(string))
