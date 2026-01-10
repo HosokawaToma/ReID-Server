@@ -33,7 +33,7 @@ class DomainPersonSnapshotFeature:
     :param int view_id: ビューID
     :param datetime timestamp: タイムスタンプ
     :param bool is_junk: ジャンクフラグ
-    :param torch.Tensor feature: 特徴量
+    :param torch.Tensor | None feature: 特徴量
     :param uuid.UUID | None person_id: 人物ID
     """
     MATCH_THRESHOLD: ClassVar[float] = 0.895
@@ -42,7 +42,7 @@ class DomainPersonSnapshotFeature:
     view_id: int
     timestamp: datetime
     is_junk: bool
-    feature: torch.Tensor
+    feature: torch.Tensor | None = None
     person_id: uuid.UUID | None = None
 
     def person_reid(self, other: "DomainPersonSnapshotFeature | None" = None) -> None:
