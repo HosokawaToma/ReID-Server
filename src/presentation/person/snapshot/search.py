@@ -1,6 +1,6 @@
 from applications.person.snapshot.search import ApplicationPersonSnapshotSearch
-from applications.person.snapshot.search import ApplicationPersonSnapshotSearchFilters
-from applications.person.snapshot.search import ApplicationPersonSnapshotSearchOrdering
+from applications.person.snapshot.search import ApplicationPersonSnapshotSearchQuery
+from applications.person.snapshot.search import ApplicationPersonSnapshotSearchSortByKey
 from presentation import PresentationBase, PresentationRequestBody
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationJSONResponse
@@ -9,25 +9,15 @@ from datetime import datetime
 import uuid
 from presentation import get_application
 
-class PresentationPersonSnapshotSearchFilters(PresentationRequestBody):
+class PresentationPersonSnapshotSearchRequestBody(PresentationRequestBody):
     ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
-    person_ids: list[uuid.UUID] | None = None
     is_junk: bool | None = None
+    person_ids: list[uuid.UUID] | None = None
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
-
-
-class PresentationPersonSnapshotSearchOrdering(PresentationRequestBody):
-    timestamp_asc: bool | None = None
-    timestamp_desc: bool | None = None
-
-
-class PresentationPersonSnapshotSearchRequest(PresentationRequestBody):
-    filters: PresentationPersonSnapshotSearchFilters | None = None
-    ordering: PresentationPersonSnapshotSearchOrdering | None = None
-
+    sort_by_list: list[ApplicationPersonSnapshotSearchSortByKey] | None = None
 
 class PresentationPersonSnapshotSearch(PresentationBase):
     router_path = "/person/snapshot/search"
@@ -56,30 +46,24 @@ class PresentationPersonSnapshotSearch(PresentationBase):
     async def handle(
         self,
         admin_client_id: PresentationAdminClientAuthenticated,
-        request: PresentationPersonSnapshotSearchRequest | None = None,
+        request: PresentationPersonSnapshotSearchRequestBody | None = None,
         application: ApplicationPersonSnapshotSearch = get_application(ApplicationPersonSnapshotSearch),
     ):
-        filters = None
-        if request is not None and request.filters is not None:
-            filters = ApplicationPersonSnapshotSearchFilters(
-                ids=request.filters.ids,
-                camera_ids=request.filters.camera_ids,
-                view_ids=request.filters.view_ids,
-                person_ids=request.filters.person_ids,
-                is_junk=request.filters.is_junk,
-                timestamp_after=request.filters.timestamp_after,
-                timestamp_before=request.filters.timestamp_before,
-            )
-        ordering = None
-        if request is not None and request.ordering is not None:
-            ordering = ApplicationPersonSnapshotSearchOrdering(
-                timestamp_asc=request.ordering.timestamp_asc,
-                timestamp_desc=request.ordering.timestamp_desc,
+        query = None
+        if request is not None:
+            query = ApplicationPersonSnapshotSearchQuery(
+                ids=request.ids,
+                camera_ids=request.camera_ids,
+                view_ids=request.view_ids,
+                is_junk=request.is_junk,
+                person_ids=request.person_ids,
+                timestamp_after=request.timestamp_after,
+                timestamp_before=request.timestamp_before,
+                sort_by_list=request.sort_by_list,
             )
         items = await self.run_sync(
             application.search,
-            filters=filters,
-            ordering=ordering,
+            query=query,
         )
         return PresentationJSONResponse(
             status=200,
