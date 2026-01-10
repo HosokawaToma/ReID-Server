@@ -10,7 +10,6 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-# プロジェクトルートをパスに追加
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root / "src"))
 
@@ -64,7 +63,6 @@ def test_app(mock_environment: Environment) -> Generator[ServerApp, None, None]:
     """
     app = ServerApp.create(environment=mock_environment)
 
-    # ミドルウェアとルートを設定（run()メソッドの内容を実行）
     from fastapi.middleware.cors import CORSMiddleware
     from logger import Logger
     from presentation import PresentationMiddleware
