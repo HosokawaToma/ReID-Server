@@ -1,0 +1,18 @@
+from dataclasses import dataclass
+import uuid
+from dto.id import DtoId
+
+@dataclass
+class DomainId:
+    """
+    IDを表すドメイン知識を集約する
+    :param uuid.UUID id: ID
+    """
+    id: uuid.UUID
+
+    @classmethod
+    def from_string(cls, string: str) -> "DomainId":
+        return cls(id=uuid.UUID(string))
+
+    def to_dto(self) -> DtoId:
+        return DtoId(id=self.id)
