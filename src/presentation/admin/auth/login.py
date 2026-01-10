@@ -5,8 +5,8 @@ from presentation import PresentationRequest
 from presentation import PresentationRequestBody
 from presentation import PresentationJSONResponse
 from applications.admin_client.auth.login import ApplicationAdminClientAuthLogin
-from applications.admin_client.auth.login import ApplicationAdminClientAuthLoginParams
 from applications.admin_client.auth.login import ApplicationAdminClientAuthLoginInvalidCredentialsError
+from dto.admin_client.auth.credentials import DtoAdminClientAuthCredentials
 
 
 class PresentationAdminAuthLoginRequestBody(PresentationRequestBody):
@@ -43,7 +43,7 @@ class PresentationAdminAuthLogin(PresentationBase):
         try:
             result = await self.run_sync(
                 application.login,
-                ApplicationAdminClientAuthLoginParams(
+                DtoAdminClientAuthCredentials(
                     id=body.id,
                     password=body.password,
                 ),
