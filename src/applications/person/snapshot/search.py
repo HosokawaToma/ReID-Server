@@ -48,6 +48,13 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
                     ] if query.sort_by_list is not None else None,
                 )
             meta_data_sequence = self.repository_person_snapshot_meta_data.find(query=database_query)
-            return meta_data_sequence.to_dto()
+            return [DtoPersonSnapshotMetaData(
+                id=meta_data.id,
+                camera_id=meta_data.camera_id,
+                view_id=meta_data.view_id,
+                timestamp=meta_data.timestamp,
+                is_junk=meta_data.is_junk,
+                person_id=meta_data.person_id,
+            ) for meta_data in meta_data_sequence]
         except Error as error:
             raise ApplicationPersonSnapshotSearchError(error) from error

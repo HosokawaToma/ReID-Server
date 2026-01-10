@@ -20,13 +20,3 @@ class DomainPersonSnapshotMetaData:
     timestamp: datetime
     is_junk: bool
     person_id: uuid.UUID | None
-
-    def to_dto(self) -> DtoPersonSnapshotMetaData:
-        return DtoPersonSnapshotMetaData(
-            id=self.id,
-            camera_id=self.camera_id,
-            view_id=self.view_id,
-            timestamp=self.timestamp,
-            is_junk=self.is_junk,
-            person_id=self.person_id,
-        )
