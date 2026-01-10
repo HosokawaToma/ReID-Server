@@ -3,8 +3,8 @@ from logger import Logger
 from presentation import PresentationRequest
 from presentation import PresentationJSONResponse
 from applications.admin_client.auth.token_refresh import ApplicationAdminClientAuthTokenRefresh
-from applications.admin_client.auth.token_refresh import ApplicationAdminClientAuthTokenRefreshParams
 from applications.admin_client.auth.token_refresh import ApplicationAdminClientAuthTokenRefreshError
+from dto.admin_client.auth.token import DtoAdminClientAuthToken
 
 
 class PresentationAdminAuthTokenRefresh(PresentationBase):
@@ -35,8 +35,8 @@ class PresentationAdminAuthTokenRefresh(PresentationBase):
         try:
             result = await self.run_sync(
                 application.refresh,
-                ApplicationAdminClientAuthTokenRefreshParams(
-                    refresh_token=request.get_refresh_token(),
+                DtoAdminClientAuthToken(
+                    token=request.get_refresh_token(),
                 ),
             )
         except ApplicationAdminClientAuthTokenRefreshError as error:
