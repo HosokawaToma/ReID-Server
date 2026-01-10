@@ -32,9 +32,8 @@ class ApplicationPersonSnapshotImageSearch(ApplicationBase):
 
     def search(self, params: ApplicationPersonSnapshotImageSearchParams) -> ApplicationPersonSnapshotImageSearchItem:
         try:
-            image = self.repository_image.find_person_snapshot(params.id)
+            return ApplicationPersonSnapshotImageSearchItem(
+                image=self.repository_image.find_person_snapshot(params.id).image,
+            )
         except Error as error:
             raise ApplicationPersonSnapshotImageSearchError(error) from error
-        if image is None:
-            raise ApplicationPersonSnapshotImageSearchNotFoundError()
-        return ApplicationPersonSnapshotImageSearchItem(image=image.image)
