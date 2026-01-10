@@ -24,6 +24,11 @@ class DatabaseQueryPersonSnapshot:
     sort_by_list: list[DatabaseQueryPersonSnapshotSortByKey] | None = None
 
     def build(self, query: Query[MigrationModelPersonSnapshot]) -> Query[MigrationModelPersonSnapshot]:
+        """
+        クエリをビルドする。
+        :param Query[MigrationModelPersonSnapshot] query: クエリ
+        :return Query[MigrationModelPersonSnapshot]: ビルドされたクエリ
+        """
         if self.ids is not None:
             query = query.filter(MigrationModelPersonSnapshot.id.in_(self.ids))
         if self.camera_ids is not None:
@@ -40,8 +45,8 @@ class DatabaseQueryPersonSnapshot:
             query = query.filter(MigrationModelPersonSnapshot.person_id.in_(self.person_ids))
         if self.sort_by_list is not None:
             for sort_by in self.sort_by_list:
-                if sort_by == str(DatabaseQueryPersonSnapshotSortByKey.TIMESTAMP_ASC):
+                if sort_by == DatabaseQueryPersonSnapshotSortByKey.TIMESTAMP_ASC:
                     query = query.order_by(MigrationModelPersonSnapshot.timestamp.asc())
-                elif sort_by == str(DatabaseQueryPersonSnapshotSortByKey.TIMESTAMP_DESC):
+                elif sort_by == DatabaseQueryPersonSnapshotSortByKey.TIMESTAMP_DESC:
                     query = query.order_by(MigrationModelPersonSnapshot.timestamp.desc())
         return query
