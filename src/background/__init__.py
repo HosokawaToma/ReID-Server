@@ -46,11 +46,13 @@ class Background:
                 self.logger.background_info(
                     background_id=background_id,
                     name=self.name,
+                    message=f"background started",
                 )
-                await asyncio.to_thread(self.handle)
+                await asyncio.to_thread(self.handle, background_id=background_id)
                 self.logger.background_info(
                     background_id=background_id,
                     name=self.name,
+                    message=f"background finished",
                 )
             except Error as e:
                 self.logger.error(e)
@@ -60,5 +62,5 @@ class Background:
                 continue
 
     @abc.abstractmethod
-    def handle(self) -> None:
+    def handle(self, background_id: str) -> None:
         pass
