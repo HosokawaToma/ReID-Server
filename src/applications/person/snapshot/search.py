@@ -14,7 +14,7 @@ from enum import Enum
 class ApplicationPersonSnapshotSearchError(Error):
     pass
 
-class ApplicationPersonSnapshotSearchSortByKey(Enum):
+class ApplicationPersonSnapshotSearchSortByKey(str, Enum):
     TIMESTAMP_ASC = DatabaseQueryPersonSnapshotSortByKey.TIMESTAMP_ASC
     TIMESTAMP_DESC = DatabaseQueryPersonSnapshotSortByKey.TIMESTAMP_DESC
 

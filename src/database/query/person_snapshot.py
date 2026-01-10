@@ -6,7 +6,7 @@ from migration.models.person_snapshots import MigrationModelPersonSnapshot
 
 from enum import Enum
 
-class DatabaseQueryPersonSnapshotSortByKey(Enum):
+class DatabaseQueryPersonSnapshotSortByKey(str, Enum):
     TIMESTAMP_ASC = "timestamp_asc"
     TIMESTAMP_DESC = "timestamp_desc"
     def __str__(self) -> str:
