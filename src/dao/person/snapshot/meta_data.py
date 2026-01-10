@@ -3,8 +3,6 @@ from error import Error
 from database.query.person_snapshot import DatabaseQueryPersonSnapshot
 from dto.person.snapshot.meta_data import DtoPersonSnapshotMetaData
 from migration.models.person_snapshots import MigrationModelPersonSnapshot
-import uuid
-from datetime import datetime
 from environment import Environment
 
 class DaoPersonSnapshotMetaDataError(Error):
@@ -31,12 +29,12 @@ class DaoPersonSnapshotMetaData:
 
     def _model_to_dto(self, model: MigrationModelPersonSnapshot) -> DtoPersonSnapshotMetaData:
         return DtoPersonSnapshotMetaData(
-            id=uuid.UUID(str(model.id)),
-            camera_id=int(str(model.camera_id)),
-            view_id=int(str(model.view_id)),
-            timestamp=datetime.fromisoformat(str(model.timestamp)),
-            is_junk=bool(model.is_junk),
-            person_id=uuid.UUID(str(model.person_id)) if model.person_id is not None else None,
+            id=model.id,
+            camera_id=model.camera_id,
+            view_id=model.view_id,
+            timestamp=model.timestamp,
+            is_junk=model.is_junk,
+            person_id=model.person_id if model.person_id is not None else None,
         )
 
     def find(self, query: DatabaseQueryPersonSnapshot) -> list[DtoPersonSnapshotMetaData]:
