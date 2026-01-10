@@ -2,16 +2,16 @@
 
 ```bash
 # すべてのテストを実行
-pytest
+docker compose run --rm app python -m pytest
 
 # カバレッジレポート付きで実行
-pytest --cov=src --cov-report=html
+docker compose run --rm app python -m pytest --cov=src --cov-report=html
 
 # 特定のテストファイルを実行
-pytest tests/test_modules_hasher.py
+docker compose run --rm app python -m pytest tests/test_modules_hasher.py
 
 # マーカーでフィルタリング（例: ユニットテストのみ）
-pytest -m unit
+docker compose run --rm app python -m pytest -m unit
 ```
 
 ### テストの構成
