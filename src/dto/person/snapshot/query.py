@@ -4,6 +4,10 @@ from datetime import datetime
 
 from enum import Enum
 class DtoPersonSnapshotQuerySortByKey(str, Enum):
+    """
+    人物写真クエリソートキーを表すDTO
+    :param str value: ソートキー
+    """
     TIMESTAMP_ASC = "timestamp_asc"
     TIMESTAMP_DESC = "timestamp_desc"
 
