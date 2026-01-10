@@ -46,11 +46,12 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
 
     def search(
         self,
-        query: ApplicationPersonSnapshotSearchQuery,
+        query: ApplicationPersonSnapshotSearchQuery | None = None,
     ) -> list[DtoPersonSnapshotMetaData]:
         try:
-            return self.dao_person_snapshot_meta_data.find(
-                    DatabaseQueryPersonSnapshot(
+            database_query = None
+            if query is not None:
+                database_query = DatabaseQueryPersonSnapshot(
                     ids=query.ids,
                     camera_ids=query.camera_ids,
                     view_ids=query.view_ids,
@@ -60,6 +61,6 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
                     person_ids=query.person_ids,
                     sort_by_list=[sort_by.value for sort_by in query.sort_by_list] if query.sort_by_list is not None else None,
                 )
-            )
+            return self.dao_person_snapshot_meta_data.find(query=database_query)
         except Error as error:
             raise ApplicationPersonSnapshotSearchError(error) from error

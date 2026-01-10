@@ -37,11 +37,19 @@ class DaoPersonSnapshotMetaData:
             person_id=model.person_id if model.person_id is not None else None,
         )
 
-    def find(self, query: DatabaseQueryPersonSnapshot) -> list[DtoPersonSnapshotMetaData]:
+    def find(
+        self,
+        query: DatabaseQueryPersonSnapshot | None = None,
+    ) -> list[DtoPersonSnapshotMetaData]:
+        """
+        人物検出のメタデータを取得する。
+        :param DatabaseQueryPersonSnapshot query: クエリ
+        """
         try:
             with self.database as session:
                 session_query = session.query(MigrationModelPersonSnapshot)
-                session_query = query.build(session_query)
+                if query is not None:
+                    session_query = query.build(session_query)
                 models = session_query.all()
                 return [self._model_to_dto(model) for model in models]
         except Error as error:
