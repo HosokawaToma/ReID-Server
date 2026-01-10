@@ -1,6 +1,6 @@
 from presentation import PresentationBase, PresentationJSONResponse, PresentationRequestBody
 from applications.person.snapshot.refresh import ApplicationPersonSnapshotRefresh
-from applications.person.snapshot.refresh import ApplicationPersonSnapshotRefreshParams
+from dto.person.snapshot.query import DtoPersonSnapshotQuery
 from presentation import PresentationAdminClientAuthenticated
 from logger import Logger
 from datetime import datetime
@@ -44,13 +44,13 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
         request: PresentationPersonSnapshotRefreshRequest | None = None,
         application: ApplicationPersonSnapshotRefresh = get_application(ApplicationPersonSnapshotRefresh),
     ):
-        params = None
+        query = None
         if request is not None:
-            params = ApplicationPersonSnapshotRefreshParams(
+            query = DtoPersonSnapshotQuery(
                 timestamp_after=request.timestamp_after,
                 timestamp_before=request.timestamp_before,
                 camera_ids=request.camera_ids,
                 view_ids=request.view_ids,
             )
-        await self.run_sync(application.refresh, params=params)
+        await self.run_sync(application.refresh, query=query)
         return PresentationJSONResponse(status=200, content={"message": "Person snapshots refreshed"})
