@@ -1,7 +1,6 @@
-from environment import Environment
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearch
-from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearchParams
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearchNotFoundError
+from dto.id import DtoId
 from presentation import PresentationBase
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationRequest
@@ -52,7 +51,7 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
         try:
             person_snapshot = await self.run_sync(
                 application.search,
-                ApplicationPersonSnapshotImageSearchParams(id=id)
+                id=DtoId(id=id),
             )
             return PresentationImageResponse(status=200, image=person_snapshot.image)
         except ApplicationPersonSnapshotImageSearchNotFoundError as error:

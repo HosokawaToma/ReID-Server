@@ -1,24 +1,15 @@
-from dataclasses import dataclass
-import uuid
-from PIL import Image
 from environment import Environment
+from dto.image import DtoImage
 from repositories.image import RepositoryImage
 from error import Error
 from applications import ApplicationBase
+from dto.id import DtoId
 
 class ApplicationPersonSnapshotImageSearchError(Error):
     pass
 
 class ApplicationPersonSnapshotImageSearchNotFoundError(ApplicationPersonSnapshotImageSearchError):
     pass
-
-@dataclass
-class ApplicationPersonSnapshotImageSearchItem:
-    image: Image.Image
-
-@dataclass
-class ApplicationPersonSnapshotImageSearchParams:
-    id: uuid.UUID
 
 class ApplicationPersonSnapshotImageSearch(ApplicationBase):
     def __init__(self, repository_image: RepositoryImage):
@@ -30,10 +21,10 @@ class ApplicationPersonSnapshotImageSearch(ApplicationBase):
             repository_image=RepositoryImage.create(environment),
         )
 
-    def search(self, params: ApplicationPersonSnapshotImageSearchParams) -> ApplicationPersonSnapshotImageSearchItem:
+    def search(self, id: DtoId) -> DtoImage:
         try:
-            return ApplicationPersonSnapshotImageSearchItem(
-                image=self.repository_image.find_person_snapshot(params.id).image,
+            return DtoImage(
+                image=self.repository_image.find_person_snapshot(id.id).image,
             )
         except Error as error:
             raise ApplicationPersonSnapshotImageSearchError(error) from error
