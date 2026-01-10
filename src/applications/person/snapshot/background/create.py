@@ -1,9 +1,8 @@
 from repositories.frame_image import RepositoryFrameImage
 from repositories.person.snapshot import RepositoryPersonSnapshot
+from dto.frame_image.meta_data import DtoFrameImageMetaData
 from environment import Environment
 from domain.yolo.detection_model import DomainYoloDetectionModel
-from domain.yolo.pose_model import DomainYoloPoseModel
-from domain.yolo.segment_model import DomainYoloSegmentModel
 from error import Error
 
 class ApplicationPersonSnapshotBackgroundCreateError(Error):
@@ -33,7 +32,7 @@ class ApplicationPersonSnapshotBackgroundCreate:
             is_delete_unnecessary_images=environment.is_delete_unnecessary_images,
         )
 
-    def save(self) -> None:
+    def save(self) -> DtoFrameImageMetaData:
         try:
             frame_image = self.repository_frame_image.next_person_snapshot_create()
             person_snapshots = frame_image.crop_person(self.detection_model)
@@ -42,5 +41,11 @@ class ApplicationPersonSnapshotBackgroundCreate:
                 self.repository_person_snapshot.push_junk_detection(person_snapshot)
             if self.is_delete_unnecessary_images:
                 self.repository_frame_image.delete(frame_image)
+            return DtoFrameImageMetaData(
+                id=frame_image.id,
+                camera_id=frame_image.camera_id,
+                view_id=frame_image.view_id,
+                timestamp=frame_image.timestamp,
+            )
         except Error as error:
             raise ApplicationPersonSnapshotBackgroundCreateError(error) from error

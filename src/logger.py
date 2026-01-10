@@ -38,7 +38,9 @@ class Logger:
     Timestamp: {datetime.datetime.now(zoneinfo.ZoneInfo("Asia/Tokyo")).isoformat()}
 """)
 
-    def background_info(self, background_id: str, name: str):
-        self.logger.info(f"""Background: id: {background_id}, name: {name}
+    def background_info(self, background_id: str, name: str, message: str):
+        self.logger.info(f"""Background: {message}
+    ID: {background_id}
+    Name: {name}
     Timestamp: {datetime.datetime.now(zoneinfo.ZoneInfo("Asia/Tokyo")).isoformat()}
 """)
