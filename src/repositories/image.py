@@ -35,7 +35,7 @@ class RepositoryImage:
 
     def find_frame(self, id: uuid.UUID) -> DomainImage:
         try:
-            image = self.storage.search_image(str(id), Path("frames"))
+            image = self.storage.search_image(str(id), Path("frame_images"))
             return DomainImage(image=self.storage.open_image(image))
         except Error as error:
             raise RepositoryImageFindFrameError(error) from error
