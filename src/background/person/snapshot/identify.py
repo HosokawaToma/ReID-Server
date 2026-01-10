@@ -28,5 +28,5 @@ class BackgroundPersonSnapshotIdentify(Background):
         self.logger.background_info(
             background_id=background_id,
             name=self.name,
-            message=f"person snapshot id: {person_snapshot.id}, person id: {person_snapshot.person_id}",
+            message=f"person snapshot id: {person_snapshot.id}, identified as person id: {person_snapshot.person_id}",
         )
