@@ -1,5 +1,6 @@
 from applications.person.snapshot.create import ApplicationPersonSnapshotCreate
-from applications.person.snapshot.create import ApplicationPersonSnapshotCreateParams
+from dto.image import DtoImage
+from dto.frame_image.property import DtoFrameImageProperty
 from presentation import PresentationBase
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationTypeImage
@@ -44,11 +45,13 @@ class PresentationPersonSnapshotCreate(PresentationBase):
     ):
         await self.run_sync(
             application.save,
-            ApplicationPersonSnapshotCreateParams(
+            image=DtoImage(
                 image=image,
-                timestamp=timestamp,
+            ),
+            frame_image_property=DtoFrameImageProperty(
                 camera_id=camera_id,
                 view_id=view_id,
+                timestamp=timestamp,
             ),
         )
         return PresentationJSONResponse(status=200, content={"message": "Person snapshot created"})

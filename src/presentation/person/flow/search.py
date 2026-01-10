@@ -5,8 +5,8 @@ from presentation import PresentationRequestBody
 from presentation import PresentationJSONResponse
 from presentation import PresentationAdminClientAuthenticated
 from applications.person.flow.search import ApplicationPersonFlowSearch
-from applications.person.flow.search import ApplicationPersonFlowSearchParams
 from applications.person.flow.search import ApplicationPersonFlowSearchNoFlowsFoundError
+from dto.person.flow.query import DtoPersonFlowQuery
 from logger import Logger
 from datetime import datetime
 import uuid
@@ -50,13 +50,13 @@ class PresentationPersonFlowSearch(PresentationBase):
         body: PresentationPersonFlowSearchRequestBody,
         application: ApplicationPersonFlowSearch = get_application(ApplicationPersonFlowSearch),
     ):
-        params = ApplicationPersonFlowSearchParams(
+        query = DtoPersonFlowQuery(
             person_id=body.person_id,
             timestamp_after=body.timestamp_after,
             timestamp_before=body.timestamp_before,
         )
         try:
-            items = await self.run_sync(application.search, params=params)
+            items = await self.run_sync(application.search, query=query)
         except ApplicationPersonFlowSearchNoFlowsFoundError as error:
             self.logger.api_response_info(request_id=request.get_request_id(), response_status_code=404)
             return PresentationJSONResponse(status=404, content={

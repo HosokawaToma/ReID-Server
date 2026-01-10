@@ -15,4 +15,5 @@ class ApplicationFrameImageSearch(ApplicationBase):
         )
 
     def search(self, id: uuid.UUID) -> DtoImage:
-        return DtoImage(image=self.repository_image.find_frame(id).image)
+        image = self.repository_image.find_frame(id)
+        return image.to_dto()

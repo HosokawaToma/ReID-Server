@@ -2,17 +2,9 @@ from domain.admin_client import DomainAdminClient
 from domain.token_converter import DomainTokenConverter
 from environment import Environment
 from error import Error
-from dataclasses import dataclass
 from applications import ApplicationBase
-
-@dataclass
-class ApplicationAdminClientAuthTokenRefreshParams:
-    refresh_token: str
-
-@dataclass
-class ApplicationAdminClientAuthTokenRefreshResult:
-    token: str
-    refresh_token: str
+from dto.admin_client.auth.token import DtoAdminClientAuthToken
+from dto.admin_client.auth.result import DtoAdminClientAuthResult
 
 class ApplicationAdminClientAuthTokenRefreshError(Error):
     pass
@@ -47,10 +39,10 @@ class ApplicationAdminClientAuthTokenRefresh(ApplicationBase):
             ),
         )
 
-    def refresh(self, params: ApplicationAdminClientAuthTokenRefreshParams) -> ApplicationAdminClientAuthTokenRefreshResult:
-        if not self.admin_client.verify_token(params.refresh_token, self.refresh_token_converter):
+    def refresh(self, refresh_token: DtoAdminClientAuthToken) -> DtoAdminClientAuthResult:
+        if not self.admin_client.verify_token(refresh_token.token, self.refresh_token_converter):
             raise ApplicationAdminClientAuthTokenRefreshInvalidRefreshTokenError()
-        return ApplicationAdminClientAuthTokenRefreshResult(
+        return DtoAdminClientAuthResult(
             token=self.admin_client.generate_token(self.token_converter),
             refresh_token=self.admin_client.generate_token(self.refresh_token_converter),
         )

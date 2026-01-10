@@ -13,8 +13,9 @@ import io
 from datetime import datetime
 from fastapi import Request, Response
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2
-from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Params
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Error
+from dto.admin_client.auth.token import DtoAdminClientAuthToken
+from dto.id import DtoId
 from environment import Environment
 from pydantic import BaseModel
 from error import Error
@@ -214,20 +215,20 @@ def admin_client_authenticated(
     token: PresentationTypeAuthorization,
     application: ApplicationAdminClientAuthOAuth2 = Depends(
         get_admin_client_auth_application),
-) -> str:
+) -> DtoId:
     try:
         result = application.oauth2(
-            ApplicationAdminClientAuthOAuth2Params(token=token))
+            DtoAdminClientAuthToken(token=token))
     except ApplicationAdminClientAuthOAuth2Error as error:
         raise HTTPException(
             status_code=401,
             detail="Invalid authorization",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return result.admin_client_id
+    return result
 
 
-PresentationAdminClientAuthenticated = Annotated[str, Depends(
+PresentationAdminClientAuthenticated = Annotated[DtoId, Depends(
     admin_client_authenticated)]
 
 
