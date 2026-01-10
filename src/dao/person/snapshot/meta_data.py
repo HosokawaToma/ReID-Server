@@ -34,7 +34,7 @@ class DaoPersonSnapshotMetaData:
             view_id=model.view_id,
             timestamp=model.timestamp,
             is_junk=model.is_junk,
-            person_id=model.person_id if model.person_id is not None else None,
+            person_id=model.person_id,
         )
 
     def find(
