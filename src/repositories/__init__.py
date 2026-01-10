@@ -168,6 +168,12 @@ class RepositoryStorageImageCPUCountNoneError(RepositoryStorageImageError):
 
 
 class RepositoryStorage:
+    """
+    非推奨
+    代わりに RepositoryStorage を使用する
+    :param Path path: ストレージディレクトリ
+    :param str directory: ディレクトリ
+    """
     IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"]
 
     def __init__(self, path: Path, directory: str):
