@@ -73,7 +73,9 @@ class TestEnvironment:
     @pytest.mark.unit
     def test_不正な整数値で例外が発生する(self):
         """不正な整数値で例外が発生することを確認"""
-        with patch.dict(os.environ, self.DEFAULT_ENV_VARS):
+        env_vars = self.DEFAULT_ENV_VARS.copy()
+        env_vars["APP_PORT"] = "not_a_number"
+        with patch.dict(os.environ, env_vars):
             with pytest.raises(ValueError):
                 Environment()
 
