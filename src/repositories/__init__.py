@@ -34,6 +34,15 @@ class RepositoryDatabaseCloseError(RepositoryDatabaseError):
 
 
 class RepositoryDatabase:
+    """
+    非推奨
+    代わりに Database を使用する
+    :param str host: ホスト
+    :param str port: ポート
+    :param str database: データベース
+    :param str user: ユーザー
+    :param str password: パスワード
+    """
     ENGINE_URL_TEMPLATE = "postgresql://{user}:{password}@{host}:{port}/{database}"
     _engine: Engine | None = None
 
