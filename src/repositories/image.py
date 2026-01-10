@@ -11,6 +11,9 @@ class RepositoryImageError(Error):
 class RepositoryImageFindPersonSnapshotError(RepositoryImageError):
     pass
 
+class RepositoryImageFindFrameError(RepositoryImageError):
+    pass
+
 class RepositoryImage:
     def __init__(self, storage: RepositoryUtilStorage):
         self.storage = storage
@@ -29,3 +32,10 @@ class RepositoryImage:
             return DomainImage(image=self.storage.open_image(image))
         except Error as error:
             raise RepositoryImageFindPersonSnapshotError(error) from error
+
+    def find_frame(self, id: uuid.UUID) -> DomainImage:
+        try:
+            image = self.storage.search_image(str(id), Path("frames"))
+            return DomainImage(image=self.storage.open_image(image))
+        except Error as error:
+            raise RepositoryImageFindFrameError(error) from error
