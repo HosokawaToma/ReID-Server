@@ -6,25 +6,25 @@ from error import Error
 from typing import Type
 from types import TracebackType
 
-class DatabaseError(Error):
+class RepositoryUtilDatabaseError(Error):
     pass
 
-class DatabaseOpenError(DatabaseError):
+class RepositoryUtilDatabaseOpenError(RepositoryUtilDatabaseError):
     pass
 
-class DatabaseCommitError(DatabaseError):
+class RepositoryUtilDatabaseCommitError(RepositoryUtilDatabaseError):
     pass
 
-class DatabaseCloseError(DatabaseError):
+class RepositoryUtilDatabaseCloseError(RepositoryUtilDatabaseError):
     pass
 
-class Database:
+class RepositoryUtilDatabase:
     ENGINE_URL_TEMPLATE = "postgresql://{user}:{password}@{host}:{port}/{database}"
     _engine: Engine | None = None
 
     def __init__(self, host: str, port: str, database: str, user: str, password: str):
-        if Database._engine is None:
-            Database._engine = create_engine(
+        if RepositoryUtilDatabase._engine is None:
+            RepositoryUtilDatabase._engine = create_engine(
                 self.ENGINE_URL_TEMPLATE.format(
                     user=user,
                     password=password,
@@ -34,11 +34,11 @@ class Database:
                 )
             )
         self._session_maker = sessionmaker[Session](
-            bind=Database._engine)
+            bind=RepositoryUtilDatabase._engine)
         self._session: Session | None = None
 
     @classmethod
-    def create(cls, environment: Environment) -> "Database":
+    def create(cls, environment: Environment) -> "RepositoryUtilDatabase":
         return cls(
             host=environment.database_host,
             port=environment.database_port,
@@ -54,7 +54,7 @@ class Database:
         :raise DatabaseOpenError: セッションを開くことに失敗した場合
         """
         if self._session is not None:
-            raise DatabaseOpenError()
+            raise RepositoryUtilDatabaseOpenError()
         try:
             self._session = self._session_maker()
             self._session.begin()
@@ -63,7 +63,7 @@ class Database:
             if self._session:
                 self._session.close()
                 self._session = None
-            raise DatabaseOpenError(error) from error
+            raise RepositoryUtilDatabaseOpenError(error) from error
 
     def __exit__(
             self,
@@ -78,11 +78,11 @@ class Database:
         :param Type[BaseException] | None exc_type: 例外の型
         :param BaseException | None exc_value: 例外の値
         :param TracebackType | None traceback: トレースバック
-        :raise DatabaseCloseError: セッションが開かれていない場合
-        :raise DatabaseCommitError: コミットに失敗した場合
+        :raise RepositoryUtilDatabaseCloseError: セッションが開かれていない場合
+        :raise RepositoryUtilDatabaseCommitError: コミットに失敗した場合
         """
         if self._session is None:
-            raise DatabaseCloseError()
+            raise RepositoryUtilDatabaseCloseError()
         try:
             if exc_type is not None:
                 self._session.rollback()
@@ -93,7 +93,7 @@ class Database:
             self._session.commit()
         except SQLAlchemyError as error:
             self._session.rollback()
-            raise DatabaseCommitError(error) from error
+            raise RepositoryUtilDatabaseCommitError(error) from error
         finally:
             self._session.close()
             self._session = None

@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import uuid
-from dto.id import DtoId
 
 @dataclass
 class DomainId:
@@ -13,6 +12,3 @@ class DomainId:
     @classmethod
     def from_string(cls, string: str) -> "DomainId":
         return cls(id=uuid.UUID(string))
-
-    def to_dto(self) -> DtoId:
-        return DtoId(id=self.id)

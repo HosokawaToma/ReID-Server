@@ -9,6 +9,3 @@ class DomainImage:
     :param Image.Image image: 画像
     """
     image: Image.Image
-
-    def to_dto(self) -> DtoImage:
-        return DtoImage(image=self.image)

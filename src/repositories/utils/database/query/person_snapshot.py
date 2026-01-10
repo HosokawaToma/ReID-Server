@@ -6,14 +6,14 @@ from migration.models.person_snapshots import MigrationModelPersonSnapshot
 
 from enum import Enum
 
-class DatabaseQueryPersonSnapshotSortByKey(str, Enum):
+class RepositoryUtilDatabaseQueryPersonSnapshotSortByKey(str, Enum):
     TIMESTAMP_ASC = "timestamp_asc"
     TIMESTAMP_DESC = "timestamp_desc"
     def __str__(self) -> str:
         return self.value
 
 @dataclass
-class DatabaseQueryPersonSnapshot:
+class RepositoryUtilDatabaseQueryPersonSnapshot:
     ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
@@ -21,7 +21,7 @@ class DatabaseQueryPersonSnapshot:
     timestamp_before: datetime | None = None
     is_junk: bool | None = None
     person_ids: list[uuid.UUID] | None = None
-    sort_by_list: list[DatabaseQueryPersonSnapshotSortByKey] | None = None
+    sort_by_list: list[RepositoryUtilDatabaseQueryPersonSnapshotSortByKey] | None = None
 
     def build(self, query: Query[MigrationModelPersonSnapshot]) -> Query[MigrationModelPersonSnapshot]:
         """
@@ -45,8 +45,8 @@ class DatabaseQueryPersonSnapshot:
             query = query.filter(MigrationModelPersonSnapshot.person_id.in_(self.person_ids))
         if self.sort_by_list is not None:
             for sort_by in self.sort_by_list:
-                if sort_by == DatabaseQueryPersonSnapshotSortByKey.TIMESTAMP_ASC:
+                if sort_by == RepositoryUtilDatabaseQueryPersonSnapshotSortByKey.TIMESTAMP_ASC:
                     query = query.order_by(MigrationModelPersonSnapshot.timestamp.asc())
-                elif sort_by == DatabaseQueryPersonSnapshotSortByKey.TIMESTAMP_DESC:
+                elif sort_by == RepositoryUtilDatabaseQueryPersonSnapshotSortByKey.TIMESTAMP_DESC:
                     query = query.order_by(MigrationModelPersonSnapshot.timestamp.desc())
         return query

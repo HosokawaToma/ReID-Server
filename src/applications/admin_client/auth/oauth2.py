@@ -32,4 +32,4 @@ class ApplicationAdminClientAuthOAuth2:
         admin_client_id = self.admin_client.verify_token(token.token, self.token_converter)
         if admin_client_id is None:
             raise ApplicationAdminClientAuthOAuth2InvalidTokenError()
-        return admin_client_id.to_dto()
+        return DtoId(id=admin_client_id.id)
