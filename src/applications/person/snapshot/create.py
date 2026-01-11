@@ -1,24 +1,15 @@
 from repositories.frame_image import RepositoryFrameImage
-from repositories.frame_image import RepositoryFrameImagePushQueueError
+from dto.image import DtoImage
+from dto.frame_image.property import DtoFrameImageProperty
 from domain.frame_image import DomainFrameImage
-from PIL import Image
-from datetime import datetime
-from dataclasses import dataclass
 from environment import Environment
 from error import Error
-
-
-@dataclass
-class ApplicationPersonSnapshotCreateParams:
-    image: Image.Image
-    camera_id: int
-    view_id: int
-    timestamp: datetime
+from applications import ApplicationBase
 
 class ApplicationPersonSnapshotCreateError(Error):
     pass
 
-class ApplicationPersonSnapshotCreate:
+class ApplicationPersonSnapshotCreate(ApplicationBase):
     def __init__(
         self,
         repository_frame_image: RepositoryFrameImage,
@@ -32,15 +23,15 @@ class ApplicationPersonSnapshotCreate:
                 environment),
         )
 
-    def save(self, params: ApplicationPersonSnapshotCreateParams) -> None:
-        frame_image = DomainFrameImage(
-            image=params.image,
-            camera_id=params.camera_id,
-            view_id=params.view_id,
-            timestamp=params.timestamp,
+    def save(self, image: DtoImage, frame_image_property: DtoFrameImageProperty) -> None:
+        domain_frame_image = DomainFrameImage(
+            image=image.image,
+            camera_id=frame_image_property.camera_id,
+            view_id=frame_image_property.view_id,
+            timestamp=frame_image_property.timestamp,
         )
         try:
-            self.repository_frame_image.save(frame_image)
-            self.repository_frame_image.push_person_snapshot_create(frame_image)
+            self.repository_frame_image.save(domain_frame_image)
+            self.repository_frame_image.push_person_snapshot_create(domain_frame_image)
         except Error as error:
             raise ApplicationPersonSnapshotCreateError(error) from error

@@ -21,8 +21,12 @@ class BackgroundPersonSnapshotFeatureExtraction(Background):
 
     @property
     def name(self) -> str:
-        return "person_snapshot_feature_extraction"
+        return "person snapshot feature extraction"
 
-    def handle(self) -> str:
+    def handle(self, background_id: str) -> None:
         person_snapshot = self.application.extract()
-        return f"feature extracted for person snapshot id: {person_snapshot.id}"
+        self.logger.background_info(
+            background_id=background_id,
+            name=self.name,
+            message=f"person snapshot id: {person_snapshot.id} extracted",
+        )

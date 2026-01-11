@@ -2,17 +2,9 @@ from domain.admin_client import DomainAdminClient
 from domain.token_converter import DomainTokenConverter
 from environment import Environment
 from error import Error
-from dataclasses import dataclass
-
-@dataclass
-class ApplicationAdminClientAuthLoginParams:
-    id: str
-    password: str
-
-@dataclass
-class ApplicationAdminClientAuthLoginResult:
-    token: str
-    refresh_token: str
+from applications import ApplicationBase
+from dto.admin_client.auth.credentials import DtoAdminClientAuthCredentials
+from dto.admin_client.auth.result import DtoAdminClientAuthResult
 
 class ApplicationAdminClientAuthLoginError(Error):
     pass
@@ -20,7 +12,7 @@ class ApplicationAdminClientAuthLoginError(Error):
 class ApplicationAdminClientAuthLoginInvalidCredentialsError(ApplicationAdminClientAuthLoginError):
     pass
 
-class ApplicationAdminClientAuthLogin:
+class ApplicationAdminClientAuthLogin(ApplicationBase):
     def __init__(
         self,
         admin_client: DomainAdminClient,
@@ -47,10 +39,10 @@ class ApplicationAdminClientAuthLogin:
             ),
         )
 
-    def login(self, params: ApplicationAdminClientAuthLoginParams) -> ApplicationAdminClientAuthLoginResult:
-        if not self.admin_client.authenticate(params.id, params.password):
+    def login(self, credentials: DtoAdminClientAuthCredentials) -> DtoAdminClientAuthResult:
+        if not self.admin_client.authenticate(credentials.id, credentials.password):
             raise ApplicationAdminClientAuthLoginInvalidCredentialsError()
-        return ApplicationAdminClientAuthLoginResult(
+        return DtoAdminClientAuthResult(
             token=self.admin_client.generate_token(self.token_converter),
             refresh_token=self.admin_client.generate_token(self.refresh_token_converter),
         )

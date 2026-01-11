@@ -2,15 +2,9 @@ from domain.admin_client import DomainAdminClient
 from domain.token_converter import DomainTokenConverter
 from environment import Environment
 from error import Error
-from dataclasses import dataclass
+from dto.admin_client.auth.token import DtoAdminClientAuthToken
+from dto.admin_client.id import DtoAdminClientId
 
-@dataclass
-class ApplicationAdminClientAuthOAuth2Params:
-    token: str
-
-@dataclass
-class ApplicationAdminClientAuthOAuth2Result:
-    admin_client_id: str
 
 class ApplicationAdminClientAuthOAuth2Error(Error):
     pass
@@ -34,10 +28,8 @@ class ApplicationAdminClientAuthOAuth2:
             ),
         )
 
-    def oauth2(self, params: ApplicationAdminClientAuthOAuth2Params) -> ApplicationAdminClientAuthOAuth2Result:
-        admin_client_id = self.admin_client.verify_token(params.token, self.token_converter)
+    def oauth2(self, token: DtoAdminClientAuthToken) -> DtoAdminClientId:
+        admin_client_id = self.admin_client.verify_token(token.token, self.token_converter)
         if admin_client_id is None:
             raise ApplicationAdminClientAuthOAuth2InvalidTokenError()
-        return ApplicationAdminClientAuthOAuth2Result(
-            admin_client_id=admin_client_id,
-        )
+        return DtoAdminClientId(id=admin_client_id.id)

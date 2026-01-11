@@ -6,20 +6,24 @@ from fastapi.responses import JSONResponse
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
 import abc
-from typing import Any, Annotated, Sequence, Callable, Awaitable
+from typing import Any, Annotated, Sequence, Callable, Awaitable, Type, TypeVar, Generic
 from enum import Enum
 from PIL import Image
 import io
 from datetime import datetime
 from fastapi import Request, Response
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2
-from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Params
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Error
+from dto.admin_client.auth.token import DtoAdminClientAuthToken
+from dto.admin_client.id import DtoAdminClientId
 from environment import Environment
 from pydantic import BaseModel
 from error import Error
 import uuid
 from logger import Logger
+import asyncio
+from applications import ApplicationBase
+
 
 class PresentationRequest(Request):
     UNKNOWN_REQUEST_ID = "unknown"
@@ -36,11 +40,13 @@ class PresentationRequest(Request):
         else:
             return self.UNKNOWN_REQUEST_ID
 
+
 class PresentationRequestBody(BaseModel):
     pass
 
+
 class PresentationJSONResponse(JSONResponse):
-    REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 # 1 day
+    REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24  # 1 day
 
     def __init__(self, status: int, content: dict[str, Any]):
         super().__init__(content=content, status_code=status)
@@ -56,8 +62,10 @@ class PresentationJSONResponse(JSONResponse):
             samesite="strict",
         )
 
+
 class PresentationImageResponseError(Exception):
     pass
+
 
 class PresentationImageResponse(StreamingResponse):
     def __init__(self, status: int, image: Image.Image):
@@ -68,6 +76,7 @@ class PresentationImageResponse(StreamingResponse):
         img_buffer.seek(0)
         super().__init__(content=img_buffer,
                          media_type=f"image/{image.format.lower()}", status_code=status)
+
 
 class PresentationBase:
     router_path: str
@@ -97,6 +106,7 @@ class PresentationBase:
     async def handle(self, *args, **kwargs) -> PresentationJSONResponse | PresentationImageResponse:
         pass
 
+
 class PresentationMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp, logger: Logger):
         super().__init__(app=app)
@@ -105,10 +115,11 @@ class PresentationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]):
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
-        self.logger.info("Request received", request_id=request_id)
+        self.logger.api_request_info(request_id=request_id, request_path=request.url.path, request_method=request.method)
         response = await call_next(request)
-        self.logger.info("Response sent", request_id=request_id)
+        self.logger.api_response_info(request_id=request_id, response_status_code=response.status_code)
         return response
+
 
 class PresentationExceptionHandler:
     def __init__(self, logger: Logger):
@@ -130,10 +141,11 @@ class PresentationExceptionHandler:
         :return PresentationJSONResponse: 500エラー
         """
         if request.state is not None and request.state.request_id is not None:
-            request_id = request.state.request_id
-        else:
-            request_id = None
-        self.logger.unexpected_error(exc, request_id=request_id)
+            self.logger.api_response_info(
+                request_id=request.state.request_id,
+                response_status_code=500,
+            )
+        self.logger.unexpected_error(exc)
         return PresentationJSONResponse(
             status=500,
             content={
@@ -150,10 +162,11 @@ class PresentationExceptionHandler:
         :return PresentationJSONResponse: 500エラー
         """
         if request.state is not None and request.state.request_id is not None:
-            request_id = request.state.request_id
-        else:
-            request_id = None
-        self.logger.error(Error(exc), request_id=request_id)
+            self.logger.api_response_info(
+                request_id=request.state.request_id,
+                response_status_code=500,
+            )
+        self.logger.error(Error(exc))
         return PresentationJSONResponse(
             status=500,
             content={
@@ -161,32 +174,60 @@ class PresentationExceptionHandler:
             },
         )
 
-PresentationTypeAuthorization = Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl="token"))]
+
+T = TypeVar("T", bound=ApplicationBase)
+
+
+def get_environment():
+    return Environment()
+
+
+class AppFactory(Generic[T]):
+    def __init__(self, app_type: Type[T]):
+        self.app_type = app_type
+
+    def __call__(self, environment: Environment = Depends(get_environment)) -> T:
+        return self.app_type.create(environment)
+
+
+def get_application(app_type: Type[T]) -> T:
+    return Depends(AppFactory(app_type))
+
+
+PresentationTypeAuthorization = Annotated[str, Depends(
+    OAuth2PasswordBearer(tokenUrl="token"))]
+
 
 def get_admin_client_auth_application(
     environment: Environment = Depends(Environment)
 ) -> ApplicationAdminClientAuthOAuth2:
     return ApplicationAdminClientAuthOAuth2.create(environment)
 
+
 def admin_client_authenticated(
     token: PresentationTypeAuthorization,
-    application: ApplicationAdminClientAuthOAuth2 = Depends(get_admin_client_auth_application),
-) -> str:
+    application: ApplicationAdminClientAuthOAuth2 = Depends(
+        get_admin_client_auth_application),
+) -> DtoAdminClientId:
     try:
-        result = application.oauth2(ApplicationAdminClientAuthOAuth2Params(token=token))
+        result = application.oauth2(
+            DtoAdminClientAuthToken(token=token))
     except ApplicationAdminClientAuthOAuth2Error as error:
         raise HTTPException(
             status_code=401,
             detail="Invalid authorization",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return result.admin_client_id
+    return result
 
-PresentationAdminClientAuthenticated = Annotated[str, Depends(admin_client_authenticated)]
+
+PresentationAdminClientAuthenticated = Annotated[DtoAdminClientId, Depends(
+    admin_client_authenticated)]
 
 
 class PresentationImageError(Exception):
     pass
+
 
 class PresentationImage:
     async def __call__(self, image: UploadFile) -> Image.Image:
@@ -194,8 +235,10 @@ class PresentationImage:
         pil_image = Image.open(io.BytesIO(content))
         pil_image.load()
         if pil_image.format is None:
-            raise PresentationImageError(f"image format is None: {image.filename}")
+            raise PresentationImageError(
+                f"image format is None: {image.filename}")
         return pil_image
+
 
 PresentationTypeImage = Annotated[Image.Image, Depends(PresentationImage())]
 

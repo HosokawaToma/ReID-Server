@@ -19,9 +19,17 @@ class BackgroundPersonSnapshotJunkDetection(Background):
             application=ApplicationPersonSnapshotBackgroundJunkDetection.create(environment),
         )
 
-    def handle(self) -> str:
+    def handle(self, background_id: str) -> None:
         person_snapshot = self.application.detect()
         if person_snapshot.is_junk:
-            return f"person snapshot id: {person_snapshot.id} detected as junk"
+            self.logger.background_info(
+                background_id=background_id,
+                name=self.name,
+                message=f"person snapshot id: {person_snapshot.id} detected as junk",
+            )
         else:
-            return f"person snapshot id: {person_snapshot.id} detected as not junk"
+            self.logger.background_info(
+                background_id=background_id,
+                name=self.name,
+                message=f"person snapshot id: {person_snapshot.id} detected as not junk",
+            )

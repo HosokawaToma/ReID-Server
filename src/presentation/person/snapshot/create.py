@@ -1,5 +1,6 @@
 from applications.person.snapshot.create import ApplicationPersonSnapshotCreate
-from applications.person.snapshot.create import ApplicationPersonSnapshotCreateParams
+from dto.image import DtoImage
+from dto.frame_image.property import DtoFrameImageProperty
 from presentation import PresentationBase
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationTypeImage
@@ -7,7 +8,8 @@ from presentation import PresentationTypeDatetime
 from presentation import PresentationTypeInt
 from presentation import PresentationJSONResponse
 from logger import Logger
-from environment import Environment
+from presentation import get_application
+
 
 class PresentationPersonSnapshotCreate(PresentationBase):
     router_path = "/person/snapshot/create"
@@ -19,21 +21,17 @@ class PresentationPersonSnapshotCreate(PresentationBase):
         200: {"description": "Person snapshot created"},
         400: {"description": "Bad request"},
     }
+
     def __init__(
         self,
         logger: Logger,
-        application: ApplicationPersonSnapshotCreate,
     ):
         super().__init__(logger=logger)
-        self.application = application
 
     @classmethod
-    def create(cls, environment: Environment) -> "PresentationPersonSnapshotCreate":
+    def create(cls) -> "PresentationPersonSnapshotCreate":
         return cls(
             logger=Logger("presentation_person_snapshot_create"),
-            application=ApplicationPersonSnapshotCreate.create(
-                environment=environment,
-            ),
         )
 
     async def handle(
@@ -43,13 +41,16 @@ class PresentationPersonSnapshotCreate(PresentationBase):
         timestamp: PresentationTypeDatetime,
         camera_id: PresentationTypeInt,
         view_id: PresentationTypeInt,
+        application: ApplicationPersonSnapshotCreate = get_application(ApplicationPersonSnapshotCreate),
     ):
-        self.application.save(
-            ApplicationPersonSnapshotCreateParams(
+        application.save(
+            image=DtoImage(
                 image=image,
-                timestamp=timestamp,
+            ),
+            frame_image_property=DtoFrameImageProperty(
                 camera_id=camera_id,
                 view_id=view_id,
+                timestamp=timestamp,
             ),
         )
         return PresentationJSONResponse(status=200, content={"message": "Person snapshot created"})

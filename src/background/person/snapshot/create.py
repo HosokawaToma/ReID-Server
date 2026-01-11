@@ -22,6 +22,11 @@ class BackgroundPersonSnapshotCreate(Background):
             logger=Logger("background_person_snapshot_create"),
             application=ApplicationPersonSnapshotBackgroundCreate.create(environment),
         )
-    def handle(self) -> str:
-        self.application.save()
-        return "person snapshot created"
+
+    def handle(self, background_id: str) -> None:
+        meta_data = self.application.save()
+        self.logger.background_info(
+            background_id=background_id,
+            name=self.name,
+            message=f"frame image id: {meta_data.id} created",
+        )

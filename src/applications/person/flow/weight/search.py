@@ -1,22 +1,10 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.person.snapshot import RepositoryPersonSnapshotFilters
-from dataclasses import dataclass
-import uuid
-from datetime import datetime
 from environment import Environment
 from error import Error
-
-@dataclass
-class ApplicationPersonFlowWeightSearchParams:
-    timestamp_after: datetime | None = None
-    timestamp_before: datetime | None = None
-    person_ids: list[uuid.UUID] | None = None
-
-@dataclass
-class ApplicationPersonFlowWeightSearchItem:
-    target_camera_id: int
-    source_camera_id: int
-    weight: int
+from applications import ApplicationBase
+from dto.person.flow.weight.query import DtoPersonFlowWeightQuery
+from dto.person.flow.weight import DtoPersonFlowWeight
 
 class ApplicationPersonFlowWeightSearchError(Error):
     pass
@@ -24,7 +12,7 @@ class ApplicationPersonFlowWeightSearchError(Error):
 class ApplicationPersonFlowWeightSearchNoFlowsFoundError(ApplicationPersonFlowWeightSearchError):
     pass
 
-class ApplicationPersonFlowWeightSearch:
+class ApplicationPersonFlowWeightSearch(ApplicationBase):
     def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot):
         self.repository_person_snapshot = repository_person_snapshot
 
@@ -34,13 +22,13 @@ class ApplicationPersonFlowWeightSearch:
             repository_person_snapshot=RepositoryPersonSnapshot.create(environment=environment),
         )
 
-    def search(self, params: ApplicationPersonFlowWeightSearchParams | None = None) -> list[ApplicationPersonFlowWeightSearchItem]:
+    def search(self, query: DtoPersonFlowWeightQuery | None = None) -> list[DtoPersonFlowWeight]:
         filters = None
-        if params is not None:
+        if query is not None:
             filters = RepositoryPersonSnapshotFilters(
-                timestamp_after=params.timestamp_after,
-                timestamp_before=params.timestamp_before,
-                person_ids=params.person_ids,
+                timestamp_after=query.timestamp_after,
+                timestamp_before=query.timestamp_before,
+                person_ids=query.person_ids,
             )
         try:
             person_snapshots = self.repository_person_snapshot.find(filters=filters)
@@ -49,7 +37,7 @@ class ApplicationPersonFlowWeightSearch:
             raise ApplicationPersonFlowWeightSearchError(error) from error
         if flows is None:
             raise ApplicationPersonFlowWeightSearchNoFlowsFoundError()
-        return [ApplicationPersonFlowWeightSearchItem(
+        return [DtoPersonFlowWeight(
             target_camera_id=flow_weight.target_camera_id,
             source_camera_id=flow_weight.source_camera_id,
             weight=flow_weight.weight,

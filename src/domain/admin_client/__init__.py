@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from domain.admin_client.id import DomainAdminClientId
 from domain.token_converter import DomainTokenConverter
 import time
 
@@ -17,7 +18,7 @@ class DomainAdminClient:
         }
         return token_converter.encode(payload)
 
-    def verify_token(self, token: str, token_converter: DomainTokenConverter) -> str | None:
+    def verify_token(self, token: str, token_converter: DomainTokenConverter) -> DomainAdminClientId | None:
         payload = token_converter.decode(token)
         if not isinstance(payload, dict):
             return None
@@ -33,4 +34,4 @@ class DomainAdminClient:
             return None
         if payload["expire_time"] < time.time():
             return None
-        return payload["id"]
+        return DomainAdminClientId(id=payload["id"])

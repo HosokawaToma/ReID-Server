@@ -36,15 +36,38 @@ class DomainPersonSnapshotFeatureNotSetError(DomainPersonSnapshotError):
 
 @dataclass
 class DomainPersonSnapshot:
+    """
+    非推奨
+    代わりに DomainPersonSnapshotImage, DomainPersonSnapshotFeature を使用する
+    :param Image.Image image: 画像
+    :param int camera_id: カメラID
+    :param int view_id: ビューID
+    :param datetime timestamp: タイムスタンプ
+    :param bool _is_junk: ジャンクフラグ
+    :param torch.Tensor | None feature: 特徴量
+    :param uuid.UUID | None person_id: 人物ID
+    :param uuid.UUID | None id: ID
+    """
     MATCH_THRESHOLD: ClassVar[float] = 0.895
     image: Image.Image
     camera_id: int
     view_id: int
     timestamp: datetime
-    is_junk: bool = True
+    _is_junk: bool = True
     feature: torch.Tensor | None = None
     person_id: uuid.UUID | None = None
     id: uuid.UUID = field(default_factory=uuid.uuid4)
+
+    @property
+    def is_junk(self) -> bool:
+        return self._is_junk
+
+    @is_junk.setter
+    def is_junk(self, value: bool) -> None:
+        if value:
+            self.feature = None
+            self.person_id = None
+        self._is_junk = value
 
     def detect_junk(self, pose_model: DomainYoloPoseModel, segment_model: DomainYoloSegmentModel) -> None:
         """
@@ -52,27 +75,13 @@ class DomainPersonSnapshot:
         :param DomainYoloPoseModel pose_model: 姿勢推定モデル
         :param DomainYoloSegmentModel segment_model: 個別物体推定モデル
         """
-        if not self._is_full_body(pose_model):
+        if not pose_model.is_full_body(self.image):
             self.is_junk = True
             return
-        if not self._is_one_person(segment_model):
+        if not segment_model.is_one_person(self.image):
             self.is_junk = True
             return
         self.is_junk = False
-
-    def _is_full_body(self, pose_model: DomainYoloPoseModel) -> bool:
-        key_points = pose_model.extract(self.image)
-        if len(key_points) != 1:
-            return False
-        if not key_points[0].is_confidence():
-            return False
-        return True
-
-    def _is_one_person(self, segment_model: DomainYoloSegmentModel) -> bool:
-        masks = segment_model.extract(self.image)
-        if len(masks) != 1:
-            return False
-        return True
 
     def extract_feature(self, reid_model: ModuleReIDModel) -> None:
         """

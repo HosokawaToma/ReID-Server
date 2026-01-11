@@ -4,6 +4,7 @@ import abc
 import fastapi
 from error import Error
 import threading
+import uuid
 
 class Background:
     def __init__(
@@ -13,6 +14,7 @@ class Background:
         self.logger = logger
         self.task: asyncio.Task | None = None
         self.event = threading.Event()
+
     @property
     @abc.abstractmethod
     def name(self) -> str:
@@ -40,9 +42,18 @@ class Background:
     async def run(self) -> None:
         while not self.event.is_set():
             try:
-                message = await asyncio.to_thread(self.handle)
-                self.logger.info(
-                    f"Background {self.name} executed successfully: {message}")
+                background_id = str(uuid.uuid4())
+                self.logger.background_info(
+                    background_id=background_id,
+                    name=self.name,
+                    message=f"background started",
+                )
+                await asyncio.to_thread(self.handle, background_id=background_id)
+                self.logger.background_info(
+                    background_id=background_id,
+                    name=self.name,
+                    message=f"background finished",
+                )
             except Error as e:
                 self.logger.error(e)
                 continue
@@ -51,5 +62,5 @@ class Background:
                 continue
 
     @abc.abstractmethod
-    def handle(self) -> str:
+    def handle(self, background_id: str) -> None:
         pass

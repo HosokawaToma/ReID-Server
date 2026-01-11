@@ -1,4 +1,4 @@
-from sqlalchemy import Column, UUID, Integer, DateTime
+from sqlalchemy import Column, UUID, Integer, DateTime, Index
 from sqlalchemy.orm import declarative_base
 import uuid
 from datetime import datetime
@@ -11,3 +11,16 @@ class MigrationModelFrameImage(Base):
     camera_id = Column[int](Integer, nullable=False)
     view_id = Column[int](Integer, nullable=False)
     timestamp = Column[datetime](DateTime, nullable=False)
+
+    __table_args__ = (
+        Index(
+            'index_timestamp',
+            'timestamp',
+        ),
+        Index(
+            'index_camera_id_view_id_timestamp',
+            'camera_id',
+            'view_id',
+            'timestamp',
+        ),
+    )
