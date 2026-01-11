@@ -34,8 +34,7 @@ class PresentationFrameImageSearch(PresentationBase):
         id: uuid.UUID,
         application: ApplicationFrameImageSearch = get_application(ApplicationFrameImageSearch),
     ) -> PresentationImageResponse:
-        image = await self.run_sync(
-            application.search,
+        image = application.search(
             id=id,
         )
         return PresentationImageResponse(status=200, image=image.image)

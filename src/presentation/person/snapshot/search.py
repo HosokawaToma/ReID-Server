@@ -70,8 +70,7 @@ class PresentationPersonSnapshotSearch(PresentationBase):
                     for sort_by in request.sort_by_list
                 ] if request.sort_by_list is not None else None,
             )
-        items = await self.run_sync(
-            application.search,
+        items = application.search(
             query=query,
         )
         return PresentationJSONResponse(

@@ -49,8 +49,7 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
         application: ApplicationPersonSnapshotImageSearch = get_application(ApplicationPersonSnapshotImageSearch),
     ):
         try:
-            person_snapshot = await self.run_sync(
-                application.search,
+            person_snapshot = application.search(
                 id=DtoId(id=id),
             )
             return PresentationImageResponse(status=200, image=person_snapshot.image)

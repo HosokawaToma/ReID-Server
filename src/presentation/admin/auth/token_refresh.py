@@ -33,8 +33,7 @@ class PresentationAdminAuthTokenRefresh(PresentationBase):
         application: ApplicationAdminClientAuthTokenRefresh = get_application(ApplicationAdminClientAuthTokenRefresh),
     ):
         try:
-            result = await self.run_sync(
-                application.refresh,
+            result = application.refresh(
                 DtoAdminClientAuthToken(
                     token=request.get_refresh_token(),
                 ),

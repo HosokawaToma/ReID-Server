@@ -41,8 +41,7 @@ class PresentationAdminAuthLogin(PresentationBase):
         application: ApplicationAdminClientAuthLogin = get_application(ApplicationAdminClientAuthLogin),
     ):
         try:
-            result = await self.run_sync(
-                application.login,
+            result = application.login(
                 DtoAdminClientAuthCredentials(
                     id=body.id,
                     password=body.password,

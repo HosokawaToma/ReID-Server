@@ -56,7 +56,7 @@ class PresentationPersonFlowSearch(PresentationBase):
             timestamp_before=body.timestamp_before,
         )
         try:
-            items = await self.run_sync(application.search, query=query)
+            items = application.search(query=query)
         except ApplicationPersonFlowSearchNoFlowsFoundError as error:
             self.logger.api_response_info(request_id=request.get_request_id(), response_status_code=404)
             return PresentationJSONResponse(status=404, content={

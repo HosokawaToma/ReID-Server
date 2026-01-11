@@ -52,5 +52,5 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
                 camera_ids=request.camera_ids,
                 view_ids=request.view_ids,
             )
-        await self.run_sync(application.refresh, query=query)
+        application.refresh(query=query)
         return PresentationJSONResponse(status=200, content={"message": "Person snapshots refreshed"})
