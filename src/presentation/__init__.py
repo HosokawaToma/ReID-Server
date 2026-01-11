@@ -102,13 +102,6 @@ class PresentationBase:
             dependencies=self.dependencies,
         )
 
-    async def run_sync(self, func: Callable, *args, **kwargs) -> Any:
-        """
-        同期的な関数を非同期で実行するヘルパーメソッド。
-        イベントループをブロックしないように、別スレッドで実行します。
-        """
-        return await asyncio.to_thread(func, *args, **kwargs)
-
     @abc.abstractmethod
     async def handle(self, *args, **kwargs) -> PresentationJSONResponse | PresentationImageResponse:
         pass

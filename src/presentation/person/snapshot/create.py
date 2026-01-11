@@ -43,8 +43,7 @@ class PresentationPersonSnapshotCreate(PresentationBase):
         view_id: PresentationTypeInt,
         application: ApplicationPersonSnapshotCreate = get_application(ApplicationPersonSnapshotCreate),
     ):
-        await self.run_sync(
-            application.save,
+        application.save(
             image=DtoImage(
                 image=image,
             ),
