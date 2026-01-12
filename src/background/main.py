@@ -18,7 +18,6 @@ class BackgroundMain:
         self.person_snapshot_feature_extraction = person_snapshot_feature_extraction
         self.person_snapshot_identify = person_snapshot_identify
         self.person_snapshot_junk_detection = person_snapshot_junk_detection
-        self._stop_event = asyncio.Event()
 
     @classmethod
     def create(cls, environment: Environment) -> "BackgroundMain":
@@ -30,12 +29,13 @@ class BackgroundMain:
         )
 
     async def run(self):
+        event = asyncio.Event()
         loop = asyncio.get_running_loop()
-        loop.add_signal_handler(signal.SIGINT, self.signal_handler)
-        loop.add_signal_handler(signal.SIGTERM, self.signal_handler)
+        loop.add_signal_handler(signal.SIGINT, event.set)
+        loop.add_signal_handler(signal.SIGTERM, event.set)
         try:
             await self.start()
-            await self._stop_event.wait()
+            await event.wait()
         finally:
             await self.stop()
 
@@ -50,9 +50,6 @@ class BackgroundMain:
         await self.person_snapshot_feature_extraction.stop()
         await self.person_snapshot_identify.stop()
         await self.person_snapshot_junk_detection.stop()
-
-    def signal_handler(self):
-        self._stop_event.set()
 
 if __name__ == "__main__":
     background_main = BackgroundMain.create(environment=Environment())
