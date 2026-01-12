@@ -1,14 +1,14 @@
-from background import Background
-from applications.person.snapshot.background.junk_detection import ApplicationPersonSnapshotBackgroundJunkDetection
+from background.presentations.utils import BackgroundPresentationUtilsBase
+from background.applications.person.snapshot.junk_detection import BackgroundApplicationPersonSnapshotJunkDetection
 from logger import Logger
 from environment import Environment
 
-class BackgroundPersonSnapshotJunkDetection(Background):
+class BackgroundPersonSnapshotJunkDetection(BackgroundPresentationUtilsBase):
     @property
     def name(self) -> str:
         return "person snapshot junk detection"
 
-    def __init__(self, logger: Logger, application: ApplicationPersonSnapshotBackgroundJunkDetection):
+    def __init__(self, logger: Logger, application: BackgroundApplicationPersonSnapshotJunkDetection):
         super().__init__(logger=logger)
         self.application = application
 
@@ -16,7 +16,7 @@ class BackgroundPersonSnapshotJunkDetection(Background):
     def create(cls, environment: Environment) -> "BackgroundPersonSnapshotJunkDetection":
         return cls(
             logger=Logger("background_person_snapshot_junk_detection"),
-            application=ApplicationPersonSnapshotBackgroundJunkDetection.create(environment),
+            application=BackgroundApplicationPersonSnapshotJunkDetection.create(environment),
         )
 
     def handle(self, background_id: str) -> None:

@@ -4,11 +4,12 @@ from dto.frame_image.meta_data import DtoFrameImageMetaData
 from environment import Environment
 from domain.yolo.detection_model import DomainYoloDetectionModel
 from error import Error
+from background.applications.utils import BackgroundApplicationUtilsBase
 
-class ApplicationPersonSnapshotBackgroundCreateError(Error):
+class BackgroundApplicationPersonSnapshotCreateError(Error):
     pass
 
-class ApplicationPersonSnapshotBackgroundCreate:
+class BackgroundApplicationPersonSnapshotCreate(BackgroundApplicationUtilsBase):
     def __init__(
         self,
         repository_frame_image: RepositoryFrameImage,
@@ -22,7 +23,7 @@ class ApplicationPersonSnapshotBackgroundCreate:
         self.is_delete_unnecessary_images = is_delete_unnecessary_images
 
     @classmethod
-    def create(cls, environment: Environment) -> "ApplicationPersonSnapshotBackgroundCreate":
+    def create(cls, environment: Environment) -> "BackgroundApplicationPersonSnapshotCreate":
         return cls(
             repository_frame_image=RepositoryFrameImage.create(
                 environment),
@@ -48,4 +49,4 @@ class ApplicationPersonSnapshotBackgroundCreate:
                 timestamp=frame_image.timestamp,
             )
         except Error as error:
-            raise ApplicationPersonSnapshotBackgroundCreateError(error) from error
+            raise BackgroundApplicationPersonSnapshotCreateError(error) from error

@@ -1,9 +1,9 @@
-from background import Background
+from background.presentations.utils import BackgroundPresentationUtilsBase
 from logger import Logger
-from applications.person.snapshot.background.identify import ApplicationPersonSnapshotBackgroundIdentify
+from background.applications.person.snapshot.identify import BackgroundApplicationPersonSnapshotIdentify
 from environment import Environment
 
-class BackgroundPersonSnapshotIdentify(Background):
+class BackgroundPersonSnapshotIdentify(BackgroundPresentationUtilsBase):
     @property
     def name(self) -> str:
         return "person snapshot identify"
@@ -11,7 +11,7 @@ class BackgroundPersonSnapshotIdentify(Background):
     def __init__(
         self,
         logger: Logger,
-        application: ApplicationPersonSnapshotBackgroundIdentify,
+        application: BackgroundApplicationPersonSnapshotIdentify,
     ):
         super().__init__(logger=logger)
         self.application = application
@@ -20,7 +20,7 @@ class BackgroundPersonSnapshotIdentify(Background):
     def create(cls, environment: Environment) -> "BackgroundPersonSnapshotIdentify":
         return cls(
             logger=Logger("background_person_snapshot_identify"),
-            application=ApplicationPersonSnapshotBackgroundIdentify.create(environment),
+            application=BackgroundApplicationPersonSnapshotIdentify.create(environment),
         )
 
     def handle(self, background_id: str) -> None:
