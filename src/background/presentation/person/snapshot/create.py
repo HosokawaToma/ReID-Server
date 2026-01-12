@@ -1,9 +1,9 @@
-from background import Background
+from background.presentation.utils import BackgroundPresentationUtilsBase
 from logger import Logger
 from applications.person.snapshot.background.create import ApplicationPersonSnapshotBackgroundCreate
 from environment import Environment
 
-class BackgroundPersonSnapshotCreate(Background):
+class BackgroundPersonSnapshotCreate(BackgroundPresentationUtilsBase):
     @property
     def name(self) -> str:
         return "person snapshot create"

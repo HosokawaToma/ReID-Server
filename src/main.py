@@ -6,10 +6,10 @@ from environment import Environment
 from presentation.admin.auth.login import PresentationAdminAuthLogin
 from presentation.admin.auth.token_refresh import PresentationAdminAuthTokenRefresh
 from presentation.person.snapshot.create import PresentationPersonSnapshotCreate
-from background.person.snapshot.create import BackgroundPersonSnapshotCreate
-from background.person.snapshot.feature_extraction import BackgroundPersonSnapshotFeatureExtraction
-from background.person.snapshot.identify import BackgroundPersonSnapshotIdentify
-from background.person.snapshot.junk_detection import BackgroundPersonSnapshotJunkDetection
+from background.presentation.person.snapshot.create import BackgroundPersonSnapshotCreate
+from background.presentation.person.snapshot.feature_extraction import BackgroundPersonSnapshotFeatureExtraction
+from background.presentation.person.snapshot.identify import BackgroundPersonSnapshotIdentify
+from background.presentation.person.snapshot.junk_detection import BackgroundPersonSnapshotJunkDetection
 from presentation.person.snapshot.refresh import PresentationPersonSnapshotRefresh
 from presentation.person.snapshot.search import PresentationPersonSnapshotSearch
 from presentation.person.flow.search import PresentationPersonFlowSearch

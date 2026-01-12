@@ -1,9 +1,9 @@
-from background import Background
+from background.presentation.utils import BackgroundPresentationUtilsBase
 from applications.person.snapshot.background.feature_extraction import ApplicationPersonSnapshotBackgroundFeatureExtraction
 from environment import Environment
 from logger import Logger
 
-class BackgroundPersonSnapshotFeatureExtraction(Background):
+class BackgroundPersonSnapshotFeatureExtraction(BackgroundPresentationUtilsBase):
     def __init__(
         self,
         logger: Logger,

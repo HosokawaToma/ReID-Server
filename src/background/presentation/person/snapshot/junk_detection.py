@@ -1,9 +1,9 @@
-from background import Background
+from background.presentation.utils import BackgroundPresentationUtilsBase
 from applications.person.snapshot.background.junk_detection import ApplicationPersonSnapshotBackgroundJunkDetection
 from logger import Logger
 from environment import Environment
 
-class BackgroundPersonSnapshotJunkDetection(Background):
+class BackgroundPersonSnapshotJunkDetection(BackgroundPresentationUtilsBase):
     @property
     def name(self) -> str:
         return "person snapshot junk detection"

@@ -1,12 +1,12 @@
 from logger import Logger
 import asyncio
-import abc
+from abc import ABC, abstractmethod
 import fastapi
 from error import Error
 import threading
 import uuid
 
-class Background:
+class BackgroundPresentationUtilsBase(ABC):
     def __init__(
         self,
         logger: Logger,
@@ -16,7 +16,7 @@ class Background:
         self.event = threading.Event()
 
     @property
-    @abc.abstractmethod
+    @abstractmethod
     def name(self) -> str:
         pass
 
@@ -61,6 +61,6 @@ class Background:
                 self.logger.unexpected_error(e)
                 continue
 
-    @abc.abstractmethod
+    @abstractmethod
     def handle(self, background_id: str) -> None:
         pass
