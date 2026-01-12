@@ -206,6 +206,18 @@ ReID の結果として得られるのは，「人物 ID」「観測時刻」「
 
 ### 3.3.1 評価方法の説明
 
+本研究では，人物再同定（Person Re-Identification: Re-ID）タスクにおける性能評価として，主要なベンチマークデータセットである Market1501 [16] において採用されている標準的なプロトコルに準拠する．
+
+評価の基準となる人物 ID は，人手によって正確に割り振られた正解ラベルであり，人手によって保証されている．
+
+収集したジャンク画像を除いた画像をクエリ（Query）画像群とギャラリー（Gallery）画像群に分割する．クエリ画像は，人物 ID ひとつに対して一つの画像をランダムに選択する．クエリ画像群以外の画像をギャラリー画像群とする．
+
+評価指標の算出にあたり，まず各クエリ画像について，全てのギャラリー画像との間の特徴量空間における距離（コサイン距離等）を計算する．この距離に基づき，ギャラリー画像をクエリ画像に類似している順に並べ替え，ランク付けされたリストを作成する．なお，Market1501の評価プロトコルであるクロスカメラモードに従い，クエリ画像と同一のカメラかつ同一の人物 ID を持つギャラリー画像は，検索結果の評価対象から除外される．
+
+このランク付けされたリストを用いて，以下の手順で累積マッチング特性（CMC）曲線および平均適合率（mAP）を算出する．
+CMC曲線は，検索結果の上位 $k$ 番目（Rank-$k$）までに少なくとも1枚の正解画像が含まれるクエリの割合として算出される．これは，システムが正解を上位に引き上げる能力（Top-k Accuracy）を評価するものである．
+mAPは，ギャラリー内に正解画像が複数存在する場合の網羅性を評価するために用いられる．具体的には，各クエリに対して検索結果リストを走査し，正解画像が出現するたびにその順位までの適合率（Precision）を計算して平均をとることで平均適合率（Average Precision: AP）を求める．最終的に，全てのクエリ画像に対するAPの平均値をmAPとして算出する．
+
 #### 3.3.1.1 実際に目視で確認したときの結果と細川システムの結果（正解率，F 値など）
 
 ### 3.3.2 可視化
@@ -231,3 +243,4 @@ ReID の結果として得られるのは，「人物 ID」「観測時刻」「
 [13] S. Li, Y. Zhang, L. Tao, and T. Huang, “CLIP-ReID: Exploiting Vision-Language Model for Person Re-Identification without Human Annotations,” arXiv:2211.00299, 2022.
 [14] L. Bass, P. Clements, and R. Kazman, Software Architecture in Practice (3rd ed.), Addison-Wesley, 2013.
 [15] A. C. Davies, J. H. Yin, and S. A. Velastin, “Crowd monitoring using image processing,” Electronics & Communication Engineering Journal, vol. 7, no. 1, pp. 37–47, 1995.
+[16] L. Zheng, et al., "Scalable Person Re-identification: A Benchmark," in ICCV, 2015.
