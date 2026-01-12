@@ -1,7 +1,6 @@
 from logger import Logger
 import asyncio
 from abc import ABC, abstractmethod
-import fastapi
 from error import Error
 import threading
 import uuid
@@ -19,10 +18,6 @@ class BackgroundPresentationUtilsBase(ABC):
     @abstractmethod
     def name(self) -> str:
         pass
-
-    def setup(self, app: fastapi.FastAPI):
-        app.add_event_handler("startup", self.start)
-        app.add_event_handler("shutdown", self.stop)
 
     async def start(self) -> None:
         self.task = asyncio.create_task(self.run())
