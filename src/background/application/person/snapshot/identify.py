@@ -6,12 +6,13 @@ from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
 from environment import Environment
 from error import Error
+from background.application.utils import BackgroundApplicationUtilsBase
 
 
-class ApplicationPersonSnapshotBackgroundIdentifyError(Error):
+class BackgroundApplicationPersonSnapshotIdentifyError(Error):
     pass
 
-class ApplicationPersonSnapshotBackgroundIdentify:
+class BackgroundApplicationPersonSnapshotIdentify(BackgroundApplicationUtilsBase):
     def __init__(
         self,
         repository_person_snapshot: RepositoryPersonSnapshot,
@@ -19,7 +20,7 @@ class ApplicationPersonSnapshotBackgroundIdentify:
         self.repository_person_snapshot = repository_person_snapshot
 
     @classmethod
-    def create(cls, environment: Environment) -> "ApplicationPersonSnapshotBackgroundIdentify":
+    def create(cls, environment: Environment) -> "BackgroundApplicationPersonSnapshotIdentify":
         return cls(
             repository_person_snapshot=RepositoryPersonSnapshot.create(
                 environment),
@@ -54,4 +55,4 @@ class ApplicationPersonSnapshotBackgroundIdentify:
                 feature=person_snapshot.feature,
             )
         except Error as error:
-            raise ApplicationPersonSnapshotBackgroundIdentifyError(error) from error
+            raise BackgroundApplicationPersonSnapshotIdentifyError(error) from error

@@ -3,13 +3,14 @@ from dto.person_snapshot import DtoPersonSnapshot
 from modules.reid.model import ModuleReIDModel
 from environment import Environment
 from error import Error
+from background.application.utils import BackgroundApplicationUtilsBase
 
 
-class ApplicationPersonSnapshotBackgroundFeatureExtractionError(Error):
+class BackgroundApplicationPersonSnapshotFeatureExtractionError(Error):
     pass
 
 
-class ApplicationPersonSnapshotBackgroundFeatureExtraction:
+class BackgroundApplicationPersonSnapshotFeatureExtraction(BackgroundApplicationUtilsBase):
     def __init__(
         self,
         reid_model: ModuleReIDModel,
@@ -22,7 +23,7 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
     def create(
         cls,
         environment: Environment,
-    ) -> "ApplicationPersonSnapshotBackgroundFeatureExtraction":
+    ) -> "BackgroundApplicationPersonSnapshotFeatureExtraction":
         return cls(
             reid_model=ModuleReIDModel(),
             repository_person_snapshot=RepositoryPersonSnapshot.create(
@@ -45,4 +46,4 @@ class ApplicationPersonSnapshotBackgroundFeatureExtraction:
                 feature=person_snapshot.feature,
             )
         except Error as error:
-            raise ApplicationPersonSnapshotBackgroundFeatureExtractionError(error) from error
+            raise BackgroundApplicationPersonSnapshotFeatureExtractionError(error) from error

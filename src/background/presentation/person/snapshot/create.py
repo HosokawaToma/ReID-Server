@@ -1,6 +1,6 @@
 from background.presentation.utils import BackgroundPresentationUtilsBase
 from logger import Logger
-from applications.person.snapshot.background.create import ApplicationPersonSnapshotBackgroundCreate
+from background.application.person.snapshot.create import BackgroundApplicationPersonSnapshotCreate
 from environment import Environment
 
 class BackgroundPersonSnapshotCreate(BackgroundPresentationUtilsBase):
@@ -11,7 +11,7 @@ class BackgroundPersonSnapshotCreate(BackgroundPresentationUtilsBase):
     def __init__(
         self,
         logger: Logger,
-        application: ApplicationPersonSnapshotBackgroundCreate,
+        application: BackgroundApplicationPersonSnapshotCreate,
     ):
         super().__init__(logger=logger)
         self.application = application
@@ -20,7 +20,7 @@ class BackgroundPersonSnapshotCreate(BackgroundPresentationUtilsBase):
     def create(cls, environment: Environment) -> "BackgroundPersonSnapshotCreate":
         return cls(
             logger=Logger("background_person_snapshot_create"),
-            application=ApplicationPersonSnapshotBackgroundCreate.create(environment),
+            application=BackgroundApplicationPersonSnapshotCreate.create(environment),
         )
 
     def handle(self, background_id: str) -> None:

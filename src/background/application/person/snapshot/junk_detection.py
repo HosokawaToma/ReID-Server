@@ -4,11 +4,12 @@ from error import Error
 from environment import Environment
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from dto.person_snapshot import DtoPersonSnapshot
+from background.application.utils import BackgroundApplicationUtilsBase
 
-class ApplicationPersonSnapshotBackgroundJunkDetectionError(Error):
+class BackgroundApplicationPersonSnapshotJunkDetectionError(Error):
     pass
 
-class ApplicationPersonSnapshotBackgroundJunkDetection:
+class BackgroundApplicationPersonSnapshotJunkDetection(BackgroundApplicationUtilsBase):
     def __init__(
         self,
         repository_person_snapshot: RepositoryPersonSnapshot,
@@ -20,7 +21,7 @@ class ApplicationPersonSnapshotBackgroundJunkDetection:
         self.segment_model = segment_model
 
     @classmethod
-    def create(cls, environment: Environment) -> "ApplicationPersonSnapshotBackgroundJunkDetection":
+    def create(cls, environment: Environment) -> "BackgroundApplicationPersonSnapshotJunkDetection":
         return cls(
             repository_person_snapshot=RepositoryPersonSnapshot.create(
                 environment),
@@ -45,4 +46,4 @@ class ApplicationPersonSnapshotBackgroundJunkDetection:
                 feature=person_snapshot.feature,
             )
         except Error as error:
-            raise ApplicationPersonSnapshotBackgroundJunkDetectionError(error) from error
+            raise BackgroundApplicationPersonSnapshotJunkDetectionError(error) from error

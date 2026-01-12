@@ -1,5 +1,5 @@
 from background.presentation.utils import BackgroundPresentationUtilsBase
-from applications.person.snapshot.background.feature_extraction import ApplicationPersonSnapshotBackgroundFeatureExtraction
+from background.application.person.snapshot.feature_extraction import BackgroundApplicationPersonSnapshotFeatureExtraction
 from environment import Environment
 from logger import Logger
 
@@ -7,7 +7,7 @@ class BackgroundPersonSnapshotFeatureExtraction(BackgroundPresentationUtilsBase)
     def __init__(
         self,
         logger: Logger,
-        application: ApplicationPersonSnapshotBackgroundFeatureExtraction,
+        application: BackgroundApplicationPersonSnapshotFeatureExtraction,
     ):
         super().__init__(logger)
         self.application = application
@@ -15,7 +15,7 @@ class BackgroundPersonSnapshotFeatureExtraction(BackgroundPresentationUtilsBase)
     @classmethod
     def create(cls, environment: Environment) -> "BackgroundPersonSnapshotFeatureExtraction":
         return cls(
-            application=ApplicationPersonSnapshotBackgroundFeatureExtraction.create(environment),
+            application=BackgroundApplicationPersonSnapshotFeatureExtraction.create(environment),
             logger=Logger("background_person_snapshot_feature_extraction"),
         )
 
