@@ -32,6 +32,7 @@ class BackgroundMain:
         await self.person_snapshot_feature_extraction.start()
         await self.person_snapshot_identify.start()
         await self.person_snapshot_junk_detection.start()
+        await asyncio.Event().wait()
 
 if __name__ == "__main__":
     background_main = BackgroundMain.create(environment=Environment())
