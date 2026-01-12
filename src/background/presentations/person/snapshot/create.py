@@ -1,4 +1,4 @@
-from background.presentation.utils import BackgroundPresentationUtilsBase
+from background.presentations.utils import BackgroundPresentationUtilsBase
 from logger import Logger
 from background.application.person.snapshot.create import BackgroundApplicationPersonSnapshotCreate
 from environment import Environment
