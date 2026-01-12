@@ -3,7 +3,7 @@ from dto.person_snapshot import DtoPersonSnapshot
 from modules.reid.model import ModuleReIDModel
 from environment import Environment
 from error import Error
-from background.application.utils import BackgroundApplicationUtilsBase
+from background.applications.utils import BackgroundApplicationUtilsBase
 
 
 class BackgroundApplicationPersonSnapshotFeatureExtractionError(Error):

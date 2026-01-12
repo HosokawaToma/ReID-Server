@@ -1,5 +1,5 @@
 from background.presentations.utils import BackgroundPresentationUtilsBase
-from background.application.person.snapshot.feature_extraction import BackgroundApplicationPersonSnapshotFeatureExtraction
+from background.applications.person.snapshot.feature_extraction import BackgroundApplicationPersonSnapshotFeatureExtraction
 from environment import Environment
 from logger import Logger
 

@@ -6,7 +6,7 @@ from repositories.person.snapshot import RepositoryPersonSnapshotFilters
 from repositories.person.snapshot import RepositoryPersonSnapshotOrdering
 from environment import Environment
 from error import Error
-from background.application.utils import BackgroundApplicationUtilsBase
+from background.applications.utils import BackgroundApplicationUtilsBase
 
 
 class BackgroundApplicationPersonSnapshotIdentifyError(Error):

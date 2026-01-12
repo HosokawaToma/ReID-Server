@@ -4,7 +4,7 @@ from error import Error
 from environment import Environment
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from dto.person_snapshot import DtoPersonSnapshot
-from background.application.utils import BackgroundApplicationUtilsBase
+from background.applications.utils import BackgroundApplicationUtilsBase
 
 class BackgroundApplicationPersonSnapshotJunkDetectionError(Error):
     pass

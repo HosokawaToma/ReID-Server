@@ -1,6 +1,6 @@
 from background.presentations.utils import BackgroundPresentationUtilsBase
 from logger import Logger
-from background.application.person.snapshot.create import BackgroundApplicationPersonSnapshotCreate
+from background.applications.person.snapshot.create import BackgroundApplicationPersonSnapshotCreate
 from environment import Environment
 
 class BackgroundPersonSnapshotCreate(BackgroundPresentationUtilsBase):

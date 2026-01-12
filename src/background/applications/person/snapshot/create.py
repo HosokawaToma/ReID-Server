@@ -4,7 +4,7 @@ from dto.frame_image.meta_data import DtoFrameImageMetaData
 from environment import Environment
 from domain.yolo.detection_model import DomainYoloDetectionModel
 from error import Error
-from background.application.utils import BackgroundApplicationUtilsBase
+from background.applications.utils import BackgroundApplicationUtilsBase
 
 class BackgroundApplicationPersonSnapshotCreateError(Error):
     pass
