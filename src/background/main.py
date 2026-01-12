@@ -4,6 +4,7 @@ from background.presentations.person.snapshot.feature_extraction import Backgrou
 from background.presentations.person.snapshot.identify import BackgroundPersonSnapshotIdentify
 from background.presentations.person.snapshot.junk_detection import BackgroundPersonSnapshotJunkDetection
 import asyncio
+import signal
 
 class BackgroundMain:
     def __init__(
@@ -17,6 +18,7 @@ class BackgroundMain:
         self.person_snapshot_feature_extraction = person_snapshot_feature_extraction
         self.person_snapshot_identify = person_snapshot_identify
         self.person_snapshot_junk_detection = person_snapshot_junk_detection
+        self._stop_event = asyncio.Event()
 
     @classmethod
     def create(cls, environment: Environment) -> "BackgroundMain":
@@ -28,11 +30,29 @@ class BackgroundMain:
         )
 
     async def run(self):
+        loop = asyncio.get_running_loop()
+        loop.add_signal_handler(signal.SIGINT, self.signal_handler)
+        loop.add_signal_handler(signal.SIGTERM, self.signal_handler)
+        try:
+            await self.start()
+            await self._stop_event.wait()
+        finally:
+            await self.stop()
+
+    async def start(self):
         await self.person_snapshot_create.start()
         await self.person_snapshot_feature_extraction.start()
         await self.person_snapshot_identify.start()
         await self.person_snapshot_junk_detection.start()
-        await asyncio.Event().wait()
+
+    async def stop(self):
+        await self.person_snapshot_create.stop()
+        await self.person_snapshot_feature_extraction.stop()
+        await self.person_snapshot_identify.stop()
+        await self.person_snapshot_junk_detection.stop()
+
+    def signal_handler(self):
+        self._stop_event.set()
 
 if __name__ == "__main__":
     background_main = BackgroundMain.create(environment=Environment())
