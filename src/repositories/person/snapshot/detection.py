@@ -1,10 +1,25 @@
 from repositories.utils.database import RepositoryUtilDatabase
 from domain.person.snapshot.detection import DomainPersonSnapshotDetection
 from migration.models.person_snapshot_detections import MigrationModelPersonSnapshotDetection
+from error import Error
+from environment import Environment
+
+class RepositoryPersonSnapshotDetectionError(Error):
+    pass
+
+class RepositoryPersonSnapshotDetectionSaveError(RepositoryPersonSnapshotDetectionError):
+    pass
 
 class RepositoryPersonSnapshotDetection:
     def __init__(self, database: RepositoryUtilDatabase):
         self.database = database
+
+    @classmethod
+    def create(cls, environment: Environment) -> "RepositoryPersonSnapshotDetection":
+        return cls(
+            database=RepositoryUtilDatabase.create(
+                environment),
+        )
 
     def _domain_to_model(self, detection: DomainPersonSnapshotDetection) -> MigrationModelPersonSnapshotDetection:
         return MigrationModelPersonSnapshotDetection(
@@ -27,3 +42,10 @@ class RepositoryPersonSnapshotDetection:
             width=model.width,
             height=model.height,
         )
+
+    def save(self, detection: DomainPersonSnapshotDetection) -> None:
+        try:
+            with self.database as session:
+                session.add(self._domain_to_model(detection))
+        except Error as error:
+            raise RepositoryPersonSnapshotDetectionSaveError(error) from error
