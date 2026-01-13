@@ -11,6 +11,7 @@ from presentation.person.snapshot.search import PresentationPersonSnapshotSearch
 from presentation.person.flow.search import PresentationPersonFlowSearch
 from presentation.person.flow.weight.search import PresentationPersonFlowWeightSearch
 from presentation.person.snapshot.image.search import PresentationPersonSnapshotImageSearch
+from presentation.person.snapshot.answer.new import PresentationPersonSnapshotAnswerNew
 from presentation.frame.search import PresentationFrameSearch
 from presentation.frame.image.search import PresentationFrameImageSearch
 from presentation import PresentationExceptionHandler, PresentationMiddleware
@@ -30,6 +31,7 @@ class ServerApp:
         person_flow_search: PresentationPersonFlowSearch,
         person_flow_weight_search: PresentationPersonFlowWeightSearch,
         person_snapshot_image_search: PresentationPersonSnapshotImageSearch,
+        person_snapshot_answer_new: PresentationPersonSnapshotAnswerNew,
         frame_search: PresentationFrameSearch,
         frame_image_search: PresentationFrameImageSearch,
         presentation_exception_handler: PresentationExceptionHandler,
@@ -45,6 +47,7 @@ class ServerApp:
         self.person_flow_search = person_flow_search
         self.person_flow_weight_search = person_flow_weight_search
         self.person_snapshot_image_search = person_snapshot_image_search
+        self.person_snapshot_answer_new = person_snapshot_answer_new
         self.frame_search = frame_search
         self.frame_image_search = frame_image_search
         self.presentation_exception_handler = presentation_exception_handler
@@ -69,6 +72,7 @@ class ServerApp:
             person_flow_search=PresentationPersonFlowSearch.create(),
             person_flow_weight_search=PresentationPersonFlowWeightSearch.create(),
             person_snapshot_image_search=PresentationPersonSnapshotImageSearch.create(),
+            person_snapshot_answer_new=PresentationPersonSnapshotAnswerNew.create(),
             frame_search=PresentationFrameSearch.create(),
             frame_image_search=PresentationFrameImageSearch.create(),
             presentation_exception_handler=PresentationExceptionHandler.create(),
@@ -94,6 +98,7 @@ class ServerApp:
         self.person_flow_search.setup(self.fastapi_app)
         self.person_flow_weight_search.setup(self.fastapi_app)
         self.person_snapshot_image_search.setup(self.fastapi_app)
+        self.person_snapshot_answer_new.setup(self.fastapi_app)
         self.frame_search.setup(self.fastapi_app)
         self.frame_image_search.setup(self.fastapi_app)
         self.presentation_exception_handler.setup(self.fastapi_app)
