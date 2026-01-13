@@ -11,6 +11,9 @@ class DomainPersonSnapshotPersonIdValue:
     person_id: DomainIdValue | None = field(default=None)
     is_junk: bool = field(default=True)
 
-    def new_id(self):
-        self.person_id = DomainIdValue()
-        self.is_junk = False
+    @classmethod
+    def new_id(cls) -> "DomainPersonSnapshotPersonIdValue":
+        return cls(
+            person_id=DomainIdValue(),
+            is_junk=False,
+        )
