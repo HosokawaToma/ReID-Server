@@ -29,6 +29,8 @@ class RepositoryPersonSnapshotDetection:
             confidence=detection.confidence,
             x=detection.x,
             y=detection.y,
+            width=detection.width,
+            height=detection.height,
         )
 
     def _model_to_domain(self, model: MigrationModelPersonSnapshotDetection) -> DomainPersonSnapshotDetection:
