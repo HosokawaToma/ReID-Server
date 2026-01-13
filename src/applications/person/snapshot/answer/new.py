@@ -3,6 +3,7 @@ from domain.person.snapshot.answer_only import DomainPersonSnapshotAnswerOnly
 from domain.id_value import DomainIdValue
 from domain.person.snapshot.person_id_value import DomainPersonSnapshotPersonIdValue
 from dto.person.snapshot.answer_only import DtoPersonSnapshotAnswerOnly
+from dto.id import DtoId
 from repositories.person.snapshot.answer_only import RepositoryPersonSnapshotAnswerOnly
 from error import Error
 
@@ -20,7 +21,7 @@ class ApplicationPersonSnapshotAnswerNew(ApplicationBase):
     def __init__(self, repository_person_snapshot_answer: RepositoryPersonSnapshotAnswerOnly):
         self.repository_person_snapshot_answer = repository_person_snapshot_answer
 
-    def new(self, person_snapshot_id: DomainIdValue) -> DtoPersonSnapshotAnswerOnly:
+    def new(self, person_snapshot_id: DtoId) -> DtoPersonSnapshotAnswerOnly:
         try:
             answer_only = DomainPersonSnapshotAnswerOnly(
                 answer=DomainPersonSnapshotPersonIdValue.new_id(),
