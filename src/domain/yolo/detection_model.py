@@ -28,18 +28,20 @@ class DomainYoloDetectionModel:
         for box in items.boxes:
             box: Boxes
             xyxy = box.xyxy[0].cpu().numpy()
-            x1 = float(xyxy[0])
-            y1 = float(xyxy[1])
-            x2 = float(xyxy[2])
-            y2 = float(xyxy[3])
-            conf = float(box.conf[0].cpu().numpy())
-            class_id = int(box.cls[0].cpu().numpy())
+            xyxyn = box.xyxyn[0].cpu().numpy()
+            xywhn = box.xywhn[0].cpu().numpy()
             detections.append(DomainYoloBoundingBox(
-                x1=x1,
-                y1=y1,
-                x2=x2,
-                y2=y2,
-                confidence=conf,
-                class_id=class_id,
+                class_id=int(box.cls[0].cpu().numpy()),
+                confidence=float(box.conf[0].cpu().numpy()),
+                x1=float(xyxy[0]),
+                y1=float(xyxy[1]),
+                x2=float(xyxy[2]),
+                y2=float(xyxy[3]),
+                original_x1=int(xyxyn[0]),
+                original_y1=int(xyxyn[1]),
+                original_x2=int(xyxyn[2]),
+                original_y2=int(xyxyn[3]),
+                original_width=int(xywhn[2]),
+                original_height=int(xywhn[3]),
             ))
         return detections
