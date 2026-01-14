@@ -40,7 +40,7 @@ class PresentationPersonSnapshotAnswerNew(PresentationBase):
         request: PresentationPersonSnapshotAnswerNewRequestBody,
         application: ApplicationPersonSnapshotAnswerNew = get_application(ApplicationPersonSnapshotAnswerNew)
     ) -> PresentationJSONResponse:
-        answer_only = application.new(
+        answer_annotation_only_list = application.new(
             [
                 DtoId(id=id)
                 for id in body.person_snapshot_ids
@@ -49,10 +49,10 @@ class PresentationPersonSnapshotAnswerNew(PresentationBase):
         return PresentationJSONResponse(status=200, content={
             "person_snapshot_answer_annotations": [
                 {
-                    "id": answer_only.id,
-                    "person_id": answer_only.person_id,
-                    "is_junk": answer_only.is_junk,
+                    "id": str(answer_annotation_only.id),
+                    "person_id": str(answer_annotation_only.person_id),
+                    "is_junk": answer_annotation_only.is_junk,
                 }
-                for answer_only in answer_only
+                for answer_annotation_only in answer_annotation_only_list
             ]
         })
