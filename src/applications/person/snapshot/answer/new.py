@@ -21,7 +21,7 @@ class ApplicationPersonSnapshotAnswerNew(ApplicationBase):
 
     def new(self, person_snapshot_id: list[DtoId]) -> list[DtoPersonSnapshotAnswerAnnotationOnly]:
         try:
-            ids = ValueIdSequence.form_iterable(person_snapshot_id)
+            ids = ValueIdSequence.from_iterable(person_snapshot_id)
             answer_annotations = ids.to_person_snapshot_answer_annotation_only()
             self.repository_person_snapshot_answer.save_all(answer_annotations)
             return [
