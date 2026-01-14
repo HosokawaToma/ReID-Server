@@ -1,14 +1,20 @@
 from presentation import PresentationBase
 from logger import Logger
 from presentation import PresentationAdminClientAuthenticated
+from presentation import PresentationRequestBody
 from presentation import get_application
 from presentation import PresentationJSONResponse
-from presentation import PresentationTypeUUID
 from applications.person.snapshot.answer.new import ApplicationPersonSnapshotAnswerNew
 from dto.id import DtoId
+import uuid
+
+
+class PresentationPersonSnapshotAnswerNewRequestBody(PresentationRequestBody):
+    person_snapshot_ids: list[uuid.UUID]
+
 
 class PresentationPersonSnapshotAnswerNew(PresentationBase):
-    router_path = "/person/snapshot/answer/new/{id}"
+    router_path = "/person/snapshot/answer/new"
     methods = ["POST"]
     tags = ["Person Snapshot Answer"]
     summary = "Create a person snapshot answer"
@@ -30,8 +36,23 @@ class PresentationPersonSnapshotAnswerNew(PresentationBase):
     async def handle(
         self,
         admin_client_id: PresentationAdminClientAuthenticated,
-        id: PresentationTypeUUID,
+        body: PresentationPersonSnapshotAnswerNewRequestBody,
+        request: PresentationPersonSnapshotAnswerNewRequestBody,
         application: ApplicationPersonSnapshotAnswerNew = get_application(ApplicationPersonSnapshotAnswerNew)
     ) -> PresentationJSONResponse:
-        answer_only = application.new(DtoId(id=id))
-        return PresentationJSONResponse(status=200, content={"person_id": answer_only.person_id, "is_junk": answer_only.is_junk})
+        answer_only = application.new(
+            [
+                DtoId(id=id)
+                for id in body.person_snapshot_ids
+            ]
+        )
+        return PresentationJSONResponse(status=200, content={
+            "person_snapshot_answer_annotations": [
+                {
+                    "id": answer_only.id,
+                    "person_id": answer_only.person_id,
+                    "is_junk": answer_only.is_junk,
+                }
+                for answer_only in answer_only
+            ]
+        })

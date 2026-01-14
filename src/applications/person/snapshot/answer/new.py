@@ -1,9 +1,5 @@
 from applications import ApplicationBase
-from domain.person.snapshot.answer_annotation_only import DomainPersonSnapshotAnswerAnnotationOnly
-from domain.id_value import DomainIdValue
-from domain.person.snapshot.person_id_value import DomainPersonSnapshotPersonIdValue
-from value.person.snapshot.annotation import ValuePersonSnapshotAnnotation
-from value.id import ValueId
+from value.id_sequence import ValueIdSequence
 from dto.person.snapshot.answer_annotation_only import DtoPersonSnapshotAnswerAnnotationOnly
 from dto.id import DtoId
 from repositories.person.snapshot.answer_annotation_only import RepositoryPersonSnapshotAnswerAnnotationOnly
@@ -23,17 +19,18 @@ class ApplicationPersonSnapshotAnswerNew(ApplicationBase):
     def __init__(self, repository_person_snapshot_answer: RepositoryPersonSnapshotAnswerAnnotationOnly):
         self.repository_person_snapshot_answer = repository_person_snapshot_answer
 
-    def new(self, person_snapshot_id: DtoId) -> DtoPersonSnapshotAnswerAnnotationOnly:
+    def new(self, person_snapshot_id: list[DtoId]) -> list[DtoPersonSnapshotAnswerAnnotationOnly]:
         try:
-            answer_annotation_only = DomainPersonSnapshotAnswerAnnotationOnly(
-                answer=ValuePersonSnapshotAnnotation.new_id(),
-                id=ValueId(id=person_snapshot_id.id),
-            )
-            self.repository_person_snapshot_answer.save(answer_annotation_only)
-            return DtoPersonSnapshotAnswerAnnotationOnly(
-                id=answer_annotation_only.id.id,
-                person_id=answer_annotation_only.answer.person_id.id if answer_annotation_only.answer.person_id is not None else None,
-                is_junk=answer_annotation_only.answer.is_junk,
-            )
+            ids = ValueIdSequence.form_iterable(person_snapshot_id)
+            answer_annotations = ids.to_person_snapshot_answer_annotation_only()
+            self.repository_person_snapshot_answer.save_all(answer_annotations)
+            return [
+                DtoPersonSnapshotAnswerAnnotationOnly(
+                    id=answer_annotation.id.id,
+                    person_id=answer_annotation.answer.person_id.id if answer_annotation.answer.person_id is not None else None,
+                    is_junk=answer_annotation.answer.is_junk,
+                )
+                for answer_annotation in answer_annotations
+            ]
         except Error as error:
             raise ApplicationPersonSnapshotAnswerNewError(error) from error

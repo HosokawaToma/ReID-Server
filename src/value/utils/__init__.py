@@ -1,0 +1,2 @@
+class ValueUtilsBase:
+    pass

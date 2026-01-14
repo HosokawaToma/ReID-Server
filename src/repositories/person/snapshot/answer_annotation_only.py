@@ -1,5 +1,6 @@
 from repositories import RepositoryDatabase
 from domain.person.snapshot.answer_annotation_only import DomainPersonSnapshotAnswerAnnotationOnly
+from domain.person.snapshot.answer_annotation_only_sequence import DomainPersonSnapshotAnswerAnnotationOnlySequence
 from value.person.snapshot.annotation import ValuePersonSnapshotAnnotation
 from value.id import ValueId
 from migration.models.person_snapshot_answer_annotations import MigrationModelPersonSnapshotAnswerAnnotation
@@ -30,8 +31,8 @@ class RepositoryPersonSnapshotAnswerAnnotationOnly:
         return DomainPersonSnapshotAnswerAnnotationOnly(
             id=ValueId(id=model.person_snapshot_id),
             answer=ValuePersonSnapshotAnnotation(
-                person_id=ValueId(id=model.person_id),
-                is_junk=model.is_junk,
+                _person_id=ValueId(id=model.person_id),
+                _is_junk=model.is_junk,
             ),
         )
 
@@ -42,9 +43,14 @@ class RepositoryPersonSnapshotAnswerAnnotationOnly:
             is_junk=domain.answer.is_junk,
         )
 
-    def save(self, answer: DomainPersonSnapshotAnswerAnnotationOnly) -> None:
+    def save_all(self, answer_annotations: DomainPersonSnapshotAnswerAnnotationOnlySequence) -> None:
         try:
             with self.database as session:
-                session.add(self._domain_to_model(answer))
+                session.add_all(
+                    [
+                        self._domain_to_model(answer_annotation)
+                        for answer_annotation in answer_annotations
+                    ],
+                )
         except Error as error:
             raise RepositoryPersonSnapshotAnswerAnnotationOnlySaveError(error) from error

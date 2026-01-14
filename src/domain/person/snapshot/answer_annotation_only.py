@@ -1,9 +1,11 @@
 from dataclasses import dataclass, field
 from value.id import ValueId
 from value.person.snapshot.annotation import ValuePersonSnapshotAnnotation
+from domain.utils import DomainUtilsBase
+
 
 @dataclass
-class DomainPersonSnapshotAnswerAnnotationOnly:
+class DomainPersonSnapshotAnswerAnnotationOnly(DomainUtilsBase):
     """
     人物画像の正解データに関するドメイン知識を集約する
     :param ValuePersonSnapshotAnnotation answer: 人物画像の正解データ
