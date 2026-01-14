@@ -38,7 +38,7 @@ class RepositoryPersonSnapshotAnswerAnnotationOnly:
 
     def _domain_to_model(self, domain: DomainPersonSnapshotAnswerAnnotationOnly) -> MigrationModelPersonSnapshotAnswerAnnotation:
         return MigrationModelPersonSnapshotAnswerAnnotation(
-            id=domain.id.id,
+            person_snapshot_id=domain.id.id,
             person_id=domain.answer.person_id.id if domain.answer.person_id is not None else None,
             is_junk=domain.answer.is_junk,
         )
