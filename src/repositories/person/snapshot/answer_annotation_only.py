@@ -3,6 +3,7 @@ from domain.person.snapshot.answer_annotation_only import DomainPersonSnapshotAn
 from domain.person.snapshot.answer_annotation_only_sequence import DomainPersonSnapshotAnswerAnnotationOnlySequence
 from value.person.snapshot.annotation import ValuePersonSnapshotAnnotation
 from value.id import ValueId
+from value.id_sequence import ValueIdSequence
 from migration.models.person_snapshot_answer_annotations import MigrationModelPersonSnapshotAnswerAnnotation
 from environment import Environment
 from error import Error
@@ -14,6 +15,10 @@ class RepositoryPersonSnapshotAnswerAnnotationOnlyError(Error):
 
 
 class RepositoryPersonSnapshotAnswerAnnotationOnlySaveError(RepositoryPersonSnapshotAnswerAnnotationOnlyError):
+    pass
+
+
+class RepositoryPersonSnapshotAnswerAnnotationOnlyFindError(RepositoryPersonSnapshotAnswerAnnotationOnlyError):
     pass
 
 
@@ -54,3 +59,25 @@ class RepositoryPersonSnapshotAnswerAnnotationOnly:
                 )
         except Error as error:
             raise RepositoryPersonSnapshotAnswerAnnotationOnlySaveError(error) from error
+
+    def find_by_person_snapshot_id(self, person_snapshot_id: ValueId) -> DomainPersonSnapshotAnswerAnnotationOnly:
+        try:
+            with self.database as session:
+                model = session.query(MigrationModelPersonSnapshotAnswerAnnotation) \
+                .filter(MigrationModelPersonSnapshotAnswerAnnotation.person_snapshot_id == person_snapshot_id.id) \
+                .first()
+                return self._model_to_domain(model)
+        except Error as error:
+            raise RepositoryPersonSnapshotAnswerAnnotationOnlyFindError(error) from error
+
+    def find_by_person_snapshot_ids(self, person_snapshot_ids: ValueIdSequence) -> DomainPersonSnapshotAnswerAnnotationOnlySequence:
+        try:
+            with self.database as session:
+                models = session.query(MigrationModelPersonSnapshotAnswerAnnotation) \
+                .filter(MigrationModelPersonSnapshotAnswerAnnotation.person_snapshot_id.in_(person_snapshot_ids)) \
+                .all()
+                return DomainPersonSnapshotAnswerAnnotationOnlySequence(
+                    items=[self._model_to_domain(model) for model in models],
+                )
+        except Error as error:
+            raise RepositoryPersonSnapshotAnswerAnnotationOnlyFindError(error) from error
