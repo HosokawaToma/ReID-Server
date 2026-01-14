@@ -1,10 +1,12 @@
 from applications import ApplicationBase
-from domain.person.snapshot.answer_only import DomainPersonSnapshotAnswerOnly
+from domain.person.snapshot.answer_annotation_only import DomainPersonSnapshotAnswerAnnotationOnly
 from domain.id_value import DomainIdValue
 from domain.person.snapshot.person_id_value import DomainPersonSnapshotPersonIdValue
-from dto.person.snapshot.answer_only import DtoPersonSnapshotAnswerOnly
+from value.person.snapshot.annotation import ValuePersonSnapshotAnnotation
+from value.id import ValueId
+from dto.person.snapshot.answer_annotation_only import DtoPersonSnapshotAnswerAnnotationOnly
 from dto.id import DtoId
-from repositories.person.snapshot.answer_only import RepositoryPersonSnapshotAnswerOnly
+from repositories.person.snapshot.answer_annotation_only import RepositoryPersonSnapshotAnswerAnnotationOnly
 from error import Error
 
 
@@ -18,20 +20,20 @@ class ApplicationPersonSnapshotAnswerNew(ApplicationBase):
     :param person_snapshot_id: 人の写真のID
     :return: 人の写真に対する回答
     """
-    def __init__(self, repository_person_snapshot_answer: RepositoryPersonSnapshotAnswerOnly):
+    def __init__(self, repository_person_snapshot_answer: RepositoryPersonSnapshotAnswerAnnotationOnly):
         self.repository_person_snapshot_answer = repository_person_snapshot_answer
 
-    def new(self, person_snapshot_id: DtoId) -> DtoPersonSnapshotAnswerOnly:
+    def new(self, person_snapshot_id: DtoId) -> DtoPersonSnapshotAnswerAnnotationOnly:
         try:
-            answer_only = DomainPersonSnapshotAnswerOnly(
-                answer=DomainPersonSnapshotPersonIdValue.new_id(),
-                id=DomainIdValue(id=person_snapshot_id.id),
+            answer_annotation_only = DomainPersonSnapshotAnswerAnnotationOnly(
+                answer=ValuePersonSnapshotAnnotation.new_id(),
+                id=ValueId(id=person_snapshot_id.id),
             )
-            self.repository_person_snapshot_answer.save(answer_only)
-            return DtoPersonSnapshotAnswerOnly(
-                id=answer_only.id.id,
-                person_id=answer_only.answer.person_id.id if answer_only.answer.person_id is not None else None,
-                is_junk=answer_only.answer.is_junk,
+            self.repository_person_snapshot_answer.save(answer_annotation_only)
+            return DtoPersonSnapshotAnswerAnnotationOnly(
+                id=answer_annotation_only.id.id,
+                person_id=answer_annotation_only.answer.person_id.id if answer_annotation_only.answer.person_id is not None else None,
+                is_junk=answer_annotation_only.answer.is_junk,
             )
         except Error as error:
             raise ApplicationPersonSnapshotAnswerNewError(error) from error

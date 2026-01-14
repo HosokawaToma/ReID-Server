@@ -5,7 +5,7 @@ import uuid
 class DomainId:
     """
     非推奨
-    代わりに DomainIdValue を使用する
+    代わりに ValueId を使用する
     IDを表すドメイン知識を集約する
     :param uuid.UUID id: ID
     """
