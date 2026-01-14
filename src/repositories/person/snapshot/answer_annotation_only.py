@@ -2,7 +2,7 @@ from repositories import RepositoryDatabase
 from domain.person.snapshot.answer_annotation_only import DomainPersonSnapshotAnswerAnnotationOnly
 from value.person.snapshot.annotation import ValuePersonSnapshotAnnotation
 from value.id import ValueId
-from migration.models.person_snapshot_answers import MigrationModelPersonSnapshotAnswer
+from migration.models.person_snapshot_answer_annotations import MigrationModelPersonSnapshotAnswerAnnotation
 from environment import Environment
 from error import Error
 
@@ -26,7 +26,7 @@ class RepositoryPersonSnapshotAnswerAnnotationOnly:
             database=RepositoryDatabase.create(environment),
         )
 
-    def _model_to_domain(self, model: MigrationModelPersonSnapshotAnswer) -> DomainPersonSnapshotAnswerAnnotationOnly:
+    def _model_to_domain(self, model: MigrationModelPersonSnapshotAnswerAnnotation) -> DomainPersonSnapshotAnswerAnnotationOnly:
         return DomainPersonSnapshotAnswerAnnotationOnly(
             id=ValueId(id=model.person_snapshot_id),
             answer=ValuePersonSnapshotAnnotation(
@@ -35,8 +35,8 @@ class RepositoryPersonSnapshotAnswerAnnotationOnly:
             ),
         )
 
-    def _domain_to_model(self, domain: DomainPersonSnapshotAnswerAnnotationOnly) -> MigrationModelPersonSnapshotAnswer:
-        return MigrationModelPersonSnapshotAnswer(
+    def _domain_to_model(self, domain: DomainPersonSnapshotAnswerAnnotationOnly) -> MigrationModelPersonSnapshotAnswerAnnotation:
+        return MigrationModelPersonSnapshotAnswerAnnotation(
             id=domain.id.id,
             person_id=domain.answer.person_id.id if domain.answer.person_id is not None else None,
             is_junk=domain.answer.is_junk,
