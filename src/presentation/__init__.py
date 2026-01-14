@@ -1,7 +1,7 @@
 import fastapi
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
-from fastapi import Depends, UploadFile, Form, HTTPException
+from fastapi import Depends, UploadFile, Form, HTTPException, Path
 from fastapi.responses import JSONResponse
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
@@ -245,3 +245,5 @@ PresentationTypeImage = Annotated[Image.Image, Depends(PresentationImage())]
 PresentationTypeDatetime = Annotated[datetime, Form(...)]
 
 PresentationTypeInt = Annotated[int, Form(...)]
+
+PresentationTypeUUID = Annotated[uuid.UUID, Path(...)]
