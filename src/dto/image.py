@@ -8,3 +8,4 @@ class DtoImage:
     :param Image.Image image: 画像
     """
     image: Image.Image
+    format: str

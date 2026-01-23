@@ -1,7 +1,7 @@
 from .person_snapshots import MigrationModelPersonSnapshot
-from .frame_images import MigrationModelFrameImage
+from .camera_frames import MigrationModelCameraFrame
 
 ALEMBIC_MODELS = [
     MigrationModelPersonSnapshot.metadata,
-    MigrationModelFrameImage.metadata,
+    MigrationModelCameraFrame.metadata,
 ]

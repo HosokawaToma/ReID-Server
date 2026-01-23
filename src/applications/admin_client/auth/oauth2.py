@@ -1,5 +1,4 @@
-from domain.admin_client import DomainAdminClient
-from domain.token_converter import DomainTokenConverter
+from domain.client_auth_credentials import DomainClientAuthCredentials
 from environment import Environment
 from error import Error
 from dto.admin_client.auth.token import DtoAdminClientAuthToken
@@ -13,23 +12,30 @@ class ApplicationAdminClientAuthOAuth2InvalidTokenError(ApplicationAdminClientAu
     pass
 
 class ApplicationAdminClientAuthOAuth2:
-    def __init__(self, admin_client: DomainAdminClient, token_converter: DomainTokenConverter):
-        self.admin_client = admin_client
-        self.token_converter = token_converter
+    def __init__(
+        self,
+        refresh_secret_key: str,
+        refresh_algorithm: str,
+        refresh_expire_minutes: int,
+    ):
+        self.refresh_secret_key = refresh_secret_key
+        self.refresh_algorithm = refresh_algorithm
+        self.refresh_expire_minutes = refresh_expire_minutes
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationAdminClientAuthOAuth2":
         return cls(
-            admin_client=DomainAdminClient(id=environment.admin_client_id, password=environment.admin_client_password),
-            token_converter=DomainTokenConverter(
-                secret_key=environment.jwt_secret_key,
-                algorithm=environment.jwt_algorithm,
-                expire_minutes=environment.jwt_expire_minutes,
-            ),
+            refresh_secret_key=environment.jwt_refresh_secret_key,
+            refresh_algorithm=environment.jwt_refresh_algorithm,
+            refresh_expire_minutes=environment.jwt_refresh_expire_minutes,
         )
 
     def oauth2(self, token: DtoAdminClientAuthToken) -> DtoAdminClientId:
-        admin_client_id = self.admin_client.verify_token(token.token, self.token_converter)
-        if admin_client_id is None:
+        id = DomainClientAuthCredentials.convert_token(
+            token=token.token,
+            secret_key=self.refresh_secret_key,
+            algorithm=self.refresh_algorithm,
+        )
+        if id is None:
             raise ApplicationAdminClientAuthOAuth2InvalidTokenError()
-        return DtoAdminClientId(id=admin_client_id.id)
+        return DtoAdminClientId(id=id)

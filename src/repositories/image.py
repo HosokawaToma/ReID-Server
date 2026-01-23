@@ -1,17 +1,12 @@
 from repositories.utils.storage import RepositoryUtilStorage
-from domain.image import DomainImage
+from repositories.utils.storage.paths.camera_frame import RepositoryUtilStoragePathCameraFrame
+from repositories.utils.storage.paths.person_snapshot import RepositoryUtilStoragePathPersonSnapshot
 from environment import Environment
+from domain.image import DomainImage
+from domain.id import DomainId
 from error import Error
-from pathlib import Path
-import uuid
 
 class RepositoryImageError(Error):
-    pass
-
-class RepositoryImageFindPersonSnapshotError(RepositoryImageError):
-    pass
-
-class RepositoryImageFindFrameError(RepositoryImageError):
     pass
 
 class RepositoryImage:
@@ -20,22 +15,10 @@ class RepositoryImage:
 
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryImage":
-        return cls(
-            storage=RepositoryUtilStorage.create(
-                environment,
-            ),
-        )
+        return cls(storage=RepositoryUtilStorage.create(environment))
 
-    def find_person_snapshot(self, id: uuid.UUID) -> DomainImage:
-        try:
-            image = self.storage.search_image(str(id), Path("person_snapshots"))
-            return DomainImage(image=self.storage.open_image(image))
-        except Error as error:
-            raise RepositoryImageFindPersonSnapshotError(error) from error
+    def find_camera_frame(self, id: DomainId) -> DomainImage:
+        return self.storage.search_image(RepositoryUtilStoragePathCameraFrame(id=id))
 
-    def find_frame(self, id: uuid.UUID) -> DomainImage:
-        try:
-            image = self.storage.search_image(str(id), Path("frame_images"))
-            return DomainImage(image=self.storage.open_image(image))
-        except Error as error:
-            raise RepositoryImageFindFrameError(error) from error
+    def find_person_snapshot(self, id: DomainId) -> DomainImage:
+        return self.storage.search_image(RepositoryUtilStoragePathPersonSnapshot(id=id))

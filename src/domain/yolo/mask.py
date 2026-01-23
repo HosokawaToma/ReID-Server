@@ -1,5 +1,10 @@
+from dataclasses import dataclass
 import numpy as np
+from domain.utils.base import DomainUtilsBase
 
-class DomainYoloMask:
-    def __init__(self, xy: np.ndarray):
-        self.xy = xy
+@dataclass
+class DomainYoloMask(DomainUtilsBase):
+    """
+    YOLOのマスクのドメインモデル
+    """
+    mask: np.ndarray

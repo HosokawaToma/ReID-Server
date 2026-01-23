@@ -1,10 +1,10 @@
-from repositories.person.snapshot.meta_data import RepositoryPersonSnapshotMetaData
+from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.utils.database.query.person_snapshot import RepositoryUtilDatabaseQueryPersonSnapshot
 from repositories.utils.database.query.person_snapshot import RepositoryUtilDatabaseQueryPersonSnapshotSortByKey
 from environment import Environment
 from error import Error
 from applications import ApplicationBase
-from dto.person.snapshot.meta_data import DtoPersonSnapshotMetaData
+from dto.person.snapshot.detail import DtoPersonSnapshotDetail
 from dto.person.snapshot.query import DtoPersonSnapshotQuery
 
 
@@ -15,14 +15,14 @@ class ApplicationPersonSnapshotSearchError(Error):
 class ApplicationPersonSnapshotSearch(ApplicationBase):
     def __init__(
         self,
-        repository_person_snapshot_meta_data: RepositoryPersonSnapshotMetaData,
+        repository_person_snapshot: RepositoryPersonSnapshot,
     ):
-        self.repository_person_snapshot_meta_data = repository_person_snapshot_meta_data
+        self.repository_person_snapshot = repository_person_snapshot
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationPersonSnapshotSearch":
         return cls(
-            repository_person_snapshot_meta_data=RepositoryPersonSnapshotMetaData.create(
+            repository_person_snapshot=RepositoryPersonSnapshot.create(
                 environment=environment,
             ),
         )
@@ -30,7 +30,7 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
     def search(
         self,
         query: DtoPersonSnapshotQuery | None = None,
-    ) -> list[DtoPersonSnapshotMetaData]:
+    ) -> list[DtoPersonSnapshotDetail]:
         try:
             database_query = None
             if query is not None:
@@ -47,14 +47,14 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
                         for sort_by in query.sort_by_list
                     ] if query.sort_by_list is not None else None,
                 )
-            meta_data_sequence = self.repository_person_snapshot_meta_data.find(query=database_query)
-            return [DtoPersonSnapshotMetaData(
-                id=meta_data.id,
-                camera_id=meta_data.camera_id,
-                view_id=meta_data.view_id,
-                timestamp=meta_data.timestamp,
-                is_junk=meta_data.is_junk,
-                person_id=meta_data.person_id,
-            ) for meta_data in meta_data_sequence]
+            detail_sequence = self.repository_person_snapshot.find_details(query=database_query)
+            return [DtoPersonSnapshotDetail(
+                id=detail.id.id,
+                camera_id=detail.location.camera_id,
+                view_id=detail.location.view_id,
+                timestamp=detail.timestamp.timestamp,
+                is_junk=detail.person_id.is_junk,
+                person_id=detail.person_id.id.id if detail.person_id.id is not None else None,
+            ) for detail in detail_sequence]
         except Error as error:
             raise ApplicationPersonSnapshotSearchError(error) from error

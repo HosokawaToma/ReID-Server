@@ -1,12 +1,21 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import uuid
+from domain.utils.base import DomainUtilsBase
 
 @dataclass
-class DomainId:
+class DomainId(DomainUtilsBase):
     """
-    非推奨
-    代わりに ValueId を使用する
-    IDを表すドメイン知識を集約する
-    :param uuid.UUID id: ID
+    IDのドメインモデル
     """
-    id: uuid.UUID
+    id: uuid.UUID = field(default_factory=uuid.uuid4)
+
+    def __str__(self) -> str:
+        return str(self.id)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, DomainId):
+            return False
+        return self.id == other.id
+
+    def __hash__(self) -> int:
+        return hash(self.id)

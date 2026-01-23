@@ -1,10 +1,15 @@
-from repositories.frame_image import RepositoryFrameImage
-from dto.image import DtoImage
-from dto.frame_image.property import DtoFrameImageProperty
-from domain.frame_image import DomainFrameImage
 from environment import Environment
 from error import Error
 from applications import ApplicationBase
+from repositories.person.snapshot.create_queue import RepositoryPersonSnapshotCreateQueue
+from dto.location import DtoLocation
+from dto.timestamp import DtoTimestamp
+from dto.image import DtoImage
+from domain.camera_frame.image import DomainCameraFrameImage
+from domain.id import DomainId
+from domain.location import DomainLocation
+from domain.timestamp import DomainTimestamp
+from domain.image import DomainImage
 
 class ApplicationPersonSnapshotCreateError(Error):
     pass
@@ -12,26 +17,23 @@ class ApplicationPersonSnapshotCreateError(Error):
 class ApplicationPersonSnapshotCreate(ApplicationBase):
     def __init__(
         self,
-        repository_frame_image: RepositoryFrameImage,
+        repository_person_snapshot_create_queue: RepositoryPersonSnapshotCreateQueue,
     ):
-        self.repository_frame_image = repository_frame_image
+        self.repository_person_snapshot_create_queue = repository_person_snapshot_create_queue
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationPersonSnapshotCreate":
         return cls(
-            repository_frame_image=RepositoryFrameImage.create(
-                environment),
+            repository_person_snapshot_create_queue=RepositoryPersonSnapshotCreateQueue.create(environment),
         )
 
-    def save(self, image: DtoImage, frame_image_property: DtoFrameImageProperty) -> None:
-        domain_frame_image = DomainFrameImage(
-            image=image.image,
-            camera_id=frame_image_property.camera_id,
-            view_id=frame_image_property.view_id,
-            timestamp=frame_image_property.timestamp,
-        )
+    def save(self, location: DtoLocation, timestamp: DtoTimestamp, image: DtoImage) -> None:
         try:
-            self.repository_frame_image.save(domain_frame_image)
-            self.repository_frame_image.push_person_snapshot_create(domain_frame_image)
+            self.repository_person_snapshot_create_queue.push(DomainCameraFrameImage(
+                id=DomainId(),
+                location=DomainLocation(camera_id=location.camera_id, view_id=location.view_id),
+                timestamp=DomainTimestamp(timestamp=timestamp.timestamp),
+                image=DomainImage(image=image.image, format=image.format),
+            ))
         except Error as error:
             raise ApplicationPersonSnapshotCreateError(error) from error

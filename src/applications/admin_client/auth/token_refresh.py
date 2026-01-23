@@ -1,5 +1,4 @@
-from domain.admin_client import DomainAdminClient
-from domain.token_converter import DomainTokenConverter
+from domain.client_auth_credentials import DomainClientAuthCredentials
 from environment import Environment
 from error import Error
 from applications import ApplicationBase
@@ -15,34 +14,46 @@ class ApplicationAdminClientAuthTokenRefreshInvalidRefreshTokenError(Application
 class ApplicationAdminClientAuthTokenRefresh(ApplicationBase):
     def __init__(
         self,
-        admin_client: DomainAdminClient,
-        token_converter: DomainTokenConverter,
-        refresh_token_converter: DomainTokenConverter,
+        client_auth_credentials: DomainClientAuthCredentials,
+        secret_key: str,
+        algorithm: str,
+        expire_minutes: int,
+        refresh_secret_key: str,
+        refresh_algorithm: str,
+        refresh_expire_minutes: int,
     ):
-        self.admin_client = admin_client
-        self.token_converter = token_converter
-        self.refresh_token_converter = refresh_token_converter
+        self.client_auth_credentials = client_auth_credentials
+        self.secret_key = secret_key
+        self.algorithm = algorithm
+        self.expire_minutes = expire_minutes
+        self.refresh_secret_key = refresh_secret_key
+        self.refresh_algorithm = refresh_algorithm
+        self.refresh_expire_minutes = refresh_expire_minutes
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationAdminClientAuthTokenRefresh":
         return cls(
-            admin_client=DomainAdminClient(id=environment.admin_client_id, password=environment.admin_client_password),
-            token_converter=DomainTokenConverter(
-                secret_key=environment.jwt_secret_key,
-                algorithm=environment.jwt_algorithm,
-                expire_minutes=environment.jwt_expire_minutes,
-            ),
-            refresh_token_converter=DomainTokenConverter(
-                secret_key=environment.jwt_refresh_secret_key,
-                algorithm=environment.jwt_refresh_algorithm,
-                expire_minutes=environment.jwt_refresh_expire_minutes,
-            ),
+            client_auth_credentials=DomainClientAuthCredentials(id=environment.admin_client_id, password=environment.admin_client_password),
+            secret_key=environment.jwt_secret_key,
+            algorithm=environment.jwt_algorithm,
+            expire_minutes=environment.jwt_expire_minutes,
+            refresh_secret_key=environment.jwt_refresh_secret_key,
+            refresh_algorithm=environment.jwt_refresh_algorithm,
+            refresh_expire_minutes=environment.jwt_refresh_expire_minutes,
         )
 
     def refresh(self, refresh_token: DtoAdminClientAuthToken) -> DtoAdminClientAuthResult:
-        if not self.admin_client.verify_token(refresh_token.token, self.refresh_token_converter):
+        if not DomainClientAuthCredentials.convert_token(refresh_token.token, self.refresh_secret_key, self.refresh_algorithm):
             raise ApplicationAdminClientAuthTokenRefreshInvalidRefreshTokenError()
         return DtoAdminClientAuthResult(
-            token=self.admin_client.generate_token(self.token_converter),
-            refresh_token=self.admin_client.generate_token(self.refresh_token_converter),
+            token=self.client_auth_credentials.generate_token(
+                secret_key=self.secret_key,
+                algorithm=self.algorithm,
+                expire_minutes=self.expire_minutes,
+            ).token,
+            refresh_token=self.client_auth_credentials.generate_token(
+                secret_key=self.refresh_secret_key,
+                algorithm=self.refresh_algorithm,
+                expire_minutes=self.refresh_expire_minutes,
+            ).token,
         )

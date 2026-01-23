@@ -1,5 +1,5 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
-from repositories.person.snapshot import RepositoryPersonSnapshotFilters
+from repositories.utils.database.query.person_snapshot import RepositoryUtilDatabaseQueryPersonSnapshot
 from environment import Environment
 from error import Error
 from applications import ApplicationBase
@@ -25,20 +25,19 @@ class ApplicationPersonFlowWeightSearch(ApplicationBase):
     def search(self, query: DtoPersonFlowWeightQuery | None = None) -> list[DtoPersonFlowWeight]:
         filters = None
         if query is not None:
-            filters = RepositoryPersonSnapshotFilters(
+            filters = RepositoryUtilDatabaseQueryPersonSnapshot(
                 timestamp_after=query.timestamp_after,
                 timestamp_before=query.timestamp_before,
                 person_ids=query.person_ids,
             )
         try:
-            person_snapshots = self.repository_person_snapshot.find(filters=filters)
+            person_snapshots = self.repository_person_snapshot.find_details(query=filters)
             flows = person_snapshots.to_flows()
+            weights = flows.to_weights()
         except Error as error:
             raise ApplicationPersonFlowWeightSearchError(error) from error
-        if flows is None:
-            raise ApplicationPersonFlowWeightSearchNoFlowsFoundError()
         return [DtoPersonFlowWeight(
-            target_camera_id=flow_weight.target_camera_id,
-            source_camera_id=flow_weight.source_camera_id,
-            weight=flow_weight.weight,
-        ) for flow_weight in flows.to_weights()]
+            source_camera_id=weight.source_location.camera_id,
+            target_camera_id=weight.target_location.camera_id,
+            weight=weight.weight,
+        ) for weight in weights]

@@ -4,6 +4,7 @@ from repositories.image import RepositoryImage
 from error import Error
 from applications import ApplicationBase
 from dto.id import DtoId
+from domain.id import DomainId
 
 class ApplicationPersonSnapshotImageSearchError(Error):
     pass
@@ -23,7 +24,7 @@ class ApplicationPersonSnapshotImageSearch(ApplicationBase):
 
     def search(self, id: DtoId) -> DtoImage:
         try:
-            image = self.repository_image.find_person_snapshot(id.id)
-            return DtoImage(image=image.image)
+            image = self.repository_image.find_person_snapshot(DomainId(id=id.id))
+            return DtoImage(image=image.image, format=image.format)
         except Error as error:
             raise ApplicationPersonSnapshotImageSearchError(error) from error
