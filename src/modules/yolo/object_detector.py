@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import ClassVar
 from ultralytics.models.yolo import YOLO
 from ultralytics.engine.results import Results
