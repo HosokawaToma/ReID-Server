@@ -58,6 +58,12 @@ class RepositoryPersonSnapshotCreateQueue:
         )
 
     def push(self, frame_image: DomainCameraFrameImage) -> None:
+        """
+        画像を人物検出キューに追加します
+        キューへの追加が失敗してもストレージとデータベースへの追加は行われます
+        :param DomainCameraFrameImage frame_image: 画像
+        :raise RepositoryPersonSnapshotCreateQueuePushError: 画像のキューへの追加が失敗した場合
+        """
         try:
             with self.database as session:
                 self.storage.save_image(
