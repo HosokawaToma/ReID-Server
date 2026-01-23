@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from ultralytics.models.yolo import YOLO
 from ultralytics.engine.results import Results, Boxes
 from typing import ClassVar
 from domain.yolo.bounding_box import DomainYoloBoundingBox
@@ -13,10 +12,6 @@ class DomainYoloObjectDetector(DomainUtilsBase):
     """
     YOLOの物体検出器のドメインモデル
     """
-    PERSON_CLASS: ClassVar[int] = 0
-    IOU_THRESHOLD: ClassVar[float] = 0.5
-    CONFIDENCE_THRESHOLD: ClassVar[float] = 0.5
-    WEIGHTS_PATH: ClassVar[str] = "./resources/models/yolo11x.pt"
     model: ModuleYoloObjectDetector = field(init=False, default_factory=ModuleYoloObjectDetector)
 
     def extract_person(self, image: DomainImage) -> DomainYoloBoundingBoxSequence:
