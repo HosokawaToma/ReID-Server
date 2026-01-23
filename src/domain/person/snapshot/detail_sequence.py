@@ -11,14 +11,9 @@ class DomainPersonSnapshotDetailSequence(DomainUtilsSequenceBase[DomainPersonSna
     INTERVAL: ClassVar[DomainTime] = DomainTime(seconds=10)
 
     def to_flows(self) -> DomainPersonFlowSequence:
-        if len(self.items) < 2:
-            raise ValueError("人流計算には人物検出が2回以上必要です")
-        first_person_id = self.items[0].person_id
-        if first_person_id.id is None:
-            raise ValueError("人流計算には人物IDが必要です")
-        if not all(detail.person_id == first_person_id for detail in self.items):
-            raise ValueError("同じ人物IDのみの人物検出の集合が必要です")
-        details = sorted(self.items, key=lambda x: x.timestamp)
+        if not self.is_flows():
+            raise ValueError("人流計算を行える集合ではありません")
+        details = self.sort_by_timestamp()
         flows = []
         for i in range(len(details)):
             if i == 0:
@@ -26,11 +21,22 @@ class DomainPersonSnapshotDetailSequence(DomainUtilsSequenceBase[DomainPersonSna
             if details[i].location.camera_id == details[i - 1].location.camera_id \
                 and details[i].timestamp - details[i - 1].timestamp <= self.INTERVAL:
                 continue
+            person_id = details[i].person_id
+            if person_id.id is None:
+                raise ValueError("人物IDが必要です")
             flows.append(DomainPersonFlow(
-                person_id=first_person_id.id,
+                person_id=person_id.id,
                 source_location=details[i - 1].location,
                 target_location=details[i].location,
                 source_timestamp=details[i - 1].timestamp,
                 target_timestamp=details[i].timestamp,
             ))
         return DomainPersonFlowSequence(items=flows)
+
+    def is_flows(self) -> bool:
+        if len(self.items) < 2:
+            return False
+        return all(detail.person_id == self.items[0].person_id for detail in self.items)
+
+    def sort_by_timestamp(self) -> "DomainPersonSnapshotDetailSequence":
+        return DomainPersonSnapshotDetailSequence(items=sorted(self.items, key=lambda x: x.timestamp))
