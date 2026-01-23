@@ -24,8 +24,8 @@ class DomainYoloInstanceSegmenter(DomainUtilsBase):
         results = self.model(image, classes=[0], verbose=False)
         items: Results = results[0]
         if items.masks is None:
-            return DomainYoloMaskSequence([])
+            return DomainYoloMaskSequence(items=[])
         masks = []
         for mask in items.masks:
             masks.append(DomainYoloMask(mask.xy.pop()))
-        return DomainYoloMaskSequence(masks)
+        return DomainYoloMaskSequence(items=masks)
