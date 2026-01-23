@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import torch
-from typing import ClassVar, Any
+from typing import ClassVar
 from domain.utils.base import DomainUtilsBase
 
 @dataclass(frozen=True)
