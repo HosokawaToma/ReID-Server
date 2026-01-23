@@ -1,4 +1,5 @@
-from domain.client_auth_credentials import DomainClientAuthCredentials
+from domain.client.auth_credentials import DomainClientAuthCredentials
+from domain.client.id import DomainClientId
 from environment import Environment
 from error import Error
 from dto.admin_client.auth.token import DtoAdminClientAuthToken
@@ -39,4 +40,4 @@ class ApplicationAdminClientAuthOAuth2:
             )
         except Error as error:
             raise ApplicationAdminClientAuthOAuth2InvalidTokenError(error)
-        return DtoAdminClientId(id=id)
+        return DtoAdminClientId(id=str(id))

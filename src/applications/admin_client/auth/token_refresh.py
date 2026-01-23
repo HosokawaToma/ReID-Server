@@ -1,4 +1,6 @@
-from domain.client_auth_credentials import DomainClientAuthCredentials
+from domain.client.auth_credentials import DomainClientAuthCredentials
+from domain.client.id import DomainClientId
+from domain.client.password import DomainClientPassword
 from environment import Environment
 from error import Error
 from applications import ApplicationBase
@@ -33,7 +35,10 @@ class ApplicationAdminClientAuthTokenRefresh(ApplicationBase):
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationAdminClientAuthTokenRefresh":
         return cls(
-            client_auth_credentials=DomainClientAuthCredentials(id=environment.admin_client_id, password=environment.admin_client_password),
+            client_auth_credentials=DomainClientAuthCredentials(
+                id=DomainClientId(id=environment.admin_client_id),
+                password=DomainClientPassword(password=environment.admin_client_password),
+            ),
             secret_key=environment.jwt_secret_key,
             algorithm=environment.jwt_algorithm,
             expire_minutes=environment.jwt_expire_minutes,

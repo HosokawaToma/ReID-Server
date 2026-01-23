@@ -4,22 +4,24 @@ import jwt
 from domain.token import DomainToken
 from domain.timestamp import DomainTimestamp
 from domain.utils.base import DomainUtilsBase
+from domain.client.id import DomainClientId
+from domain.client.password import DomainClientPassword
 
 @dataclass(frozen=True)
 class DomainClientAuthCredentials(DomainUtilsBase):
     """
     クライアント認証資格情報を表すドメインモデル
     """
-    id: str
-    password: str
+    id: DomainClientId
+    password: DomainClientPassword
 
-    def authenticate(self, id: str, password: str) -> bool:
-        return self.id == id and self.password == hashlib.sha256(password.encode()).hexdigest()
+    def authenticate(self, id: DomainClientId, password: DomainClientPassword) -> bool:
+        return self.id == id and self.password == password
 
     def generate_token(self, secret_key: str, algorithm: str, expire_minutes: int) -> DomainToken:
         return DomainToken(
             token=jwt.encode(
-                {"id": self.id},
+                {"id": str(self.id)},
                 secret_key,
                 algorithm=algorithm,
             ),
@@ -27,5 +29,5 @@ class DomainClientAuthCredentials(DomainUtilsBase):
         )
 
     @classmethod
-    def convert_token(cls, token: str, secret_key: str, algorithm: str) -> str:
-        return jwt.decode(token, secret_key, algorithms=[algorithm])["id"]
+    def convert_token(cls, token: str, secret_key: str, algorithm: str) -> DomainClientId:
+        return DomainClientId(id=jwt.decode(token, secret_key, algorithms=[algorithm])["id"])
