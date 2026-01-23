@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field, InitVar
+from dataclasses import dataclass
 from domain.utils.base import DomainUtilsBase
 from datetime import timedelta
 
