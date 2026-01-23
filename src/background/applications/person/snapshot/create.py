@@ -1,11 +1,11 @@
 from repositories.person.snapshot.create_queue import RepositoryPersonSnapshotCreateQueue
 from repositories.person.snapshot.reid_queue import RepositoryPersonSnapshotReidQueue
-from repositories.yolo.detector import RepositoryYoloDetector
-from repositories.yolo.instance_segmenter import RepositoryYoloInstanceSegmenter
-from repositories.yolo.pose_estimator import RepositoryYoloPoseEstimator
 from environment import Environment
 from error import Error
 from background.applications.utils import BackgroundApplicationUtilsBase
+from domain.yolo.object_detector import DomainYoloObjectDetector
+from domain.yolo.instance_segmenter import DomainYoloInstanceSegmenter
+from domain.yolo.pose_estimator import DomainYoloPoseEstimator
 
 class BackgroundApplicationPersonSnapshotCreateError(Error):
     pass
@@ -14,15 +14,15 @@ class BackgroundApplicationPersonSnapshotCreate(BackgroundApplicationUtilsBase):
     def __init__(
         self,
         repository_person_snapshot_create_queue: RepositoryPersonSnapshotCreateQueue,
-        repository_yolo_detector: RepositoryYoloDetector,
-        repository_yolo_instance_segmenter: RepositoryYoloInstanceSegmenter,
-        repository_yolo_pose_estimator: RepositoryYoloPoseEstimator,
         repository_person_snapshot_reid_queue: RepositoryPersonSnapshotReidQueue,
+        domain_yolo_object_detector: DomainYoloObjectDetector,
+        domain_yolo_instance_segmenter: DomainYoloInstanceSegmenter,
+        domain_yolo_pose_estimator: DomainYoloPoseEstimator,
     ):
         self.repository_person_snapshot_create_queue = repository_person_snapshot_create_queue
-        self.repository_yolo_detector = repository_yolo_detector
-        self.repository_yolo_instance_segmenter = repository_yolo_instance_segmenter
-        self.repository_yolo_pose_estimator = repository_yolo_pose_estimator
+        self.domain_yolo_object_detector = domain_yolo_object_detector
+        self.domain_yolo_instance_segmenter = domain_yolo_instance_segmenter
+        self.domain_yolo_pose_estimator = domain_yolo_pose_estimator
         self.repository_person_snapshot_reid_queue = repository_person_snapshot_reid_queue
 
     @classmethod
@@ -30,9 +30,9 @@ class BackgroundApplicationPersonSnapshotCreate(BackgroundApplicationUtilsBase):
         return cls(
             repository_person_snapshot_create_queue=RepositoryPersonSnapshotCreateQueue.create(
                 environment),
-            repository_yolo_detector=RepositoryYoloDetector.create(),
-            repository_yolo_instance_segmenter=RepositoryYoloInstanceSegmenter.create(),
-            repository_yolo_pose_estimator=RepositoryYoloPoseEstimator.create(),
+            domain_yolo_object_detector=DomainYoloObjectDetector(),
+            domain_yolo_instance_segmenter=DomainYoloInstanceSegmenter(),
+            domain_yolo_pose_estimator=DomainYoloPoseEstimator(),
             repository_person_snapshot_reid_queue=RepositoryPersonSnapshotReidQueue.create(
                 environment),
         )
@@ -40,13 +40,10 @@ class BackgroundApplicationPersonSnapshotCreate(BackgroundApplicationUtilsBase):
     def save(self) -> None:
         try:
             frame_image = self.repository_person_snapshot_create_queue.pop()
-            yolo_object_detector = self.repository_yolo_detector.get_instance()
-            yolo_instance_segmenter = self.repository_yolo_instance_segmenter.get_instance()
-            yolo_pose_estimator = self.repository_yolo_pose_estimator.get_instance()
             person_snapshots = frame_image.create_person_snapshot_images(
-                yolo_object_detector=yolo_object_detector,
-                yolo_instance_segmenter=yolo_instance_segmenter,
-                yolo_pose_estimator=yolo_pose_estimator,
+                yolo_object_detector=self.domain_yolo_object_detector,
+                yolo_instance_segmenter=self.domain_yolo_instance_segmenter,
+                yolo_pose_estimator=self.domain_yolo_pose_estimator,
             )
             self.repository_person_snapshot_reid_queue.push_all(person_snapshots)
         except Error as error:

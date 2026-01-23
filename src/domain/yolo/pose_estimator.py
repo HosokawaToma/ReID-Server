@@ -1,11 +1,10 @@
-from ultralytics.models.yolo import YOLO
-from ultralytics.engine.results import Results
 from domain.yolo.key_points_sequence import DomainYoloKeyPointsSequence
 from domain.yolo.key_points import DomainYoloKeyPoints
 from domain.yolo.key_point import DomainYoloKeyPoint
 from domain.image import DomainImage
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from domain.utils.base import DomainUtilsBase
+from modules.yolo.pose_estimator import ModuleYoloPoseEstimator
 
 
 @dataclass(frozen=True)
@@ -13,13 +12,12 @@ class DomainYoloPoseEstimator(DomainUtilsBase):
     """
     YOLOの姿勢推定器のドメインモデル
     """
-    model: YOLO
+    model: ModuleYoloPoseEstimator = field(init=False, default_factory=ModuleYoloPoseEstimator)
 
     def extract(self, image: DomainImage) -> DomainYoloKeyPointsSequence:
-        results = self.model(image.image, verbose=False)
-        items: Results = results[0]
+        results = self.model.extract(image.image)
         key_points: list[DomainYoloKeyPoints] = []
-        for item in items:
+        for item in results:
             if item.keypoints is None:
                 continue
             xys = item.keypoints.xy[0].tolist()

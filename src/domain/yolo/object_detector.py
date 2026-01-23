@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from ultralytics.models.yolo import YOLO
 from ultralytics.engine.results import Results, Boxes
 from typing import ClassVar
@@ -6,6 +6,7 @@ from domain.yolo.bounding_box import DomainYoloBoundingBox
 from domain.yolo.bounding_box_sequence import DomainYoloBoundingBoxSequence
 from domain.utils.base import DomainUtilsBase
 from domain.image import DomainImage
+from modules.yolo.object_detector import ModuleYoloObjectDetector
 
 @dataclass(frozen=True)
 class DomainYoloObjectDetector(DomainUtilsBase):
@@ -15,15 +16,12 @@ class DomainYoloObjectDetector(DomainUtilsBase):
     PERSON_CLASS: ClassVar[int] = 0
     IOU_THRESHOLD: ClassVar[float] = 0.5
     CONFIDENCE_THRESHOLD: ClassVar[float] = 0.5
-    model: YOLO
+    WEIGHTS_PATH: ClassVar[str] = "./resources/models/yolo11x.pt"
+    model: ModuleYoloObjectDetector = field(init=False, default_factory=ModuleYoloObjectDetector)
 
     def extract_person(self, image: DomainImage) -> DomainYoloBoundingBoxSequence:
-        results = self.model(
+        results = self.model.extract_person(
             image.image,
-            classes=[self.PERSON_CLASS],
-            iou=self.IOU_THRESHOLD,
-            conf=self.CONFIDENCE_THRESHOLD,
-            verbose=False,
         )
         items: Results = results[0]
         if items.boxes is None:
