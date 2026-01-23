@@ -40,4 +40,5 @@ class DomainImage(DomainUtilsBase):
 
     def crop(self, x1: float, y1: float, x2: float, y2: float) -> "DomainImage":
         image = self.image.crop((x1, y1, x2, y2))
+        image.format = self.format
         return DomainImage.from_image(image)
