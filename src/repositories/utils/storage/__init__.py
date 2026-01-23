@@ -71,7 +71,7 @@ class RepositoryUtilStorage:
             raise RepositoryUtilStorageMultipleError()
         try:
             image = Image.open(self.path / path.directory / f"{path.name}.{extension_list[0]}")
-            return DomainImage(image=image, format=extension_list[0])
+            return DomainImage.from_image(image)
         except FileNotFoundError as error:
             raise RepositoryUtilStorageNotFoundError(error) from error
         except PermissionError as error:

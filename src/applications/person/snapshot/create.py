@@ -33,7 +33,7 @@ class ApplicationPersonSnapshotCreate(ApplicationBase):
                 id=DomainId(),
                 location=DomainLocation(camera_id=location.camera_id, view_id=location.view_id),
                 timestamp=DomainTimestamp(timestamp=timestamp.timestamp),
-                image=DomainImage(image=image.image, format=image.format),
+                image=DomainImage.from_image(image.image),
             ))
         except Error as error:
             raise ApplicationPersonSnapshotCreateError(error) from error
