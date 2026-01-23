@@ -4,10 +4,11 @@ from domain.utils.sequence_base import DomainUtilsSequenceBase
 from domain.person.flow import DomainPersonFlow
 from domain.person.flow.sequence import DomainPersonFlowSequence
 from domain.time import DomainTime
+from typing import ClassVar
 
 @dataclass(frozen=True)
 class DomainPersonSnapshotDetailSequence(DomainUtilsSequenceBase[DomainPersonSnapshotDetail]):
-    INTERVAL: DomainTime = DomainTime(seconds=10)
+    INTERVAL: ClassVar[DomainTime] = DomainTime(seconds=10)
 
     def to_flows(self) -> DomainPersonFlowSequence:
         if len(self.items) < 2:
