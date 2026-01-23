@@ -55,7 +55,6 @@ class RepositoryPersonSnapshotCreateQueue:
             camera_id=domain.location.camera_id,
             view_id=domain.location.view_id,
             timestamp=domain.timestamp.timestamp,
-            image=domain.image.image,
         )
 
     def push(self, frame_image: DomainCameraFrameImage) -> None:
