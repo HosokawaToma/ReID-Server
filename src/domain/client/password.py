@@ -11,6 +11,11 @@ class DomainClientPassword(DomainUtilsBase):
     password: InitVar[str]
 
     def __post_init__(self, password: str):
+        """
+        ToDo: SHA-256ではブルートフォース攻撃に対して脆弱です。
+        ToDo: ソルトを使用していないためレインボーテーブル攻撃に対して脆弱です。
+        :param str password: パスワード
+        """
         object.__setattr__(self, "hashed_password", hashlib.sha256(password.encode()).hexdigest())
 
     def __eq__(self, other: object) -> bool:
