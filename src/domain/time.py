@@ -8,22 +8,20 @@ class DomainTime(DomainUtilsBase):
     時刻のドメインモデル
     """
     time: timedelta = field(init=False)
-    hours: InitVar[int] = 0
-    minutes: InitVar[int] = 0
-    seconds: InitVar[int] = 0
+    total_seconds: InitVar[float]
 
-    def __post_init__(self, hours: int = 0, minutes: int = 0, seconds: int = 0):
-        object.__setattr__(self, "time", timedelta(hours=hours, minutes=minutes, seconds=seconds))
+    def __post_init__(self, total_seconds: float):
+        object.__setattr__(self, "time", timedelta(seconds=total_seconds))
 
     def __add__(self, other: "DomainTime") -> "DomainTime":
         self = DomainTime(
-            seconds=self.time.seconds + other.time.seconds,
+            total_seconds=self.time.total_seconds() + other.time.total_seconds(),
         )
         return self
 
     def __sub__(self, other: "DomainTime") -> "DomainTime":
         self = DomainTime(
-            seconds=self.time.seconds - other.time.seconds,
+            total_seconds=self.time.total_seconds() - other.time.total_seconds(),
         )
         return self
 
