@@ -24,12 +24,12 @@ class DomainPersonSnapshotFeature(DomainUtilsBase):
                 location=self.location,
                 timestamp=self.timestamp,
                 feature=self.feature,
-                person_id=self.person_id.copy(),
+                person_id=nearest_person_snapshot_feature.person_id.copy(),
             )
         return DomainPersonSnapshotFeature(
             id=self.id,
             location=self.location,
             timestamp=self.timestamp,
             feature=self.feature,
-            person_id=nearest_person_snapshot_feature.person_id.copy(),
+            person_id=self.person_id.copy(),
         )
