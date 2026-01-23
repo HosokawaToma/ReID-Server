@@ -8,3 +8,9 @@ class DomainYoloMask(DomainUtilsBase):
     YOLOのマスクのドメインモデル
     """
     mask: np.ndarray
+
+    def __post_init__(self):
+        """
+        不変性を保つために、numpy.ndarrayを書き込み不可にする
+        """
+        self.mask.flags.writeable = False
