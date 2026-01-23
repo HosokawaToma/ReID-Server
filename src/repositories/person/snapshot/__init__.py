@@ -69,6 +69,13 @@ class RepositoryPersonSnapshot:
             raise RepositoryPersonSnapshotFindDetailsError(error) from error
 
     def find_features_by_nearest(self, person_snapshot: DomainPersonSnapshotFeature) -> DomainPersonSnapshotFeature:
+        """
+        同じ日付で過去に検出された特徴量が最も近い人物検出結果を取得します
+        :param DomainPersonSnapshotFeature person_snapshot: 人物検出結果
+        :return DomainPersonSnapshotFeature: 特徴量が最も近い人物検出結果
+        :raise RepositoryPersonSnapshotFindFeaturesByNearestError: 特徴量が最も近い人物検出結果が見つからない場合
+        :raise RepositoryPersonSnapshotFindFeaturesByNearestError: 特徴量が最も近い人物検出結果の特徴量が存在しない場合
+        """
         try:
             with self.database as session:
                 query = session.query(MigrationModelPersonSnapshot)
