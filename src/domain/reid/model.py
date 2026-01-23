@@ -10,8 +10,8 @@ class DomainReIDModel(DomainUtilsBase):
     model: ModuleReIDModel
 
     def extract(self, image: DomainImage, location: DomainLocation) -> DomainPersonFeature:
-        return DomainPersonFeature.from_tensor(
-            tensor=self.model.extract_feature(
+        return DomainPersonFeature(
+            feature=self.model.extract_feature(
                 image=image.image,
                 camera_id=location.camera_id,
                 view_id=location.view_id

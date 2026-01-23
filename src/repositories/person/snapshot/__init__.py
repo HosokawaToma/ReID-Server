@@ -83,7 +83,7 @@ class RepositoryPersonSnapshot:
                 query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
                 query = query.filter(MigrationModelPersonSnapshot.is_junk.is_(False))
                 query = query.filter(MigrationModelPersonSnapshot.feature.isnot(None))
-                query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature.tensor.cpu().numpy().tolist()))
+                query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature.value.cpu().numpy().tolist()))
                 model = query.first()
                 if model is None:
                     raise RepositoryPersonSnapshotFindFeaturesByNearestError()
@@ -93,7 +93,7 @@ class RepositoryPersonSnapshot:
                     id=DomainId(id=model.id),
                     location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
                     timestamp=DomainTimestamp(timestamp=model.timestamp),
-                    feature=DomainPersonFeature.from_tensor(tensor=torch.tensor(model.feature)),
+                    feature=DomainPersonFeature(feature=torch.tensor(model.feature)),
                     person_id=DomainPersonId(
                         id=DomainId(id=model.person_id) if model.person_id is not None else None,
                         is_junk=model.is_junk,
@@ -112,7 +112,7 @@ class RepositoryPersonSnapshot:
                     timestamp=person_snapshot.timestamp.timestamp,
                     is_junk=person_snapshot.person_id.is_junk,
                     person_id=person_snapshot.person_id.id.id if person_snapshot.person_id.id is not None else None,
-                    feature=person_snapshot.feature.tensor.cpu().numpy().tolist(),
+                    feature=person_snapshot.feature.value.cpu().numpy().tolist(),
                 ))
         except Error as error:
             raise RepositoryPersonSnapshotSaveFeatureError(error) from error
