@@ -2,7 +2,7 @@ from applications.camera_frame.search import ApplicationCameraFrameSearch
 from presentation import PresentationBase, get_application
 from logger import Logger
 from presentation import PresentationRequestBody
-from dto.camera_frame.query import DtoCameraFrameQuery
+from dto.camera_frame.query import DtoCameraFrameQuery, DtoCameraFrameQuerySortByKey
 from dataclasses import dataclass
 from datetime import datetime
 from presentation import PresentationJSONResponse
@@ -58,6 +58,10 @@ class PresentationCameraFrameSearch(PresentationBase):
                 view_ids=request.view_ids,
                 timestamp_after=request.timestamp_after,
                 timestamp_before=request.timestamp_before,
+                sort_by_list=[
+                    DtoCameraFrameQuerySortByKey(sort_by.value)
+                    for sort_by in request.sort_by_list
+                ] if request.sort_by_list is not None else None,
             )
         camera_frames = application.search(query=query)
         return PresentationJSONResponse(status=200, content={
