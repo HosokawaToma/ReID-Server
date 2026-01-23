@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from ultralytics.models.yolo import YOLO
 from ultralytics.engine.results import Results, Boxes
 from typing import ClassVar
-from PIL import Image
 from domain.yolo.bounding_box import DomainYoloBoundingBox
 from domain.yolo.bounding_box_sequence import DomainYoloBoundingBoxSequence
 from domain.utils.base import DomainUtilsBase
+from domain.image import DomainImage
 
 @dataclass(frozen=True)
 class DomainYoloObjectDetector(DomainUtilsBase):
@@ -17,9 +17,9 @@ class DomainYoloObjectDetector(DomainUtilsBase):
     CONFIDENCE_THRESHOLD: ClassVar[float] = 0.5
     model: YOLO
 
-    def extract_person(self, image: Image.Image) -> DomainYoloBoundingBoxSequence:
+    def extract_person(self, image: DomainImage) -> DomainYoloBoundingBoxSequence:
         results = self.model(
-            image,
+            image.image,
             classes=[self.PERSON_CLASS],
             iou=self.IOU_THRESHOLD,
             conf=self.CONFIDENCE_THRESHOLD,

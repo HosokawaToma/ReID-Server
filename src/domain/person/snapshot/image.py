@@ -27,7 +27,7 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
         instance_segmenter: DomainYoloInstanceSegmenter,
         pose_estimator: DomainYoloPoseEstimator,
     ) -> "DomainPersonSnapshotImage":
-        instances = self.image.extract_instance(instance_segmenter)
+        instances = instance_segmenter.extract(self.image)
         if not instances.is_one_person():
             return DomainPersonSnapshotImage(
                 id=self.id,
@@ -36,7 +36,7 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
                 image=self.image,
                 person_id=self.person_id.junk(),
             )
-        poses = self.image.extract_pose(pose_estimator)
+        poses = pose_estimator.extract(self.image)
         if not poses.is_one_person():
             return DomainPersonSnapshotImage(
                 id=self.id,

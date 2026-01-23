@@ -3,7 +3,7 @@ from ultralytics.engine.results import Results
 from domain.yolo.key_points_sequence import DomainYoloKeyPointsSequence
 from domain.yolo.key_points import DomainYoloKeyPoints
 from domain.yolo.key_point import DomainYoloKeyPoint
-from PIL import Image
+from domain.image import DomainImage
 from dataclasses import dataclass
 from domain.utils.base import DomainUtilsBase
 
@@ -15,8 +15,8 @@ class DomainYoloPoseEstimator(DomainUtilsBase):
     """
     model: YOLO
 
-    def extract(self, image: Image.Image) -> DomainYoloKeyPointsSequence:
-        results = self.model(image, verbose=False)
+    def extract(self, image: DomainImage) -> DomainYoloKeyPointsSequence:
+        results = self.model(image.image, verbose=False)
         items: Results = results[0]
         key_points: list[DomainYoloKeyPoints] = []
         for item in items:

@@ -25,6 +25,6 @@ class DomainCameraFrameImage(DomainUtilsBase):
         yolo_instance_segmenter: DomainYoloInstanceSegmenter,
         yolo_pose_estimator: DomainYoloPoseEstimator,
         ) -> DomainPersonSnapshotImageSequence:
-        bounding_boxes = self.image.detect_person(yolo_object_detector)
+        bounding_boxes = yolo_object_detector.extract_person(self.image)
         person_snapshot_images = bounding_boxes.create_person_snapshot_images(self)
         return person_snapshot_images.detect_junk(yolo_instance_segmenter, yolo_pose_estimator)
