@@ -85,10 +85,10 @@ class RepositoryPersonSnapshotReidQueue:
         try:
             with self.database as session:
                 session.add(self._domain_to_model(person_snapshot))
-            self.redis.push(
-                key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID,
-                value={"id": str(person_snapshot.id.id)},
-            )
+                self.redis.push(
+                    key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID,
+                    value={"id": str(person_snapshot.id.id)},
+                )
         except Error as error:
             raise RepositoryPersonSnapshotReidQueuePushError(error) from error
 
