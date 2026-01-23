@@ -14,16 +14,14 @@ class DomainTime(DomainUtilsBase):
         object.__setattr__(self, "time", timedelta(seconds=total_seconds))
 
     def __add__(self, other: "DomainTime") -> "DomainTime":
-        self = DomainTime(
+        return DomainTime(
             total_seconds=self.time.total_seconds() + other.time.total_seconds(),
         )
-        return self
 
     def __sub__(self, other: "DomainTime") -> "DomainTime":
-        self = DomainTime(
+        return DomainTime(
             total_seconds=self.time.total_seconds() - other.time.total_seconds(),
         )
-        return self
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, DomainTime):
