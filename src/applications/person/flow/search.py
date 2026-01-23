@@ -27,7 +27,7 @@ class ApplicationPersonFlowSearch(ApplicationBase):
             ),
         )
 
-    def search(self, query: DtoPersonFlowQuery) -> list[DtoPersonFlow]:
+    def search(self, query: DtoPersonFlowQuery | None = None) -> list[DtoPersonFlow]:
         database_query = None
         if query is not None:
             database_query = RepositoryUtilDatabaseQueryPersonSnapshot(
