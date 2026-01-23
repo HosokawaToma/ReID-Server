@@ -8,11 +8,11 @@ class RepositoryYoloInstanceSegmenter:
     CACHE: ClassVar[DomainYoloInstanceSegmenter] | None = None
 
     def __init__(self):
-        if self.CACHE is None:
-            self.CACHE = DomainYoloInstanceSegmenter(
-                model=YOLO(self.WEIGHTS_PATH),
+        if RepositoryYoloInstanceSegmenter.CACHE is None:
+            RepositoryYoloInstanceSegmenter.CACHE = DomainYoloInstanceSegmenter(
+                model=YOLO(RepositoryYoloInstanceSegmenter.WEIGHTS_PATH),
             )
-        self.yolo_instance_segmenter = self.CACHE
+        self.yolo_instance_segmenter = RepositoryYoloInstanceSegmenter.CACHE
 
     @classmethod
     def create(cls) -> "RepositoryYoloInstanceSegmenter":
