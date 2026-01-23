@@ -114,4 +114,4 @@ class DomainYoloPoseEstimator(DomainUtilsBase):
                     confidence=confs[16],
                 ),
             ))
-        return DomainYoloKeyPointsSequence(key_points)
+        return DomainYoloKeyPointsSequence(items=key_points)
