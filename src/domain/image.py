@@ -21,7 +21,9 @@ class DomainImage(DomainUtilsBase):
     def from_image(cls, image: Image.Image) -> "DomainImage":
         if image.format is None:
             raise ValueError("画像のフォーマットが不明です")
-        return cls(bytes=image.tobytes(), format=image.format)
+        buffer = io.BytesIO()
+        image.save(buffer, format=image.format)
+        return cls(bytes=buffer.getvalue(), format=image.format)
 
     @property
     def image(self) -> Image.Image:
