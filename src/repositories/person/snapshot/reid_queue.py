@@ -28,6 +28,12 @@ class RepositoryPersonSnapshotReidQueuePopError(RepositoryPersonSnapshotReidQueu
 class RepositoryPersonSnapshotReidQueuePushAllError(RepositoryPersonSnapshotReidQueueError):
     pass
 
+class RepositoryPersonSnapshotReidQueuePushIdError(RepositoryPersonSnapshotReidQueueError):
+    pass
+
+class RepositoryPersonSnapshotReidQueuePushIdsError(RepositoryPersonSnapshotReidQueueError):
+    pass
+
 class RepositoryPersonSnapshotReidQueue:
     def __init__(
         self,
@@ -101,6 +107,37 @@ class RepositoryPersonSnapshotReidQueue:
                 errors.append(error)
         if len(errors) > 0:
             raise RepositoryPersonSnapshotReidQueuePushAllError(errors[0]) from errors[0]
+
+    def push_id(self, id: DomainId) -> None:
+        """
+        人物検出結果を再識別キューに追加します
+        キューへの追加が失敗してもデータベースへの追加は行われます
+        :param DomainId id: 人物検出結果のID
+        :raise RepositoryPersonSnapshotReidQueuePushIdError: キューへの追加が失敗した場合
+        """
+        try:
+            self.redis.push(
+                key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID,
+                value={"id": str(id.id)},
+            )
+        except Error as error:
+            raise RepositoryPersonSnapshotReidQueuePushIdError(error) from error
+
+    def push_ids(self, ids: DomainIdSequence) -> None:
+        """
+        人物検出結果を再識別キューに追加します
+        キューへの追加が失敗してもデータベースへの追加は行われます
+        :param DomainIdSequence ids: 人物検出結果のIDのシーケンス
+        :raise RepositoryPersonSnapshotReidQueuePushIdsError: 人物検出結果のIDのシーケンスの中でキューへの追加が失敗した場合
+        """
+        errors = []
+        for id in ids:
+            try:
+                self.push_id(id)
+            except Error as error:
+                errors.append(error)
+        if len(errors) > 0:
+            raise RepositoryPersonSnapshotReidQueuePushIdsError(errors[0]) from errors[0]
 
     def pop(self) -> DomainPersonSnapshotImage:
         try:
