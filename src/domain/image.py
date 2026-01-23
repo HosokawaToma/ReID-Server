@@ -16,6 +16,12 @@ class DomainImage(DomainUtilsBase):
     image: Image.Image
     format: str
 
+    def __post_init__(self):
+        """
+        不変性維持のため画像をコピーします
+        """
+        object.__setattr__(self, "image", self.image.copy())
+
     def detect_person(self, detection_model: DomainYoloObjectDetector) -> DomainYoloBoundingBoxSequence:
         return detection_model.extract_person(self.image)
 
