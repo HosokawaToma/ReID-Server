@@ -107,6 +107,5 @@ class RepositoryPersonSnapshot:
                     person_id=person_snapshot.person_id.id.id if person_snapshot.person_id.id is not None else None,
                     feature=person_snapshot.feature.feature.cpu().numpy().tolist(),
                 ))
-                session.commit()
         except Error as error:
             raise RepositoryPersonSnapshotSaveFeatureError(error) from error
