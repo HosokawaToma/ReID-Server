@@ -68,6 +68,10 @@ class RepositoryUtilRedis:
             raise RepositoryUtilRedisResultAwaitableError()
 
     def dequeue(self, key: RepositoryUtilRedisKey) -> dict[str, str]:
+        """
+        キューからデータを取得します
+        常にデータにアクセスをかけることを想定しているため，タイムアウトを設けない
+        """
         try:
             result = self.redis.blpop([key.value])
         except RedisError as error:
