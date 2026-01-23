@@ -22,6 +22,7 @@ import uuid
 from logger import Logger
 from applications import ApplicationBase
 from dto.image import DtoImage
+import pathlib
 
 
 class PresentationRequest(Request):
@@ -227,7 +228,7 @@ class PresentationImage:
         if image.filename is None:
             raise PresentationImageError("image filename is None")
         content = await image.read()
-        format = image.filename.split(".")[-1]
+        format = pathlib.Path(image.filename).suffix[1:]
         return DtoImage(bytes=content, format=format)
 
 
