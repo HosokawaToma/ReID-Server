@@ -12,6 +12,9 @@ class DomainPersonFeature(DomainUtilsBase):
     THRESHOLD: ClassVar[float] = 0.895
 
     def __post_init__(self):
+        """
+        不変性を保つために、torch.Tensorを複製して代入する
+        """
         cloned = self.feature.detach().clone()
         object.__setattr__(self, "feature", cloned)
 
