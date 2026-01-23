@@ -18,6 +18,11 @@ class DomainPersonSnapshotFeature(DomainUtilsBase):
     person_id: DomainPersonId
 
     def reid(self, nearest_person_snapshot_feature: "DomainPersonSnapshotFeature") -> "DomainPersonSnapshotFeature":
+        """
+        最も近い人物検出結果の特徴量との類似度を計算し同一人物と判定された場合は最も近い人物検出結果の人物IDを使用する
+        :param DomainPersonSnapshotFeature nearest_person_snapshot_feature: 最も近い人物検出結果の特徴量
+        :return DomainPersonSnapshotFeature: 最も近い人物検出結果の人物IDを使用した人物検出結果の特徴量
+        """
         if self.feature.is_same(nearest_person_snapshot_feature.feature):
             return DomainPersonSnapshotFeature(
                 id=self.id,

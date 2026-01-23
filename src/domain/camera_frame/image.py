@@ -27,7 +27,15 @@ class DomainCameraFrameImage(DomainUtilsBase):
         yolo_instance_segmenter: DomainYoloInstanceSegmenter,
         yolo_pose_estimator: DomainYoloPoseEstimator,
         ) -> DomainPersonSnapshotImageSequence:
-        bounding_boxes = yolo_object_detector.extract_person(self.image)
+        """
+        カメラフレーム画像から人物検出結果の画像を生成する
+        同時に人物検出画像のゴミデータ判定を行う
+        :param DomainYoloObjectDetector yolo_object_detector: 物体検出器
+        :param DomainYoloInstanceSegmenter yolo_instance_segmenter: 個体推定器
+        :param DomainYoloPoseEstimator yolo_pose_estimator: 姿勢推定器
+        :return DomainPersonSnapshotImageSequence: 人物検出結果の画像のシーケンス
+        """
+        bounding_boxes = yolo_object_detector.extract_person(image=self.image)
         return DomainPersonSnapshotImageSequence(items=[
             DomainPersonSnapshotImage(
                 id=DomainId(),

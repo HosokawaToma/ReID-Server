@@ -27,6 +27,13 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
         instance_segmenter: DomainYoloInstanceSegmenter,
         pose_estimator: DomainYoloPoseEstimator,
     ) -> "DomainPersonSnapshotImage":
+        """
+        人物検出結果の画像からゴミデータを判定する
+        画像に全身が写っておらず、かつ一人のみ写った画像以外はゴミデータと判定する
+        :param DomainYoloInstanceSegmenter instance_segmenter: 個体推定器
+        :param DomainYoloPoseEstimator pose_estimator: 姿勢推定器
+        :return DomainPersonSnapshotImage: ゴミデータを判定した人物検出結果の画像
+        """
         instances = instance_segmenter.extract(self.image)
         if not instances.is_one_person():
             return DomainPersonSnapshotImage(
@@ -63,6 +70,11 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
         )
 
     def extract_feature(self, reid_model: DomainReIDModel) -> DomainPersonSnapshotFeature:
+        """
+        人物検出結果の画像から特徴量を抽出する
+        :param DomainReIDModel reid_model: ReIDモデル
+        :return DomainPersonSnapshotFeature: 特徴量を抽出した人物検出結果の特徴量
+        """
         return DomainPersonSnapshotFeature(
             id=self.id,
             location=self.location,

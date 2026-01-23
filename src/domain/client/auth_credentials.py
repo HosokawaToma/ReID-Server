@@ -16,9 +16,22 @@ class DomainClientAuthCredentials(DomainUtilsBase):
     password: DomainClientPassword
 
     def authenticate(self, id: DomainClientId, password: DomainClientPassword) -> bool:
+        """
+        クライアント認証資格情報を認証する
+        :param DomainClientId id: クライアントID
+        :param DomainClientPassword password: クライアントパスワード
+        :return bool: 認証結果
+        """
         return self.id == id and self.password == password
 
     def generate_token(self, secret_key: str, algorithm: str, expire_minutes: int) -> DomainToken:
+        """
+        クライアント認証資格情報からトークンを生成する
+        :param str secret_key: シークレットキー
+        :param str algorithm: アルゴリズム
+        :param int expire_minutes: トークンの有効期限（分）
+        :return DomainToken: トークン
+        """
         return DomainToken(
             token=jwt.encode(
                 {"id": str(self.id)},
@@ -30,4 +43,11 @@ class DomainClientAuthCredentials(DomainUtilsBase):
 
     @classmethod
     def convert_token(cls, token: str, secret_key: str, algorithm: str) -> DomainClientId:
+        """
+        トークンからクライアントIDを取得する
+        :param str token: トークン
+        :param str secret_key: シークレットキー
+        :param str algorithm: アルゴリズム
+        :return DomainClientId: クライアントID
+        """
         return DomainClientId(id=jwt.decode(token, secret_key, algorithms=[algorithm])["id"])

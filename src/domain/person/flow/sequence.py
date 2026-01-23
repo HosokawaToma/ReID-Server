@@ -11,6 +11,11 @@ class DomainPersonFlowSequence(DomainUtilsSequenceBase[DomainPersonFlow]):
     人物フローのシーケンスのドメインモデル
     """
     def to_weights(self) -> DomainPersonFlowWeightSequence:
+        """
+        人物フローのシーケンスから人流の重みを計算する
+        ある地点から別の地点に移動した人数をカウントする
+        :return DomainPersonFlowWeightSequence: 人物フローのシーケンスから人流の重みを計算したシーケンス
+        """
         weights: dict[tuple[DomainLocation, DomainLocation], int] = {}
         for flow in self.items:
             if (flow.source_location, flow.target_location) not in weights:
