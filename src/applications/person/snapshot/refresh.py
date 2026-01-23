@@ -26,6 +26,11 @@ class ApplicationPersonSnapshotRefresh(ApplicationBase):
         )
 
     def refresh(self, query: DtoPersonSnapshotQuery | None = None) -> None:
+        """
+        人物検出を更新する
+        :param DtoPersonSnapshotQuery query: 人物検出更新条件
+        :raises ApplicationPersonSnapshotRefreshError: 人物検出更新に失敗した場合に発生するエラー
+        """
         try:
             database_query = None
             if query is not None:

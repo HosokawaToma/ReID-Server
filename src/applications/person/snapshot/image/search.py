@@ -23,6 +23,12 @@ class ApplicationPersonSnapshotImageSearch(ApplicationBase):
         )
 
     def search(self, id: DtoId) -> DtoImage:
+        """
+        人物検出画像を検索する
+        :param DtoId id: 人物検出画像のID
+        :return DtoImage: 人物検出画像
+        :raises ApplicationPersonSnapshotImageSearchError: 人物検出画像検索に失敗した場合に発生するエラー
+        """
         try:
             image = self.repository_image.find_person_snapshot(DomainId(id=id.id))
             return DtoImage(bytes=image.bytes, format=image.format)

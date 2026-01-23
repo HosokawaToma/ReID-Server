@@ -31,6 +31,12 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
         self,
         query: DtoPersonSnapshotQuery | None = None,
     ) -> list[DtoPersonSnapshotDetail]:
+        """
+        人物検出を検索する
+        :param DtoPersonSnapshotQuery query: 人物検出検索条件
+        :return list[DtoPersonSnapshotDetail]: 人物検出リスト
+        :raises ApplicationPersonSnapshotSearchError: 人物検出検索に失敗した場合に発生するエラー
+        """
         try:
             database_query = None
             if query is not None:

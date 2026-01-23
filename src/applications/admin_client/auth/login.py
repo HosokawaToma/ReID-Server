@@ -48,6 +48,12 @@ class ApplicationAdminClientAuthLogin(ApplicationBase):
         )
 
     def login(self, credentials: DtoAdminClientAuthCredentials) -> DtoAdminClientAuthResult:
+        """
+        アドミンクライアントのパスワード認証を行う
+        :param DtoAdminClientAuthCredentials credentials: アドミンクライアントのパスワード認証資格情報
+        :return DtoAdminClientAuthResult: アドミンクライアントのパスワード認証結果
+        :raises ApplicationAdminClientAuthLoginInvalidCredentialsError: アドミンクライアントのパスワード認証資格情報が不正な場合に発生するエラー
+        """
         if not self.client_auth_credentials.authenticate(
             id=DomainClientId(id=credentials.id),
             password=DomainClientPassword(password=credentials.password),

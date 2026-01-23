@@ -28,6 +28,12 @@ class ApplicationPersonFlowSearch(ApplicationBase):
         )
 
     def search(self, query: DtoPersonFlowQuery | None = None) -> list[DtoPersonFlow]:
+        """
+        人流を検索する
+        :param DtoPersonFlowQuery query: 人流検索条件
+        :return list[DtoPersonFlow]: 人流リスト
+        :raises ApplicationPersonFlowSearchError: 人流検索に失敗した場合に発生するエラー
+        """
         database_query = None
         if query is not None:
             database_query = RepositoryUtilDatabaseQueryPersonSnapshot(

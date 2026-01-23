@@ -23,6 +23,12 @@ class ApplicationPersonFlowWeightSearch(ApplicationBase):
         )
 
     def search(self, query: DtoPersonFlowWeightQuery | None = None) -> list[DtoPersonFlowWeight]:
+        """
+        人流の重みを検索する
+        :param DtoPersonFlowWeightQuery query: 人流の重み検索条件
+        :return list[DtoPersonFlowWeight]: 人流の重みリスト
+        :raises ApplicationPersonFlowWeightSearchError: 人流の重み検索に失敗した場合に発生するエラー
+        """
         filters = None
         if query is not None:
             filters = RepositoryUtilDatabaseQueryPersonSnapshot(

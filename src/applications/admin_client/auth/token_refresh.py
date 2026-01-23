@@ -48,6 +48,12 @@ class ApplicationAdminClientAuthTokenRefresh(ApplicationBase):
         )
 
     def refresh(self, refresh_token: DtoAdminClientAuthToken) -> DtoAdminClientAuthResult:
+        """
+        アドミンクライアントのトークンを更新する
+        :param DtoAdminClientAuthToken refresh_token: アドミンクライアントのトークン更新用トークン
+        :return DtoAdminClientAuthResult: アドミンクライアントのトークン更新結果
+        :raises ApplicationAdminClientAuthTokenRefreshInvalidRefreshTokenError: アドミンクライアントのトークン更新用トークンが不正な場合に発生するエラー
+        """
         try:
             DomainClientAuthCredentials.convert_token(
                 token=refresh_token.token,

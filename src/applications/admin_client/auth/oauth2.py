@@ -32,6 +32,12 @@ class ApplicationAdminClientAuthOAuth2:
         )
 
     def oauth2(self, token: DtoAdminClientAuthToken) -> DtoAdminClientId:
+        """
+        アドミンクライアントのOAuth2認証を行う
+        :param DtoAdminClientAuthToken token: アドミンクライアントのOAuth2認証トークン
+        :return DtoAdminClientId: アドミンクライアントのID
+        :raises ApplicationAdminClientAuthOAuth2InvalidTokenError: アドミンクライアントのOAuth2認証トークンが不正な場合に発生するエラー
+        """
         try:
             id = DomainClientAuthCredentials.convert_token(
                 token=token.token,

@@ -28,6 +28,13 @@ class ApplicationPersonSnapshotCreate(ApplicationBase):
         )
 
     def save(self, location: DtoLocation, timestamp: DtoTimestamp, image: DtoImage) -> None:
+        """
+        人物検出を保存する
+        :param DtoLocation location: 人物検出の位置
+        :param DtoTimestamp timestamp: 人物検出の時間
+        :param DtoImage image: 人物検出の画像
+        :raises ApplicationPersonSnapshotCreateError: 人物検出保存に失敗した場合に発生するエラー
+        """
         try:
             self.repository_person_snapshot_create_queue.push(DomainCameraFrameImage(
                 id=DomainId(),

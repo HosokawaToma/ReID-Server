@@ -17,6 +17,12 @@ class ApplicationCameraFrameSearch(ApplicationBase):
         )
 
     def search(self, query: DtoCameraFrameQuery | None = None) -> list[DtoCameraFrame]:
+        """
+        カメラフレームを検索する
+        :param DtoCameraFrameQuery query: カメラフレーム検索条件
+        :return list[DtoCameraFrame]: カメラフレームリスト
+        :raises ApplicationCameraFrameSearchError: カメラフレーム検索に失敗した場合に発生するエラー
+        """
         database_query = None
         if query is not None:
             database_query = RepositoryUtilDatabaseQueryCameraFrame(
