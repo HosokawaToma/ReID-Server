@@ -5,6 +5,7 @@ from domain.timestamp import DomainTimestamp
 from domain.utils.base import DomainUtilsBase
 from domain.client.id import DomainClientId
 from domain.client.password import DomainClientPassword
+from domain.time import DomainTime
 
 @dataclass(frozen=True)
 class DomainClientAuthCredentials(DomainUtilsBase):
@@ -24,7 +25,7 @@ class DomainClientAuthCredentials(DomainUtilsBase):
                 secret_key,
                 algorithm=algorithm,
             ),
-            expires_at=DomainTimestamp().from_now(expire_minutes * 60),
+            expires_at=DomainTimestamp() + DomainTime(seconds=expire_minutes * 60),
         )
 
     @classmethod

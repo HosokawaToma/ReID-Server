@@ -19,11 +19,6 @@ class DomainTimestamp(DomainUtilsBase):
     """
     timestamp: datetime = field(default_factory=datetime.now)
 
-    def from_now(self, seconds: int) -> "DomainTimestamp":
-        return DomainTimestamp(
-            timestamp=self.timestamp + timedelta(seconds=seconds),
-        )
-
     def today(self) -> "DomainTimestamp":
         return DomainTimestamp(
             timestamp=datetime.combine(self.timestamp.date(), datetime.min.time()),
@@ -31,7 +26,7 @@ class DomainTimestamp(DomainUtilsBase):
 
     def __add__(self, other: "DomainTime") -> "DomainTimestamp":
         return DomainTimestamp(
-            timestamp=self.timestamp + other.time,
+            timestamp=self.timestamp + timedelta(seconds=other.seconds),
         )
 
     @overload
@@ -45,11 +40,11 @@ class DomainTimestamp(DomainUtilsBase):
     def __sub__(self, other: "DomainTime | DomainTimestamp") -> "DomainTimestamp | DomainTime":
         if isinstance(other, DomainTime):
             return DomainTimestamp(
-                timestamp=self.timestamp - other.time,
+                timestamp=self.timestamp - timedelta(seconds=other.seconds),
             )
         elif isinstance(other, DomainTimestamp):
             return DomainTime(
-                total_seconds=self.timestamp.timestamp() - other.timestamp.timestamp(),
+                seconds=self.timestamp.timestamp() - other.timestamp.timestamp(),
             )
         else:
             raise ValueError("other must be DomainTime or DomainTimestamp")

@@ -7,41 +7,37 @@ class DomainTime(DomainUtilsBase):
     """
     時刻のドメインモデル
     """
-    time: timedelta = field(init=False)
-    total_seconds: InitVar[float]
-
-    def __post_init__(self, total_seconds: float):
-        object.__setattr__(self, "time", timedelta(seconds=total_seconds))
+    seconds: float
 
     def __add__(self, other: "DomainTime") -> "DomainTime":
         return DomainTime(
-            total_seconds=self.time.total_seconds() + other.time.total_seconds(),
+            seconds=self.seconds + other.seconds,
         )
 
     def __sub__(self, other: "DomainTime") -> "DomainTime":
         return DomainTime(
-            total_seconds=self.time.total_seconds() - other.time.total_seconds(),
+            seconds=self.seconds - other.seconds,
         )
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, DomainTime):
             return False
-        return self.time == other.time
+        return self.seconds == other.seconds
 
     def __lt__(self, other: "DomainTime") -> bool:
-        return self.time < other.time
+        return self.seconds < other.seconds
 
     def __le__(self, other: "DomainTime") -> bool:
-        return self.time <= other.time
+        return self.seconds <= other.seconds
 
     def __gt__(self, other: "DomainTime") -> bool:
-        return self.time > other.time
+        return self.seconds > other.seconds
 
     def __ge__(self, other: "DomainTime") -> bool:
-        return self.time >= other.time
+        return self.seconds >= other.seconds
 
     def __hash__(self) -> int:
-        return hash(self.time)
+        return hash(self.seconds)
 
     def __str__(self) -> str:
-        return str(self.time)
+        return str(self.seconds)
