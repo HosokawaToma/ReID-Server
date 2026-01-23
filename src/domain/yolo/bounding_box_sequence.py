@@ -19,7 +19,7 @@ class DomainYoloBoundingBoxSequence(DomainUtilsSequenceBase[DomainYoloBoundingBo
                 id=DomainId(),
                 location=camera_frame_image.location,
                 timestamp=camera_frame_image.timestamp,
-                image=camera_frame_image.image.crop(bounding_box.x1, bounding_box.y1, bounding_box.x2, bounding_box.y2),
+                image=bounding_box.crop(camera_frame_image.image),
                 person_id=DomainPersonId(),
             ) for bounding_box in self
         ])
