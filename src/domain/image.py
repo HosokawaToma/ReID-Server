@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from PIL import Image
+import io
 from domain.yolo.object_detector import DomainYoloObjectDetector
 from domain.yolo.bounding_box_sequence import DomainYoloBoundingBoxSequence
 from domain.yolo.mask_sequence import DomainYoloMaskSequence
@@ -13,14 +14,18 @@ class DomainImage(DomainUtilsBase):
     """
     画像のドメインモデル
     """
-    image: Image.Image
+    bytes: bytes
     format: str
 
-    def __post_init__(self):
-        """
-        不変性維持のため画像をコピーします
-        """
-        object.__setattr__(self, "image", self.image.copy())
+    @classmethod
+    def from_image(cls, image: Image.Image) -> "DomainImage":
+        if image.format is None:
+            raise ValueError("画像のフォーマットが不明です")
+        return cls(bytes=image.tobytes(), format=image.format)
+
+    @property
+    def image(self) -> Image.Image:
+        return Image.open(io.BytesIO(self.bytes))
 
     def detect_person(self, detection_model: DomainYoloObjectDetector) -> DomainYoloBoundingBoxSequence:
         return detection_model.extract_person(self.image)
@@ -33,4 +38,4 @@ class DomainImage(DomainUtilsBase):
 
     def crop(self, x1: float, y1: float, x2: float, y2: float) -> "DomainImage":
         image = self.image.crop((x1, y1, x2, y2))
-        return DomainImage(image=image, format=self.format)
+        return DomainImage.from_image(image)
