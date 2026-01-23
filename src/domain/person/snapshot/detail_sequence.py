@@ -14,7 +14,7 @@ class DomainPersonSnapshotDetailSequence(DomainUtilsSequenceBase[DomainPersonSna
         if len(self.items) < 2:
             raise ValueError("人流計算には人物検出が2回以上必要です")
         first_person_id = self.items[0].person_id
-        if first_person_id is None:
+        if first_person_id.id is None:
             raise ValueError("人流計算には人物IDが必要です")
         if not all(detail.person_id == first_person_id for detail in self.items):
             raise ValueError("同じ人物IDのみの人物検出の集合が必要です")
@@ -27,7 +27,7 @@ class DomainPersonSnapshotDetailSequence(DomainUtilsSequenceBase[DomainPersonSna
                 and details[i].timestamp - details[i - 1].timestamp <= self.INTERVAL:
                 continue
             flows.append(DomainPersonFlow(
-                person_id=first_person_id,
+                person_id=first_person_id.id,
                 source_location=details[i - 1].location,
                 target_location=details[i].location,
                 source_timestamp=details[i - 1].timestamp,

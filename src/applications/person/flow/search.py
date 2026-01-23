@@ -41,7 +41,7 @@ class ApplicationPersonFlowSearch(ApplicationBase):
         except Error as error:
             raise ApplicationPersonFlowSearchError(error) from error
         return [DtoPersonFlow(
-            person_id=query.person_id,
+            person_id=flow.person_id.id,
             source_camera_id=flow.source_location.camera_id,
             target_camera_id=flow.target_location.camera_id,
             source_timestamp=flow.source_timestamp.timestamp,
