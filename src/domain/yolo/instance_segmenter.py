@@ -15,6 +15,11 @@ class DomainYoloInstanceSegmenter(DomainUtilsBase):
     model: YOLO
 
     def extract(self, image: Image.Image) -> DomainYoloMaskSequence:
+        """
+        公式ドキュメント参照し、画像からマスクを抽出します。
+        :param DomainImage image: 画像
+        :return DomainYoloMaskSequence: マスクのシーケンス
+        """
         results = self.model(image, classes=[0], verbose=False)
         items: Results = results[0]
         if items.masks is None:
