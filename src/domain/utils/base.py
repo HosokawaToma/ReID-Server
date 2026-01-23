@@ -1,5 +1,5 @@
 from abc import ABC
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from error import Error
 
 
@@ -13,4 +13,4 @@ class DomainUtilsBase(ABC):
     """
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.__dict__})"
+        return f"{self.__class__.__name__}({fields(self)})"
