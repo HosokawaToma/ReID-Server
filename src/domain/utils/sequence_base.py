@@ -3,10 +3,16 @@ from typing import TypeVar, Generic
 from domain.utils.base import DomainUtilsBase
 from dataclasses import dataclass
 from typing import Iterator
+from error import Error
 
 T = TypeVar("T", bound=DomainUtilsBase)
 
-@dataclass
+
+class DomainUtilsSequenceBaseError(Error):
+    pass
+
+
+@dataclass(frozen=True)
 class DomainUtilsSequenceBase(ABC, Generic[T]):
     items: list[T]
 
@@ -18,3 +24,6 @@ class DomainUtilsSequenceBase(ABC, Generic[T]):
 
     def __iter__(self) -> Iterator[T]:
         return iter(self.items)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}([{', '.join(repr(item) for item in self.items)}])"

@@ -11,7 +11,7 @@ class DtoPersonSnapshotQuerySortByKey(str, Enum):
     TIMESTAMP_ASC = "timestamp_asc"
     TIMESTAMP_DESC = "timestamp_desc"
 
-@dataclass
+@dataclass(frozen=True)
 class DtoPersonSnapshotQuery:
     """
     人物写真クエリを表すDTO

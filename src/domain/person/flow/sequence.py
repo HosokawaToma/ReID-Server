@@ -3,10 +3,9 @@ from domain.person.flow import DomainPersonFlow
 from domain.utils.sequence_base import DomainUtilsSequenceBase
 from domain.person.flow.weight_sequence import DomainPersonFlowWeightSequence
 from domain.person.flow.weight import DomainPersonFlowWeight
-from collections import defaultdict
 from domain.location import DomainLocation
 
-@dataclass
+@dataclass(frozen=True)
 class DomainPersonFlowSequence(DomainUtilsSequenceBase[DomainPersonFlow]):
     """
     人物フローのシーケンスのドメインモデル

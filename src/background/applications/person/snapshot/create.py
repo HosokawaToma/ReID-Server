@@ -3,7 +3,6 @@ from repositories.person.snapshot.reid_queue import RepositoryPersonSnapshotReid
 from repositories.yolo.detector import RepositoryYoloDetector
 from repositories.yolo.instance_segmenter import RepositoryYoloInstanceSegmenter
 from repositories.yolo.pose_estimator import RepositoryYoloPoseEstimator
-from dto.frame_image.meta_data import DtoFrameImageMetaData
 from environment import Environment
 from error import Error
 from background.applications.utils import BackgroundApplicationUtilsBase
@@ -38,7 +37,7 @@ class BackgroundApplicationPersonSnapshotCreate(BackgroundApplicationUtilsBase):
                 environment),
         )
 
-    def save(self) -> DtoFrameImageMetaData:
+    def save(self) -> None:
         try:
             frame_image = self.repository_person_snapshot_create_queue.pop()
             yolo_object_detector = self.repository_yolo_detector.get_instance()
@@ -50,11 +49,5 @@ class BackgroundApplicationPersonSnapshotCreate(BackgroundApplicationUtilsBase):
                 yolo_pose_estimator=yolo_pose_estimator,
             )
             self.repository_person_snapshot_reid_queue.push_all(person_snapshots)
-            return DtoFrameImageMetaData(
-                id=frame_image.id.id,
-                camera_id=frame_image.location.camera_id,
-                view_id=frame_image.location.view_id,
-                timestamp=frame_image.timestamp.timestamp,
-            )
         except Error as error:
             raise BackgroundApplicationPersonSnapshotCreateError(error) from error

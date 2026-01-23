@@ -7,7 +7,7 @@ from domain.id import DomainId
 from domain.person.id import DomainPersonId
 from domain.person.snapshot.image import DomainPersonSnapshotImage
 
-@dataclass
+@dataclass(frozen=True)
 class DomainYoloBoundingBoxSequence(DomainUtilsSequenceBase[DomainYoloBoundingBox]):
     """
     YOLOのバウンディングボックスのシーケンスのドメインモデル

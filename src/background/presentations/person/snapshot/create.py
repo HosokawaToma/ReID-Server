@@ -24,9 +24,9 @@ class BackgroundPersonSnapshotCreate(BackgroundPresentationUtilsBase):
         )
 
     def handle(self, background_id: str) -> None:
-        meta_data = self.application.save()
+        self.application.save()
         self.logger.background_info(
             background_id=background_id,
             name=self.name,
-            message=f"frame image id: {meta_data.id} created",
+            message=f"person snapshot created",
         )

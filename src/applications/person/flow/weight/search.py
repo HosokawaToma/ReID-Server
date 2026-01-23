@@ -28,7 +28,6 @@ class ApplicationPersonFlowWeightSearch(ApplicationBase):
             filters = RepositoryUtilDatabaseQueryPersonSnapshot(
                 timestamp_after=query.timestamp_after,
                 timestamp_before=query.timestamp_before,
-                person_ids=query.person_ids,
             )
         try:
             person_snapshots = self.repository_person_snapshot.find_details(query=filters)

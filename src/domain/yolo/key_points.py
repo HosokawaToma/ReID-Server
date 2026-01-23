@@ -3,7 +3,7 @@ from domain.yolo.key_point import DomainYoloKeyPoint
 from typing import ClassVar
 from domain.utils.base import DomainUtilsBase
 
-@dataclass
+@dataclass(frozen=True)
 class DomainYoloKeyPoints(DomainUtilsBase):
     """
     YOLOのキーポイントのドメインモデル

@@ -3,7 +3,7 @@ import torch
 from typing import ClassVar
 from domain.utils.base import DomainUtilsBase
 
-@dataclass
+@dataclass(frozen=True)
 class DomainPersonFeature(DomainUtilsBase):
     """
     人物の特徴量のドメインモデル

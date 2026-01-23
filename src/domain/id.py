@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 import uuid
 from domain.utils.base import DomainUtilsBase
 
-@dataclass
+@dataclass(frozen=True)
 class DomainId(DomainUtilsBase):
     """
     IDのドメインモデル

@@ -12,6 +12,7 @@ from domain.timestamp import DomainTimestamp
 from domain.person.id import DomainPersonId
 from domain.person.feature import DomainPersonFeature
 from domain.person.snapshot.feature import DomainPersonSnapshotFeature
+import torch
 
 class RepositoryPersonSnapshotError(Error):
     pass
@@ -71,8 +72,8 @@ class RepositoryPersonSnapshot:
                 query = session.query(MigrationModelPersonSnapshot)
                 query = query.filter(MigrationModelPersonSnapshot.timestamp <= person_snapshot.timestamp.timestamp)
                 query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
-                query = query.filter(MigrationModelPersonSnapshot.is_junk == False)
-                query = query.filter(MigrationModelPersonSnapshot.feature != None)
+                query = query.filter(MigrationModelPersonSnapshot.is_junk.is_(False))
+                query = query.filter(MigrationModelPersonSnapshot.feature.isnot(None))
                 query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature.feature.cpu().numpy().tolist()))
                 model = query.first()
                 if model is None:
@@ -83,7 +84,7 @@ class RepositoryPersonSnapshot:
                     id=DomainId(id=model.id),
                     location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
                     timestamp=DomainTimestamp(timestamp=model.timestamp),
-                    feature=DomainPersonFeature(feature=model.feature),
+                    feature=DomainPersonFeature(feature=torch.tensor(model.feature)),
                     person_id=DomainPersonId(
                         id=DomainId(id=model.person_id) if model.person_id is not None else None,
                         is_junk=model.is_junk,

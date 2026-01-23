@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from domain.location import DomainLocation
 from domain.utils.base import DomainUtilsBase
 
-@dataclass
+@dataclass(frozen=True)
 class DomainPersonFlowWeight(DomainUtilsBase):
     """
     個人の移動重みのドメインモデル

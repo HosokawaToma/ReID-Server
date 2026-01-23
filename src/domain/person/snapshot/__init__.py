@@ -7,7 +7,7 @@ from domain.person.feature import DomainPersonFeature
 from domain.image import DomainImage
 from domain.utils.base import DomainUtilsBase
 
-@dataclass
+@dataclass(frozen=True)
 class DomainPersonSnapshot(DomainUtilsBase):
     """
     人物検出結果のドメインモデル

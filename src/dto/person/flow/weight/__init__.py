@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-@dataclass
+@dataclass(frozen=True)
 class DtoPersonFlowWeight:
     """
     人物フロー重みを表すDTO

@@ -5,7 +5,7 @@ from domain.timestamp import DomainTimestamp
 from domain.person.id import DomainPersonId
 from domain.utils.base import DomainUtilsBase
 
-@dataclass
+@dataclass(frozen=True)
 class DomainPersonSnapshotDetail(DomainUtilsBase):
     id: DomainId
     location: DomainLocation

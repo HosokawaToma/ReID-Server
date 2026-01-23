@@ -3,7 +3,7 @@ from datetime import datetime
 import uuid
 from PIL import Image
 
-@dataclass
+@dataclass(frozen=True)
 class DtoCameraFrameImage:
     id: uuid.UUID
     camera_id: int

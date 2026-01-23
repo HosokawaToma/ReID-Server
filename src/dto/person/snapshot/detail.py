@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 import uuid
 
-@dataclass
+@dataclass(frozen=True)
 class DtoPersonSnapshotDetail:
     """
     人物写真の詳細を表すDTO。

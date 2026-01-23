@@ -11,7 +11,7 @@ from domain.reid.model import DomainReIDModel
 from domain.person.snapshot.feature import DomainPersonSnapshotFeature
 
 
-@dataclass
+@dataclass(frozen=True)
 class DomainPersonSnapshotImage(DomainUtilsBase):
     """
     人物検出結果の画像のドメインモデル
@@ -22,17 +22,37 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
     image: DomainImage
     person_id: DomainPersonId
 
-    def detect_junk(self, instance_segmenter: DomainYoloInstanceSegmenter, pose_estimator: DomainYoloPoseEstimator) -> None:
+    def detect_junk(
+        self,
+        instance_segmenter: DomainYoloInstanceSegmenter,
+        pose_estimator: DomainYoloPoseEstimator,
+    ) -> "DomainPersonSnapshotImage":
         instances = self.image.extract_instance(instance_segmenter)
         if not instances.is_one_person():
-            self.person_id.junk()
-            return
+            return DomainPersonSnapshotImage(
+                id=self.id,
+                location=self.location,
+                timestamp=self.timestamp,
+                image=self.image,
+                person_id=self.person_id.junk(),
+            )
         poses = self.image.extract_pose(pose_estimator)
         pose = poses.one_person()
         if not pose.is_full_length():
-            self.person_id.junk()
-            return
-        self.person_id.new_id()
+            return DomainPersonSnapshotImage(
+                id=self.id,
+                location=self.location,
+                timestamp=self.timestamp,
+                image=self.image,
+                person_id=self.person_id.junk(),
+            )
+        return DomainPersonSnapshotImage(
+            id=self.id,
+            location=self.location,
+            timestamp=self.timestamp,
+            image=self.image,
+            person_id=self.person_id.new_id(),
+        )
 
     def extract_feature(self, reid_model: DomainReIDModel) -> DomainPersonSnapshotFeature:
         return DomainPersonSnapshotFeature(

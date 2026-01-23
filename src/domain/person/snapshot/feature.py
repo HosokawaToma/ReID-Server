@@ -6,7 +6,7 @@ from domain.location import DomainLocation
 from domain.timestamp import DomainTimestamp
 from domain.person.id import DomainPersonId
 
-@dataclass
+@dataclass(frozen=True)
 class DomainPersonSnapshotFeature(DomainUtilsBase):
     """
     人物検出結果の特徴量のドメインモデル
@@ -17,6 +17,19 @@ class DomainPersonSnapshotFeature(DomainUtilsBase):
     feature: DomainPersonFeature
     person_id: DomainPersonId
 
-    def reid(self, nearest_person_snapshot_feature: "DomainPersonSnapshotFeature") -> None:
+    def reid(self, nearest_person_snapshot_feature: "DomainPersonSnapshotFeature") -> "DomainPersonSnapshotFeature":
         if self.feature.is_same(nearest_person_snapshot_feature.feature):
-            self.person_id.set_id(nearest_person_snapshot_feature.person_id)
+            return DomainPersonSnapshotFeature(
+                id=self.id,
+                location=self.location,
+                timestamp=self.timestamp,
+                feature=self.feature,
+                person_id=self.person_id.copy(),
+            )
+        return DomainPersonSnapshotFeature(
+            id=self.id,
+            location=self.location,
+            timestamp=self.timestamp,
+            feature=self.feature,
+            person_id=nearest_person_snapshot_feature.person_id.copy(),
+        )

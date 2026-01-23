@@ -4,20 +4,16 @@ from domain.yolo.key_points_sequence import DomainYoloKeyPointsSequence
 from domain.yolo.key_points import DomainYoloKeyPoints
 from domain.yolo.key_point import DomainYoloKeyPoint
 from PIL import Image
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from domain.utils.base import DomainUtilsBase
 
 
-@dataclass
+@dataclass(frozen=True)
 class DomainYoloPoseEstimator(DomainUtilsBase):
     """
     YOLOの姿勢推定器のドメインモデル
     """
-    weights_path: str
-    model: YOLO = field(init=False)
-
-    def __post_init__(self):
-        self.model = YOLO(self.weights_path)
+    model: YOLO
 
     def extract(self, image: Image.Image) -> DomainYoloKeyPointsSequence:
         results = self.model(image, verbose=False)

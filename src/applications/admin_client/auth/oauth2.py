@@ -31,11 +31,12 @@ class ApplicationAdminClientAuthOAuth2:
         )
 
     def oauth2(self, token: DtoAdminClientAuthToken) -> DtoAdminClientId:
-        id = DomainClientAuthCredentials.convert_token(
-            token=token.token,
-            secret_key=self.refresh_secret_key,
-            algorithm=self.refresh_algorithm,
-        )
-        if id is None:
-            raise ApplicationAdminClientAuthOAuth2InvalidTokenError()
+        try:
+            id = DomainClientAuthCredentials.convert_token(
+                token=token.token,
+                secret_key=self.refresh_secret_key,
+                algorithm=self.refresh_algorithm,
+            )
+        except Error as error:
+            raise ApplicationAdminClientAuthOAuth2InvalidTokenError(error)
         return DtoAdminClientId(id=id)

@@ -1,5 +1,6 @@
 from domain.yolo.instance_segmenter import DomainYoloInstanceSegmenter
 from typing import ClassVar
+from ultralytics.models.yolo import YOLO
 
 
 class RepositoryYoloInstanceSegmenter:
@@ -9,7 +10,7 @@ class RepositoryYoloInstanceSegmenter:
     def __init__(self):
         if self.CACHE is None:
             self.CACHE = DomainYoloInstanceSegmenter(
-                weights_path=self.WEIGHTS_PATH,
+                model=YOLO(self.WEIGHTS_PATH),
             )
         self.yolo_instance_segmenter = self.CACHE
 

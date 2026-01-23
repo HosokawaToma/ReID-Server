@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import uuid
 
-@dataclass
+@dataclass(frozen=True)
 class DtoPersonSnapshotPersonId:
     id: uuid.UUID
     person_id: uuid.UUID | None

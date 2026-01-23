@@ -1,14 +1,13 @@
 from dataclasses import dataclass
-from datetime import timedelta
 from domain.person.snapshot.detail import DomainPersonSnapshotDetail
 from domain.utils.sequence_base import DomainUtilsSequenceBase
 from domain.person.flow import DomainPersonFlow
 from domain.person.flow.sequence import DomainPersonFlowSequence
-from domain.person.id import DomainPersonId
+from domain.time import DomainTime
 
-@dataclass
+@dataclass(frozen=True)
 class DomainPersonSnapshotDetailSequence(DomainUtilsSequenceBase[DomainPersonSnapshotDetail]):
-    INTERVAL: timedelta = timedelta(seconds=10)
+    INTERVAL: DomainTime = DomainTime(seconds=10)
 
     def to_flows(self) -> DomainPersonFlowSequence:
         if len(self.items) < 2:

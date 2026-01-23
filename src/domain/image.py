@@ -8,7 +8,7 @@ from domain.yolo.pose_estimator import DomainYoloPoseEstimator
 from domain.yolo.key_points_sequence import DomainYoloKeyPointsSequence
 from domain.utils.base import DomainUtilsBase
 
-@dataclass
+@dataclass(frozen=True)
 class DomainImage(DomainUtilsBase):
     """
     画像のドメインモデル

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 import torch
 
-@dataclass
+@dataclass(frozen=True)
 class DtoPersonSnapshot:
     id: uuid.UUID
     camera_id: int

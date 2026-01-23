@@ -3,6 +3,6 @@ from domain.id import DomainId
 from domain.utils.sequence_base import DomainUtilsSequenceBase
 
 
-@dataclass
+@dataclass(frozen=True)
 class DomainIdSequence(DomainUtilsSequenceBase[DomainId]):
     pass

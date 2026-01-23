@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 import uuid
 
-@dataclass
+@dataclass(frozen=True)
 class DtoPersonFlow:
     """
     人物フローを表すDTO

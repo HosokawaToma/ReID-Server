@@ -43,8 +43,14 @@ class ApplicationAdminClientAuthTokenRefresh(ApplicationBase):
         )
 
     def refresh(self, refresh_token: DtoAdminClientAuthToken) -> DtoAdminClientAuthResult:
-        if not DomainClientAuthCredentials.convert_token(refresh_token.token, self.refresh_secret_key, self.refresh_algorithm):
-            raise ApplicationAdminClientAuthTokenRefreshInvalidRefreshTokenError()
+        try:
+            id = DomainClientAuthCredentials.convert_token(
+                token=refresh_token.token,
+                secret_key=self.refresh_secret_key,
+                algorithm=self.refresh_algorithm,
+            )
+        except Error as error:
+            raise ApplicationAdminClientAuthTokenRefreshInvalidRefreshTokenError(error)
         return DtoAdminClientAuthResult(
             token=self.client_auth_credentials.generate_token(
                 secret_key=self.secret_key,

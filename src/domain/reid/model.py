@@ -5,10 +5,9 @@ from domain.person.feature import DomainPersonFeature
 from domain.utils.base import DomainUtilsBase
 from modules.reid.model import ModuleReIDModel
 
-@dataclass
+@dataclass(frozen=True)
 class DomainReIDModel(DomainUtilsBase):
-    def __init__(self, model: ModuleReIDModel):
-        self.model = model
+    model: ModuleReIDModel
 
     def extract(self, image: DomainImage, location: DomainLocation) -> DomainPersonFeature:
         return DomainPersonFeature(

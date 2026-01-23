@@ -38,4 +38,4 @@ class ApplicationCameraFrameSearch(ApplicationBase):
             camera_id=camera_frame.location.camera_id,
             view_id=camera_frame.location.view_id,
             timestamp=camera_frame.timestamp.timestamp,
-        ) for camera_frame in camera_frames.frames]
+        ) for camera_frame in camera_frames]

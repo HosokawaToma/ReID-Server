@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from PIL import Image
 
-@dataclass
+@dataclass(frozen=True)
 class DtoImage:
     """
     画像データを表すDTO

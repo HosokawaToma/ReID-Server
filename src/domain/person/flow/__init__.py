@@ -5,7 +5,7 @@ from domain.person.id import DomainPersonId
 from domain.utils.base import DomainUtilsBase
 
 
-@dataclass
+@dataclass(frozen=True)
 class DomainPersonFlow(DomainUtilsBase):
     """
     個人の移動のドメインモデル

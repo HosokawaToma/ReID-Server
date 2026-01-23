@@ -40,8 +40,6 @@ class ApplicationPersonFlowSearch(ApplicationBase):
             flows = person_snapshots.to_flows()
         except Error as error:
             raise ApplicationPersonFlowSearchError(error) from error
-        if flows is None:
-            raise ApplicationPersonFlowSearchNoFlowsFoundError()
         return [DtoPersonFlow(
             person_id=query.person_id,
             source_camera_id=flow.source_location.camera_id,

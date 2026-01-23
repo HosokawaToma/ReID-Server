@@ -3,20 +3,16 @@ from domain.yolo.mask import DomainYoloMask
 from domain.yolo.mask_sequence import DomainYoloMaskSequence
 from ultralytics.engine.results import Results
 from PIL import Image
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from domain.utils.base import DomainUtilsBase
 
 
-@dataclass
+@dataclass(frozen=True)
 class DomainYoloInstanceSegmenter(DomainUtilsBase):
     """
     YOLOの個体推定のドメインモデル
     """
-    weights_path: str
-    model: YOLO = field(init=False)
-
-    def __post_init__(self):
-        self.model = YOLO(self.weights_path)
+    model: YOLO
 
     def extract(self, image: Image.Image) -> DomainYoloMaskSequence:
         results = self.model(image, classes=[0], verbose=False)

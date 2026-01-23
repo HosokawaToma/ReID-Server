@@ -9,7 +9,7 @@ class DtoFrameQuerySortByKey(str, Enum):
     def __str__(self) -> str:
         return self.value
 
-@dataclass
+@dataclass(frozen=True)
 class DtoCameraFrameQuery:
     ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None

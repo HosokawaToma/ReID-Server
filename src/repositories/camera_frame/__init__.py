@@ -39,6 +39,6 @@ class RepositoryCameraFrame:
                 if query is not None:
                     session_query = query.build(session_query)
                 models = session_query.all()
-                return DomainCameraFrameSequence(frames=[self._model_to_domain(model) for model in models])
+                return DomainCameraFrameSequence(items=[self._model_to_domain(model) for model in models])
         except Error as error:
             raise RepositoryCameraFrameFindError(error) from error

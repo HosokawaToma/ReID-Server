@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from domain.image import DomainImage
 from domain.utils.base import DomainUtilsBase
 
-@dataclass
+@dataclass(frozen=True)
 class DomainYoloBoundingBox(DomainUtilsBase):
     """
     YOLOのバウンディングボックスのドメインモデル

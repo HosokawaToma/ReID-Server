@@ -1,5 +1,6 @@
 from domain.yolo.pose_estimator import DomainYoloPoseEstimator
 from typing import ClassVar
+from ultralytics.models.yolo import YOLO
 
 class RepositoryYoloPoseEstimator:
     WEIGHTS_PATH: ClassVar[str] = "./resources/models/yolo11x-pose.pt"
@@ -8,7 +9,7 @@ class RepositoryYoloPoseEstimator:
     def __init__(self):
         if self.CACHE is None:
             self.CACHE = DomainYoloPoseEstimator(
-                weights_path=self.WEIGHTS_PATH,
+                model=YOLO(self.WEIGHTS_PATH),
             )
         self.yolo_pose_estimator = self.CACHE
 

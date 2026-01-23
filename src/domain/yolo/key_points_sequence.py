@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from domain.yolo.key_points import DomainYoloKeyPoints
 from domain.utils.sequence_base import DomainUtilsSequenceBase
 
-@dataclass
+@dataclass(frozen=True)
 class DomainYoloKeyPointsSequence(DomainUtilsSequenceBase[DomainYoloKeyPoints]):
     """
     YOLOのキーポイントのシーケンスのドメインモデル
