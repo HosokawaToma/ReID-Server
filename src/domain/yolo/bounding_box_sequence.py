@@ -12,19 +12,3 @@ class DomainYoloBoundingBoxSequence(DomainUtilsSequenceBase[DomainYoloBoundingBo
     """
     YOLOのバウンディングボックスのシーケンスのドメインモデル
     """
-
-    def create_person_snapshot_images(self, camera_frame_image: DomainCameraFrameImage) -> DomainPersonSnapshotImageSequence:
-        return DomainPersonSnapshotImageSequence(items=[
-            DomainPersonSnapshotImage(
-                id=DomainId(),
-                location=camera_frame_image.location,
-                timestamp=camera_frame_image.timestamp,
-                image=camera_frame_image.image.crop(
-                    x1=bounding_box.x1,
-                    y1=bounding_box.y1,
-                    x2=bounding_box.x2,
-                    y2=bounding_box.y2,
-                ),
-                person_id=DomainPersonId(),
-            ) for bounding_box in self
-        ])
