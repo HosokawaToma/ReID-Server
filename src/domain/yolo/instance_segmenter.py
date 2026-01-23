@@ -1,7 +1,7 @@
 from domain.yolo.mask import DomainYoloMask
 from domain.yolo.mask_sequence import DomainYoloMaskSequence
 from domain.image import DomainImage
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from domain.utils.base import DomainUtilsBase
 from modules.yolo.instance_segmenter import ModuleYoloInstanceSegmenter
 
@@ -11,7 +11,7 @@ class DomainYoloInstanceSegmenter(DomainUtilsBase):
     """
     YOLOの個体推定のドメインモデル
     """
-    model: ModuleYoloInstanceSegmenter = field(init=False, default_factory=ModuleYoloInstanceSegmenter)
+    model: ModuleYoloInstanceSegmenter
 
     def extract(self, image: DomainImage) -> DomainYoloMaskSequence:
         """

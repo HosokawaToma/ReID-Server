@@ -3,9 +3,9 @@ from repositories.person.snapshot.reid_queue import RepositoryPersonSnapshotReid
 from environment import Environment
 from error import Error
 from background.applications.utils import BackgroundApplicationUtilsBase
-from domain.yolo.object_detector import DomainYoloObjectDetector
-from domain.yolo.instance_segmenter import DomainYoloInstanceSegmenter
-from domain.yolo.pose_estimator import DomainYoloPoseEstimator
+from repositories.yolo.object_detector import RepositoryYoloObjectDetector
+from repositories.yolo.instance_segmenter import RepositoryYoloInstanceSegmenter
+from repositories.yolo.pose_estimator import RepositoryYoloPoseEstimator
 
 class BackgroundApplicationPersonSnapshotCreateError(Error):
     pass
@@ -15,14 +15,14 @@ class BackgroundApplicationPersonSnapshotCreate(BackgroundApplicationUtilsBase):
         self,
         repository_person_snapshot_create_queue: RepositoryPersonSnapshotCreateQueue,
         repository_person_snapshot_reid_queue: RepositoryPersonSnapshotReidQueue,
-        domain_yolo_object_detector: DomainYoloObjectDetector,
-        domain_yolo_instance_segmenter: DomainYoloInstanceSegmenter,
-        domain_yolo_pose_estimator: DomainYoloPoseEstimator,
+        repository_yolo_object_detector: RepositoryYoloObjectDetector,
+        repository_yolo_instance_segmenter: RepositoryYoloInstanceSegmenter,
+        repository_yolo_pose_estimator: RepositoryYoloPoseEstimator,
     ):
         self.repository_person_snapshot_create_queue = repository_person_snapshot_create_queue
-        self.domain_yolo_object_detector = domain_yolo_object_detector
-        self.domain_yolo_instance_segmenter = domain_yolo_instance_segmenter
-        self.domain_yolo_pose_estimator = domain_yolo_pose_estimator
+        self.repository_yolo_object_detector = repository_yolo_object_detector
+        self.repository_yolo_instance_segmenter = repository_yolo_instance_segmenter
+        self.repository_yolo_pose_estimator = repository_yolo_pose_estimator
         self.repository_person_snapshot_reid_queue = repository_person_snapshot_reid_queue
 
     @classmethod
@@ -30,9 +30,9 @@ class BackgroundApplicationPersonSnapshotCreate(BackgroundApplicationUtilsBase):
         return cls(
             repository_person_snapshot_create_queue=RepositoryPersonSnapshotCreateQueue.create(
                 environment),
-            domain_yolo_object_detector=DomainYoloObjectDetector(),
-            domain_yolo_instance_segmenter=DomainYoloInstanceSegmenter(),
-            domain_yolo_pose_estimator=DomainYoloPoseEstimator(),
+            repository_yolo_object_detector=RepositoryYoloObjectDetector.create(),
+            repository_yolo_instance_segmenter=RepositoryYoloInstanceSegmenter.create(),
+            repository_yolo_pose_estimator=RepositoryYoloPoseEstimator.create(),
             repository_person_snapshot_reid_queue=RepositoryPersonSnapshotReidQueue.create(
                 environment),
         )
@@ -41,9 +41,9 @@ class BackgroundApplicationPersonSnapshotCreate(BackgroundApplicationUtilsBase):
         try:
             frame_image = self.repository_person_snapshot_create_queue.pop()
             person_snapshots = frame_image.create_person_snapshot_images(
-                yolo_object_detector=self.domain_yolo_object_detector,
-                yolo_instance_segmenter=self.domain_yolo_instance_segmenter,
-                yolo_pose_estimator=self.domain_yolo_pose_estimator,
+                yolo_object_detector=self.repository_yolo_object_detector.find(),
+                yolo_instance_segmenter=self.repository_yolo_instance_segmenter.find(),
+                yolo_pose_estimator=self.repository_yolo_pose_estimator.find(),
             )
             self.repository_person_snapshot_reid_queue.push_all(person_snapshots)
         except Error as error:
