@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from domain.utils.base import DomainUtilsBase
-from datetime import timedelta
 
 @dataclass(frozen=True)
 class DomainTime(DomainUtilsBase):
