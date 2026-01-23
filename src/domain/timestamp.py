@@ -49,10 +49,8 @@ class DomainTimestamp(DomainUtilsBase):
             )
         elif isinstance(other, DomainTimestamp):
             return DomainTime(
-                seconds=int(self.timestamp.timestamp() - other.timestamp.timestamp()),
+                total_seconds=self.timestamp.timestamp() - other.timestamp.timestamp(),
             )
-        else:
-            raise ValueError("other must be DomainTime or DomainTimestamp")
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, DomainTimestamp):
