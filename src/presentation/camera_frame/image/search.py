@@ -38,4 +38,4 @@ class PresentationCameraFrameImageSearch(PresentationBase):
         image = application.search(
             id=DtoId(id=id),
         )
-        return PresentationImageResponse(status=200, image=image.image)
+        return PresentationImageResponse(status=200, image=image)

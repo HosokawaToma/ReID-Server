@@ -44,11 +44,9 @@ class PresentationPersonSnapshotCreate(PresentationBase):
         view_id: PresentationTypeInt,
         application: ApplicationPersonSnapshotCreate = get_application(ApplicationPersonSnapshotCreate),
     ):
-        if image.format is None:
-            return PresentationJSONResponse(status=400, content={"message": "Image format is None"})
         application.save(
             location=DtoLocation(camera_id=camera_id, view_id=view_id),
             timestamp=DtoTimestamp(timestamp=timestamp),
-            image=DtoImage(image=image, format=image.format),
+            image=image,
         )
         return PresentationJSONResponse(status=200, content={"message": "Person snapshot created"})

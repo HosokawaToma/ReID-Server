@@ -17,4 +17,4 @@ class ApplicationCameraFrameImageSearch(ApplicationBase):
 
     def search(self, id: DtoId) -> DtoImage:
         image = self.repository_image.find_camera_frame(DomainId(id=id.id))
-        return DtoImage(image=image.image, format=image.format)
+        return DtoImage(bytes=image.bytes, format=image.format)
