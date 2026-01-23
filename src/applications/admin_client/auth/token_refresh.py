@@ -44,7 +44,7 @@ class ApplicationAdminClientAuthTokenRefresh(ApplicationBase):
 
     def refresh(self, refresh_token: DtoAdminClientAuthToken) -> DtoAdminClientAuthResult:
         try:
-            id = DomainClientAuthCredentials.convert_token(
+            DomainClientAuthCredentials.convert_token(
                 token=refresh_token.token,
                 secret_key=self.refresh_secret_key,
                 algorithm=self.refresh_algorithm,
