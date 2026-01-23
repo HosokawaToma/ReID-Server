@@ -7,11 +7,11 @@ class RepositoryYoloDetector:
     CACHE: ClassVar[DomainYoloObjectDetector] | None = None
 
     def __init__(self):
-        if self.CACHE is None:
-            self.CACHE = DomainYoloObjectDetector(
-                model=YOLO(self.WEIGHTS_PATH),
+        if RepositoryYoloDetector.CACHE is None:
+            RepositoryYoloDetector.CACHE = DomainYoloObjectDetector(
+                model=YOLO(RepositoryYoloDetector.WEIGHTS_PATH),
             )
-        self.yolo_object_detector = self.CACHE
+        self.yolo_object_detector = RepositoryYoloDetector.CACHE
 
     @classmethod
     def create(cls) -> "RepositoryYoloDetector":
