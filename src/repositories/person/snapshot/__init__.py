@@ -26,6 +26,8 @@ class RepositoryPersonSnapshotFindDetailsError(RepositoryPersonSnapshotError):
 class RepositoryPersonSnapshotFindFeaturesByNearestError(RepositoryPersonSnapshotError):
     pass
 
+class RepositoryPersonSnapshotSaveFeatureError(RepositoryPersonSnapshotError):
+    pass
 
 class RepositoryPersonSnapshot:
     def __init__(self, database: RepositoryUtilDatabase):
@@ -92,3 +94,19 @@ class RepositoryPersonSnapshot:
                 )
         except Error as error:
             raise RepositoryPersonSnapshotFindFeaturesByNearestError(error) from error
+
+    def save_feature(self, person_snapshot: DomainPersonSnapshotFeature) -> None:
+        try:
+            with self.database as session:
+                session.add(MigrationModelPersonSnapshot(
+                    id=person_snapshot.id.id,
+                    camera_id=person_snapshot.location.camera_id,
+                    view_id=person_snapshot.location.view_id,
+                    timestamp=person_snapshot.timestamp.timestamp,
+                    is_junk=person_snapshot.person_id.is_junk,
+                    person_id=person_snapshot.person_id.id.id if person_snapshot.person_id.id is not None else None,
+                    feature=person_snapshot.feature.feature.cpu().numpy().tolist(),
+                ))
+                session.commit()
+        except Error as error:
+            raise RepositoryPersonSnapshotSaveFeatureError(error) from error

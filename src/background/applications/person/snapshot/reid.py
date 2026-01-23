@@ -41,11 +41,12 @@ class BackgroundApplicationPersonSnapshotReid(BackgroundApplicationUtilsBase):
             person_snapshot_image = self.repository_person_snapshot_reid_queue.pop()
             person_snapshot_feature = person_snapshot_image.extract_feature(self.reid_model)
             nearest_person_snapshot_feature = self.repository_person_snapshot.find_features_by_nearest(person_snapshot_feature)
-            person_snapshot_feature.reid(nearest_person_snapshot_feature)
+            reid_person_snapshot_feature = person_snapshot_feature.reid(nearest_person_snapshot_feature)
+            self.repository_person_snapshot.save_feature(reid_person_snapshot_feature)
             return DtoPersonSnapshotPersonId(
-                id=person_snapshot_feature.id.id,
-                person_id=person_snapshot_feature.person_id.id.id if person_snapshot_feature.person_id.id is not None else None,
-                is_junk=person_snapshot_feature.person_id.is_junk,
+                id=reid_person_snapshot_feature.id.id,
+                person_id=reid_person_snapshot_feature.person_id.id.id if reid_person_snapshot_feature.person_id.id is not None else None,
+                is_junk=reid_person_snapshot_feature.person_id.is_junk,
             )
         except Error as error:
             raise BackgroundApplicationPersonSnapshotReidError(error) from error
