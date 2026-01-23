@@ -13,7 +13,7 @@ class DomainPersonFlowSequence(DomainUtilsSequenceBase[DomainPersonFlow]):
     def to_weights(self) -> DomainPersonFlowWeightSequence:
         weights: dict[tuple[DomainLocation, DomainLocation], int] = {}
         for flow in self.items:
-            if weights.get((flow.source_location, flow.target_location)) is None:
+            if (flow.source_location, flow.target_location) not in weights:
                 weights[(flow.source_location, flow.target_location)] = 0
             weights[(flow.source_location, flow.target_location)] += 1
         return DomainPersonFlowWeightSequence(items=[DomainPersonFlowWeight(
