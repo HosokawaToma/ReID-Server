@@ -8,7 +8,7 @@ from typing import ClassVar
 
 @dataclass(frozen=True)
 class DomainPersonSnapshotDetailSequence(DomainUtilsSequenceBase[DomainPersonSnapshotDetail]):
-    INTERVAL: ClassVar[DomainTime] = DomainTime(seconds=10)
+    INTERVAL: ClassVar[DomainTime] = DomainTime(total_seconds=10)
 
     def to_flows(self) -> DomainPersonFlowSequence:
         if len(self.items) < 2:
