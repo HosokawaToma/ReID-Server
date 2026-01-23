@@ -11,6 +11,7 @@ from domain.image import DomainImage
 from migration.models.camera_frames import MigrationModelCameraFrame
 from environment import Environment
 from error import Error
+from uuid import UUID
 
 class RepositoryPersonSnapshotCreateQueueError(Error):
     pass
@@ -85,7 +86,7 @@ class RepositoryPersonSnapshotCreateQueue:
         try:
             data = self.redis.dequeue(RepositoryUtilRedisKey.PERSON_SNAPSHOT_CREATE)
             with self.database as session:
-                model = session.query(MigrationModelCameraFrame).filter(MigrationModelCameraFrame.id == data["id"]).first()
+                model = session.query(MigrationModelCameraFrame).filter(MigrationModelCameraFrame.id == UUID(data["id"])).first()
                 if model is None:
                     raise RepositoryPersonSnapshotCreateQueuePopError()
                 image = self.storage.search_image(
