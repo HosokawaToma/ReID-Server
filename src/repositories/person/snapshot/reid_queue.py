@@ -70,32 +70,37 @@ class RepositoryPersonSnapshotReidQueue:
         )
 
     def push(self, person_snapshot: DomainPersonSnapshotImage) -> None:
+        """
+        人物検出結果を再識別キューに追加します
+        キューへの追加が失敗してもデータベースへの追加は行われます
+        :param DomainPersonSnapshotImage person_snapshot: 人物検出結果
+        :raise RepositoryPersonSnapshotReidQueuePushError: キューへの追加が失敗した場合
+        """
         try:
             with self.database as session:
                 session.add(self._domain_to_model(person_snapshot))
-                self.redis.push(
-                    key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID,
-                    value={"id": str(person_snapshot.id.id)},
-                )
+            self.redis.push(
+                key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID,
+                value={"id": str(person_snapshot.id.id)},
+            )
         except Error as error:
             raise RepositoryPersonSnapshotReidQueuePushError(error) from error
 
     def push_all(self, person_snapshot_images: DomainPersonSnapshotImageSequence) -> None:
-        try:
-            for person_snapshot_image in person_snapshot_images:
+        """
+        人物検出結果を再識別キューに追加します
+        キューへの追加が失敗してもデータベースへの追加は行われます
+        :param DomainPersonSnapshotImageSequence person_snapshot_images: 人物検出結果のシーケンス
+        :raise RepositoryPersonSnapshotReidQueuePushAllError: 人物検出結果のシーケンスの中でキューへの追加が失敗した場合
+        """
+        errors = []
+        for person_snapshot_image in person_snapshot_images:
+            try:
                 self.push(person_snapshot_image)
-        except Error as error:
-            raise RepositoryPersonSnapshotReidQueuePushAllError(error) from error
-
-    def push_ids(self, ids: DomainIdSequence) -> None:
-        try:
-            for id in ids:
-                self.redis.push(
-                    key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID,
-                    value={"id": str(id.id)},
-                )
-        except Error as error:
-            raise RepositoryPersonSnapshotReidQueuePushAllError(error) from error
+            except Error as error:
+                errors.append(error)
+        if len(errors) > 0:
+            raise RepositoryPersonSnapshotReidQueuePushAllError(errors[0]) from errors[0]
 
     def pop(self) -> DomainPersonSnapshotImage:
         try:
