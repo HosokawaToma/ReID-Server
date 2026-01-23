@@ -11,3 +11,6 @@ class DomainYoloKeyPointsSequence(DomainUtilsSequenceBase[DomainYoloKeyPoints]):
         if len(self.items) != 1:
             raise ValueError("キーポイントのシーケンスには1人のみが含まれている必要があります")
         return self.items[0]
+
+    def is_one_person(self) -> bool:
+        return len(self.items) == 1

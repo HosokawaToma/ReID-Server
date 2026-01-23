@@ -37,6 +37,14 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
                 person_id=self.person_id.junk(),
             )
         poses = self.image.extract_pose(pose_estimator)
+        if not poses.is_one_person():
+            return DomainPersonSnapshotImage(
+                id=self.id,
+                location=self.location,
+                timestamp=self.timestamp,
+                image=self.image,
+                person_id=self.person_id.junk(),
+            )
         pose = poses.one_person()
         if not pose.is_full_length():
             return DomainPersonSnapshotImage(
