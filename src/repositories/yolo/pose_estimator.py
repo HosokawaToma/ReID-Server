@@ -7,11 +7,11 @@ class RepositoryYoloPoseEstimator:
     CACHE: ClassVar[DomainYoloPoseEstimator] | None = None
 
     def __init__(self):
-        if self.CACHE is None:
-            self.CACHE = DomainYoloPoseEstimator(
-                model=YOLO(self.WEIGHTS_PATH),
+        if RepositoryYoloPoseEstimator.CACHE is None:
+            RepositoryYoloPoseEstimator.CACHE = DomainYoloPoseEstimator(
+                model=YOLO(RepositoryYoloPoseEstimator.WEIGHTS_PATH),
             )
-        self.yolo_pose_estimator = self.CACHE
+        self.yolo_pose_estimator = RepositoryYoloPoseEstimator.CACHE
 
     @classmethod
     def create(cls) -> "RepositoryYoloPoseEstimator":
