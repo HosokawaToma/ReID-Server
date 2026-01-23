@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import hashlib
 import jwt
 from domain.token import DomainToken
 from domain.timestamp import DomainTimestamp
