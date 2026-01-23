@@ -24,3 +24,9 @@ class ValuePersonSnapshotAnnotation:
         self._is_junk = is_junk
         if is_junk:
             self._person_id = None
+
+    def copy(self, annotation: "ValuePersonSnapshotAnnotation") -> "ValuePersonSnapshotAnnotation":
+        return ValuePersonSnapshotAnnotation(
+            _person_id=annotation.person_id,
+            _is_junk=annotation.is_junk,
+        )
