@@ -4,7 +4,7 @@ from ultralytics.engine.results import Results
 from PIL import Image
 
 class ModuleYoloInstanceSegmenter:
-    WEIGHTS_PATH: ClassVar[str] = "./resources/models/yolo11x-instance-segmenter.pt"
+    WEIGHTS_PATH: ClassVar[str] = "./resources/models/yolo11x-seg.pt"
 
     def __init__(self):
         self.model = YOLO(self.WEIGHTS_PATH)
