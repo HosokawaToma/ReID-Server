@@ -44,6 +44,11 @@ class BackgroundPresentationUtilsBase(ABC):
                     message=f"background started",
                 )
                 await asyncio.to_thread(self.handle, process_id=process_id)
+                self.logger.background_info(
+                    process_id=process_id,
+                    name=self.name,
+                    message=f"background finished",
+                )
             except Error as e:
                 self.logger.error(error=e, id=process_id)
                 continue
