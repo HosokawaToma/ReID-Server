@@ -1,18 +1,15 @@
 from applications.person.snapshot.create import ApplicationPersonSnapshotCreate
-from dto.image import DtoImage
 from dto.location import DtoLocation
 from dto.timestamp import DtoTimestamp
-from presentation import PresentationBase
-from presentation import PresentationAdminClientAuthenticated
-from presentation import PresentationTypeImage
-from presentation import PresentationTypeDatetime
-from presentation import PresentationTypeInt
-from presentation import PresentationJSONResponse
+from presentation.utils.base import PresentationUtilBase
+from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
+from presentation.utils.type import PresentationUtilFromImage, PresentationUtilFromDatetime, PresentationUtilFromInt
+from presentation.utils.response import PresentationUtilJSONResponse
 from logger import Logger
-from presentation import get_application
+from presentation.utils.factory import get_application
 
 
-class PresentationPersonSnapshotCreate(PresentationBase):
+class PresentationPersonSnapshotCreate(PresentationUtilBase):
     router_path = "/person/snapshot/create"
     methods = ["POST"]
     tags = ["Person Snapshot"]
@@ -37,11 +34,11 @@ class PresentationPersonSnapshotCreate(PresentationBase):
 
     async def handle(
         self,
-        admin_client_id: PresentationAdminClientAuthenticated,
-        image: PresentationTypeImage,
-        timestamp: PresentationTypeDatetime,
-        camera_id: PresentationTypeInt,
-        view_id: PresentationTypeInt,
+        admin_client_id: PresentationUtilAdminClientAuthenticated,
+        image: PresentationUtilFromImage,
+        timestamp: PresentationUtilFromDatetime,
+        camera_id: PresentationUtilFromInt,
+        view_id: PresentationUtilFromInt,
         application: ApplicationPersonSnapshotCreate = get_application(ApplicationPersonSnapshotCreate),
     ):
         application.save(
@@ -49,4 +46,4 @@ class PresentationPersonSnapshotCreate(PresentationBase):
             timestamp=DtoTimestamp(timestamp=timestamp),
             image=image,
         )
-        return PresentationJSONResponse(status=200, content={"message": "Person snapshot created"})
+        return PresentationUtilJSONResponse(status=200, content={"message": "Person snapshot created"})

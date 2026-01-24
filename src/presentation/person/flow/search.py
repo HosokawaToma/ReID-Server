@@ -1,9 +1,8 @@
-from presentation import PresentationBase
-from presentation import get_application
-from presentation import PresentationRequest
-from presentation import PresentationRequestBody
-from presentation import PresentationJSONResponse
-from presentation import PresentationAdminClientAuthenticated
+from presentation.utils.base import PresentationUtilBase
+from presentation.utils.factory import get_application
+from presentation.utils.request import PresentationUtilRequestBody
+from presentation.utils.response import PresentationUtilJSONResponse
+from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
 from applications.person.flow.search import ApplicationPersonFlowSearch
 from dto.person.flow.query import DtoPersonFlowQuery
 from logger import Logger
@@ -11,13 +10,13 @@ from datetime import datetime
 import uuid
 
 
-class PresentationPersonFlowSearchRequestBody(PresentationRequestBody):
+class PresentationPersonFlowSearchRequestBody(PresentationUtilRequestBody):
     person_id: uuid.UUID
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
 
 
-class PresentationPersonFlowSearch(PresentationBase):
+class PresentationPersonFlowSearch(PresentationUtilBase):
     router_path = "/person/flow/search"
     methods = ["POST"]
     tags = ["Person Flow"]
@@ -44,8 +43,7 @@ class PresentationPersonFlowSearch(PresentationBase):
 
     async def handle(
         self,
-        admin_client_id: PresentationAdminClientAuthenticated,
-        request: PresentationRequest,
+        admin_client_id: PresentationUtilAdminClientAuthenticated,
         body: PresentationPersonFlowSearchRequestBody,
         application: ApplicationPersonFlowSearch = get_application(ApplicationPersonFlowSearch),
     ):
@@ -55,7 +53,7 @@ class PresentationPersonFlowSearch(PresentationBase):
             timestamp_before=body.timestamp_before,
         )
         items = application.search(query=query)
-        return PresentationJSONResponse(status=200, content={
+        return PresentationUtilJSONResponse(status=200, content={
             "person_flows": [
                 {
                     "person_id": str(item.person_id),

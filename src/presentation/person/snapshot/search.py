@@ -1,13 +1,14 @@
 from applications.person.snapshot.search import ApplicationPersonSnapshotSearch
 from dto.person.snapshot.query import DtoPersonSnapshotQuery
 from dto.person.snapshot.query import DtoPersonSnapshotQuerySortByKey
-from presentation import PresentationBase, PresentationRequestBody
-from presentation import PresentationAdminClientAuthenticated
-from presentation import PresentationJSONResponse
+from presentation.utils.base import PresentationUtilBase
+from presentation.utils.request import PresentationUtilRequestBody
+from presentation.utils.response import PresentationUtilJSONResponse
+from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
+from presentation.utils.factory import get_application
 from logger import Logger
 from datetime import datetime
 import uuid
-from presentation import get_application
 from enum import Enum
 
 class PresentationPersonSnapshotSearchSortByKey(str, Enum):
@@ -15,7 +16,7 @@ class PresentationPersonSnapshotSearchSortByKey(str, Enum):
     TIMESTAMP_DESC = "timestamp_desc"
 
 
-class PresentationPersonSnapshotSearchRequestBody(PresentationRequestBody):
+class PresentationPersonSnapshotSearchRequestBody(PresentationUtilRequestBody):
     ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
@@ -25,7 +26,7 @@ class PresentationPersonSnapshotSearchRequestBody(PresentationRequestBody):
     timestamp_before: datetime | None = None
     sort_by_list: list[PresentationPersonSnapshotSearchSortByKey] | None = None
 
-class PresentationPersonSnapshotSearch(PresentationBase):
+class PresentationPersonSnapshotSearch(PresentationUtilBase):
     router_path = "/person/snapshot/search"
     methods = ["POST"]
     tags = ["Person Snapshot"]
@@ -51,7 +52,7 @@ class PresentationPersonSnapshotSearch(PresentationBase):
 
     async def handle(
         self,
-        admin_client_id: PresentationAdminClientAuthenticated,
+        admin_client_id: PresentationUtilAdminClientAuthenticated,
         request: PresentationPersonSnapshotSearchRequestBody | None = None,
         application: ApplicationPersonSnapshotSearch = get_application(ApplicationPersonSnapshotSearch),
     ):
@@ -73,7 +74,7 @@ class PresentationPersonSnapshotSearch(PresentationBase):
         items = application.search(
             query=query,
         )
-        return PresentationJSONResponse(
+        return PresentationUtilJSONResponse(
             status=200,
             content={
                 "person_snapshots": [

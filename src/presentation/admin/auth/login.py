@@ -1,19 +1,19 @@
-from presentation import PresentationBase
-from presentation import get_application
+from presentation.utils.base import PresentationUtilBase
+from presentation.utils.factory import get_application
 from logger import Logger
-from presentation import PresentationRequest
-from presentation import PresentationRequestBody
-from presentation import PresentationJSONResponse
+from presentation.utils.request import PresentationUtilRequest
+from presentation.utils.request import PresentationUtilRequestBody
+from presentation.utils.response import PresentationUtilJSONResponse
 from applications.admin_client.auth.login import ApplicationAdminClientAuthLogin
 from dto.admin_client.auth.credentials import DtoAdminClientAuthCredentials
 
 
-class PresentationAdminAuthLoginRequestBody(PresentationRequestBody):
+class PresentationAdminAuthLoginRequestBody(PresentationUtilRequestBody):
     id: str
     password: str
 
 
-class PresentationAdminAuthLogin(PresentationBase):
+class PresentationAdminAuthLogin(PresentationUtilBase):
     router_path = "/admin/auth/login"
     methods = ["POST"]
     tags = ["Admin Auth"]
@@ -35,7 +35,7 @@ class PresentationAdminAuthLogin(PresentationBase):
 
     async def handle(
         self,
-        request: PresentationRequest,
+        request: PresentationUtilRequest,
         body: PresentationAdminAuthLoginRequestBody,
         application: ApplicationAdminClientAuthLogin = get_application(ApplicationAdminClientAuthLogin),
     ):
@@ -45,7 +45,7 @@ class PresentationAdminAuthLogin(PresentationBase):
                 password=body.password,
             ),
         )
-        response = PresentationJSONResponse(
+        response = PresentationUtilJSONResponse(
             status=200, content={"token": result.token})
         response.set_refresh_token(refresh_token=result.refresh_token)
         return response

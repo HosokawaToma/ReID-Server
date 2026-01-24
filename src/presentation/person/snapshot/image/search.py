@@ -1,15 +1,15 @@
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearch
 from dto.id import DtoId
-from presentation import PresentationBase
-from presentation import PresentationAdminClientAuthenticated
-from presentation import PresentationRequest
-from presentation import get_application
+from presentation.utils.base import PresentationUtilBase
+from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
+from presentation.utils.factory import get_application
+from presentation.utils.request import PresentationUtilRequest
+from presentation.utils.response import PresentationUtilImageResponse
+from presentation.utils.type import PresentationUtilPathUUID
 from logger import Logger
-from presentation import PresentationImageResponse
-import uuid
 
 
-class PresentationPersonSnapshotImageSearch(PresentationBase):
+class PresentationPersonSnapshotImageSearch(PresentationUtilBase):
     router_path = "/person/snapshot/image/search/{id}"
     methods = ["GET"]
     tags = ["Person Snapshot Image"]
@@ -41,12 +41,12 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
 
     async def handle(
         self,
-        admin_client_id: PresentationAdminClientAuthenticated,
-        request: PresentationRequest,
-        id: uuid.UUID,
+        admin_client_id: PresentationUtilAdminClientAuthenticated,
+        request: PresentationUtilRequest,
+        id: PresentationUtilPathUUID,
         application: ApplicationPersonSnapshotImageSearch = get_application(ApplicationPersonSnapshotImageSearch),
     ):
         image = application.search(
             id=DtoId(id=id),
         )
-        return PresentationImageResponse(status=200, image=image)
+        return PresentationUtilImageResponse(status=200, image=image)
