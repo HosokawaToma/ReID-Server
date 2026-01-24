@@ -19,6 +19,12 @@ class DomainTimestamp(DomainUtilsBase):
     """
     timestamp: datetime = field(default_factory=datetime.now)
 
+    @classmethod
+    def from_float(cls, timestamp: float) -> "DomainTimestamp":
+        return DomainTimestamp(
+            timestamp=datetime.fromtimestamp(timestamp),
+        )
+
     def today(self) -> "DomainTimestamp":
         return DomainTimestamp(
             timestamp=datetime.combine(self.timestamp.date(), datetime.min.time()),
@@ -71,3 +77,6 @@ class DomainTimestamp(DomainUtilsBase):
 
     def __str__(self) -> str:
         return self.timestamp.isoformat()
+
+    def __float__(self) -> float:
+        return float(self.timestamp.timestamp())

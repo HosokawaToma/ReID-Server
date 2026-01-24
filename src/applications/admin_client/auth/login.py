@@ -60,12 +60,12 @@ class ApplicationAdminClientAuthLogin(ApplicationBase):
         ):
             raise ApplicationAdminClientAuthLoginInvalidCredentialsError()
         return DtoAdminClientAuthResult(
-            token=self.client_auth_credentials.generate_token(
+            token=self.client_auth_credentials.to_token(
                 secret_key=self.secret_key,
                 algorithm=self.algorithm,
                 expire_minutes=self.expire_minutes,
             ).token,
-            refresh_token=self.client_auth_credentials.generate_token(
+            refresh_token=self.client_auth_credentials.to_token(
                 secret_key=self.refresh_secret_key,
                 algorithm=self.refresh_algorithm,
                 expire_minutes=self.refresh_expire_minutes,

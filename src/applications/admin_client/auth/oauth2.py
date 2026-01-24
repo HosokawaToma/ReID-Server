@@ -1,5 +1,5 @@
-from domain.client.auth_credentials import DomainClientAuthCredentials
-from domain.client.id import DomainClientId
+from domain.client.token import DomainClientToken
+from domain.token import DomainToken
 from environment import Environment
 from error import Error
 from dto.admin_client.auth.token import DtoAdminClientAuthToken
@@ -15,20 +15,20 @@ class ApplicationAdminClientAuthOAuth2InvalidTokenError(ApplicationAdminClientAu
 class ApplicationAdminClientAuthOAuth2:
     def __init__(
         self,
-        refresh_secret_key: str,
-        refresh_algorithm: str,
-        refresh_expire_minutes: int,
+        secret_key: str,
+        algorithm: str,
+        expire_minutes: int,
     ):
-        self.refresh_secret_key = refresh_secret_key
-        self.refresh_algorithm = refresh_algorithm
-        self.refresh_expire_minutes = refresh_expire_minutes
+        self.secret_key = secret_key
+        self.algorithm = algorithm
+        self.expire_minutes = expire_minutes
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationAdminClientAuthOAuth2":
         return cls(
-            refresh_secret_key=environment.jwt_refresh_secret_key,
-            refresh_algorithm=environment.jwt_refresh_algorithm,
-            refresh_expire_minutes=environment.jwt_refresh_expire_minutes,
+            secret_key=environment.jwt_secret_key,
+            algorithm=environment.jwt_algorithm,
+            expire_minutes=environment.jwt_expire_minutes,
         )
 
     def oauth2(self, token: DtoAdminClientAuthToken) -> DtoAdminClientId:
@@ -39,11 +39,13 @@ class ApplicationAdminClientAuthOAuth2:
         :raises ApplicationAdminClientAuthOAuth2InvalidTokenError: アドミンクライアントのOAuth2認証トークンが不正な場合に発生するエラー
         """
         try:
-            id = DomainClientAuthCredentials.convert_token(
-                token=token.token,
-                secret_key=self.refresh_secret_key,
-                algorithm=self.refresh_algorithm,
+            client_token = DomainClientToken.decode(
+                token=DomainToken(token=token.token),
+                secret_key=self.secret_key,
+                algorithm=self.algorithm,
             )
+            if client_token.is_expired():
+                raise ApplicationAdminClientAuthOAuth2InvalidTokenError()
         except Error as error:
             raise ApplicationAdminClientAuthOAuth2InvalidTokenError(error)
-        return DtoAdminClientId(id=str(id))
+        return DtoAdminClientId(id=str(client_token.client_id))
