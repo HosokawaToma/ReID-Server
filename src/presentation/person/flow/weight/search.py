@@ -6,7 +6,6 @@ from presentation.utils.factory import get_application
 from presentation.utils.response import PresentationUtilJSONResponse
 from logger import Logger
 from presentation.utils.request import PresentationUtilRequestBody
-from presentation.utils.response import PresentationUtilJSONResponse
 from dataclasses import dataclass
 from datetime import datetime
 
