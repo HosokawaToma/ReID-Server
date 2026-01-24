@@ -1,4 +1,4 @@
-from repositories import RepositoryDatabase
+from repositories.utils.database import RepositoryUtilDatabase
 from repositories.utils.database.query.camera_frame import RepositoryUtilDatabaseQueryCameraFrame
 from migration.models.camera_frames import MigrationModelCameraFrame
 from domain.id import DomainId
@@ -6,23 +6,16 @@ from domain.camera_frame import DomainCameraFrame
 from domain.timestamp import DomainTimestamp
 from domain.location import DomainLocation
 from domain.camera_frame.sequence import DomainCameraFrameSequence
-from error import Error
 from environment import Environment
 
-class RepositoryCameraFrameError(Error):
-    pass
-
-class RepositoryCameraFrameFindError(RepositoryCameraFrameError):
-    pass
-
 class RepositoryCameraFrame:
-    def __init__(self, database: RepositoryDatabase):
+    def __init__(self, database: RepositoryUtilDatabase):
         self.database = database
 
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryCameraFrame":
         return cls(
-            database=RepositoryDatabase.create(environment),
+            database=RepositoryUtilDatabase.create(environment),
         )
 
     def _model_to_domain(self, model: MigrationModelCameraFrame) -> DomainCameraFrame:
@@ -33,12 +26,9 @@ class RepositoryCameraFrame:
         )
 
     def find(self, query: RepositoryUtilDatabaseQueryCameraFrame | None = None) -> DomainCameraFrameSequence:
-        try:
-            with self.database as session:
-                session_query = session.query(MigrationModelCameraFrame)
-                if query is not None:
-                    session_query = query.build(session_query)
-                models = session_query.all()
-                return DomainCameraFrameSequence(items=[self._model_to_domain(model) for model in models])
-        except Error as error:
-            raise RepositoryCameraFrameFindError(error) from error
+        with self.database as session:
+            session_query = session.query(MigrationModelCameraFrame)
+            if query is not None:
+                session_query = query.build(session_query)
+            models = session_query.all()
+            return DomainCameraFrameSequence(items=[self._model_to_domain(model) for model in models])

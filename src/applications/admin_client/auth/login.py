@@ -2,16 +2,11 @@ from domain.client.auth_credentials import DomainClientAuthCredentials
 from domain.client.id import DomainClientId
 from domain.client.password import DomainClientPassword
 from environment import Environment
-from error import Error
 from applications import ApplicationBase
 from dto.admin_client.auth.credentials import DtoAdminClientAuthCredentials
 from dto.admin_client.auth.result import DtoAdminClientAuthResult
+from error import AuthenticationError
 
-class ApplicationAdminClientAuthLoginError(Error):
-    pass
-
-class ApplicationAdminClientAuthLoginInvalidCredentialsError(ApplicationAdminClientAuthLoginError):
-    pass
 
 class ApplicationAdminClientAuthLogin(ApplicationBase):
     def __init__(
@@ -52,13 +47,13 @@ class ApplicationAdminClientAuthLogin(ApplicationBase):
         アドミンクライアントのパスワード認証を行う
         :param DtoAdminClientAuthCredentials credentials: アドミンクライアントのパスワード認証資格情報
         :return DtoAdminClientAuthResult: アドミンクライアントのパスワード認証結果
-        :raises ApplicationAdminClientAuthLoginInvalidCredentialsError: アドミンクライアントのパスワード認証資格情報が不正な場合に発生するエラー
+        :raises AuthenticationError: アドミンクライアントのパスワード認証資格情報が不正な場合に発生するエラー
         """
         if not self.client_auth_credentials.authenticate(
             id=DomainClientId(id=credentials.id),
             password=DomainClientPassword(password=credentials.password),
         ):
-            raise ApplicationAdminClientAuthLoginInvalidCredentialsError()
+            raise AuthenticationError("アドミンクライアントのパスワード認証資格情報が不正です")
         return DtoAdminClientAuthResult(
             token=self.client_auth_credentials.to_token(
                 secret_key=self.secret_key,

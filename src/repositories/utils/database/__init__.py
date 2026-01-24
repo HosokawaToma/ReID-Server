@@ -2,21 +2,10 @@ from sqlalchemy import create_engine, Engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
 from environment import Environment
-from error import Error
+from error import InternalServerError
 from typing import Type
 from types import TracebackType
 
-class RepositoryUtilDatabaseError(Error):
-    pass
-
-class RepositoryUtilDatabaseOpenError(RepositoryUtilDatabaseError):
-    pass
-
-class RepositoryUtilDatabaseCommitError(RepositoryUtilDatabaseError):
-    pass
-
-class RepositoryUtilDatabaseCloseError(RepositoryUtilDatabaseError):
-    pass
 
 class RepositoryUtilDatabase:
     ENGINE_URL_TEMPLATE = "postgresql://{user}:{password}@{host}:{port}/{database}"
@@ -54,7 +43,7 @@ class RepositoryUtilDatabase:
         :raise DatabaseOpenError: セッションを開くことに失敗した場合
         """
         if self._session is not None:
-            raise RepositoryUtilDatabaseOpenError()
+            raise InternalServerError("セッションがすでに開かれています")
         try:
             self._session = self._session_maker()
             self._session.begin()
@@ -63,7 +52,7 @@ class RepositoryUtilDatabase:
             if self._session:
                 self._session.close()
                 self._session = None
-            raise RepositoryUtilDatabaseOpenError(error) from error
+            raise InternalServerError("セッションを開くことに失敗しました") from error
 
     def __exit__(
             self,
@@ -82,7 +71,7 @@ class RepositoryUtilDatabase:
         :raise RepositoryUtilDatabaseCommitError: コミットに失敗した場合
         """
         if self._session is None:
-            raise RepositoryUtilDatabaseCloseError()
+            raise InternalServerError("セッションが開かれていません")
         try:
             if exc_type is not None:
                 self._session.rollback()
@@ -93,7 +82,7 @@ class RepositoryUtilDatabase:
             self._session.commit()
         except SQLAlchemyError as error:
             self._session.rollback()
-            raise RepositoryUtilDatabaseCommitError(error) from error
+            raise InternalServerError("セッションをコミットすることに失敗しました") from error
         finally:
             self._session.close()
             self._session = None

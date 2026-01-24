@@ -1,16 +1,10 @@
 from domain.client.token import DomainClientToken
 from domain.token import DomainToken
 from environment import Environment
-from error import Error
 from dto.admin_client.auth.token import DtoAdminClientAuthToken
 from dto.admin_client.id import DtoAdminClientId
+from error import AuthenticationError
 
-
-class ApplicationAdminClientAuthOAuth2Error(Error):
-    pass
-
-class ApplicationAdminClientAuthOAuth2InvalidTokenError(ApplicationAdminClientAuthOAuth2Error):
-    pass
 
 class ApplicationAdminClientAuthOAuth2:
     def __init__(
@@ -38,14 +32,11 @@ class ApplicationAdminClientAuthOAuth2:
         :return DtoAdminClientId: アドミンクライアントのID
         :raises ApplicationAdminClientAuthOAuth2InvalidTokenError: アドミンクライアントのOAuth2認証トークンが不正な場合に発生するエラー
         """
-        try:
-            client_token = DomainClientToken.decode(
-                token=DomainToken(token=token.token),
-                secret_key=self.secret_key,
-                algorithm=self.algorithm,
-            )
-            if client_token.is_expired():
-                raise ApplicationAdminClientAuthOAuth2InvalidTokenError()
-        except Error as error:
-            raise ApplicationAdminClientAuthOAuth2InvalidTokenError(error)
+        client_token = DomainClientToken.decode(
+            token=DomainToken(token=token.token),
+            secret_key=self.secret_key,
+            algorithm=self.algorithm,
+        )
+        if client_token.is_expired():
+            raise AuthenticationError("アドミンクライアントのOAuth2認証トークンが期限切れです")
         return DtoAdminClientId(id=str(client_token.client_id))

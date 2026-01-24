@@ -32,7 +32,7 @@ class BackgroundPresentationUtilsBase(ABC):
             except asyncio.CancelledError:
                 pass
             except Exception as e:
-                self.logger.unexpected_error(e)
+                self.logger.unexpected_error(exception=e, id=self.name)
 
     async def run(self) -> None:
         while not self.event.is_set():
@@ -50,10 +50,10 @@ class BackgroundPresentationUtilsBase(ABC):
                     message=f"background finished",
                 )
             except Error as e:
-                self.logger.error(e)
+                self.logger.error(error=e, id=self.name)
                 continue
             except Exception as e:
-                self.logger.unexpected_error(e)
+                self.logger.unexpected_error(exception=e, id=self.name)
                 continue
 
     @abstractmethod

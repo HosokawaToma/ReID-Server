@@ -1,16 +1,10 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.utils.database.query.person_snapshot import RepositoryUtilDatabaseQueryPersonSnapshot
 from environment import Environment
-from error import Error
 from applications import ApplicationBase
 from dto.person.flow import DtoPersonFlow
 from dto.person.flow.query import DtoPersonFlowQuery
 
-class ApplicationPersonFlowSearchError(Error):
-    pass
-
-class ApplicationPersonFlowSearchNoFlowsFoundError(ApplicationPersonFlowSearchError):
-    pass
 
 class ApplicationPersonFlowSearch(ApplicationBase):
     def __init__(
@@ -41,11 +35,8 @@ class ApplicationPersonFlowSearch(ApplicationBase):
                 timestamp_before=query.timestamp_before,
                 person_ids=[query.person_id],
             )
-        try:
-            person_snapshots = self.repository_person_snapshot.find_details(query=database_query)
-            flows = person_snapshots.to_flows()
-        except Error as error:
-            raise ApplicationPersonFlowSearchError(error) from error
+        person_snapshots = self.repository_person_snapshot.find_details(query=database_query)
+        flows = person_snapshots.to_flows()
         return [DtoPersonFlow(
             person_id=flow.person_id.id,
             source_camera_id=flow.source_location.camera_id,

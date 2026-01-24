@@ -1,13 +1,10 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from environment import Environment
 from dto.person.snapshot.query import DtoPersonSnapshotQuery
-from error import Error
 from applications import ApplicationBase
 from repositories.utils.database.query.person_snapshot import RepositoryUtilDatabaseQueryPersonSnapshot
 from repositories.person.snapshot.reid_queue import RepositoryPersonSnapshotReidQueue
 
-class ApplicationPersonSnapshotRefreshError(Error):
-    pass
 
 class ApplicationPersonSnapshotRefresh(ApplicationBase):
     def __init__(
@@ -29,17 +26,14 @@ class ApplicationPersonSnapshotRefresh(ApplicationBase):
         """
         人物検出を更新する
         :param DtoPersonSnapshotQuery query: 人物検出更新条件
-        :raises ApplicationPersonSnapshotRefreshError: 人物検出更新に失敗した場合に発生するエラー
+        :raises InternalServerError: 人物検出更新に失敗した場合に発生するエラー
         """
-        try:
-            database_query = None
-            if query is not None:
-                database_query = RepositoryUtilDatabaseQueryPersonSnapshot(
-                    ids=query.ids,
-                    camera_ids=query.camera_ids,
-                    view_ids=query.view_ids,
-                )
-            ids = self.repository_person_snapshot.find_ids(query=database_query)
-            self.repository_person_snapshot_reid_queue.push_ids(ids)
-        except Error as error:
-            raise ApplicationPersonSnapshotRefreshError(error) from error
+        database_query = None
+        if query is not None:
+            database_query = RepositoryUtilDatabaseQueryPersonSnapshot(
+                ids=query.ids,
+                camera_ids=query.camera_ids,
+                view_ids=query.view_ids,
+            )
+        ids = self.repository_person_snapshot.find_ids(query=database_query)
+        self.repository_person_snapshot_reid_queue.push_ids(ids)

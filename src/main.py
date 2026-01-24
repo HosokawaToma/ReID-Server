@@ -13,8 +13,6 @@ from presentation.person.flow.weight.search import PresentationPersonFlowWeightS
 from presentation.person.snapshot.image.search import PresentationPersonSnapshotImageSearch
 from presentation.camera_frame.search import PresentationCameraFrameSearch
 from presentation.camera_frame.image.search import PresentationCameraFrameImageSearch
-from presentation import PresentationExceptionHandler, PresentationMiddleware
-from logger import Logger
 
 class ServerApp:
     def __init__(
@@ -32,7 +30,6 @@ class ServerApp:
         person_snapshot_image_search: PresentationPersonSnapshotImageSearch,
         camera_frame_search: PresentationCameraFrameSearch,
         camera_frame_image_search: PresentationCameraFrameImageSearch,
-        presentation_exception_handler: PresentationExceptionHandler,
     ):
         self.app_host = app_host
         self.app_port = app_port
@@ -47,7 +44,6 @@ class ServerApp:
         self.person_snapshot_image_search = person_snapshot_image_search
         self.camera_frame_search = camera_frame_search
         self.camera_frame_image_search = camera_frame_image_search
-        self.presentation_exception_handler = presentation_exception_handler
 
     @classmethod
     def create(
@@ -71,7 +67,6 @@ class ServerApp:
             person_snapshot_image_search=PresentationPersonSnapshotImageSearch.create(),
             camera_frame_search=PresentationCameraFrameSearch.create(),
             camera_frame_image_search=PresentationCameraFrameImageSearch.create(),
-            presentation_exception_handler=PresentationExceptionHandler.create(),
         )
 
     def run(self):
@@ -81,10 +76,6 @@ class ServerApp:
             allow_credentials=True,
             allow_methods=["*"],
             allow_headers=["*"],
-        )
-        self.fastapi_app.add_middleware(
-            PresentationMiddleware,
-            logger=Logger("presentation_middleware"),
         )
         self.admin_auth_login.setup(self.fastapi_app)
         self.admin_auth_token_refresh.setup(self.fastapi_app)
@@ -96,7 +87,6 @@ class ServerApp:
         self.person_snapshot_image_search.setup(self.fastapi_app)
         self.camera_frame_search.setup(self.fastapi_app)
         self.camera_frame_image_search.setup(self.fastapi_app)
-        self.presentation_exception_handler.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.app_host, port=self.app_port)
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-from error import Error
+from error import Error, NotFoundError
 from environment import Environment
 from repositories.utils.database import RepositoryUtilDatabase
 from repositories.utils.storage import RepositoryUtilStorage
@@ -15,24 +15,6 @@ from domain.image import DomainImage
 from domain.person.snapshot.image_sequence import DomainPersonSnapshotImageSequence
 from migration.models.person_snapshots import MigrationModelPersonSnapshot
 
-
-class RepositoryPersonSnapshotReidQueueError(Error):
-    pass
-
-class RepositoryPersonSnapshotReidQueuePushError(RepositoryPersonSnapshotReidQueueError):
-    pass
-
-class RepositoryPersonSnapshotReidQueuePopError(RepositoryPersonSnapshotReidQueueError):
-    pass
-
-class RepositoryPersonSnapshotReidQueuePushAllError(RepositoryPersonSnapshotReidQueueError):
-    pass
-
-class RepositoryPersonSnapshotReidQueuePushIdError(RepositoryPersonSnapshotReidQueueError):
-    pass
-
-class RepositoryPersonSnapshotReidQueuePushIdsError(RepositoryPersonSnapshotReidQueueError):
-    pass
 
 class RepositoryPersonSnapshotReidQueue:
     def __init__(
@@ -82,15 +64,12 @@ class RepositoryPersonSnapshotReidQueue:
         :param DomainPersonSnapshotImage person_snapshot: 人物検出結果
         :raise RepositoryPersonSnapshotReidQueuePushError: キューへの追加が失敗した場合
         """
-        try:
-            with self.database as session:
-                session.add(self._domain_to_model(person_snapshot))
-                self.redis.push(
-                    key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID,
-                    value={"id": str(person_snapshot.id.id)},
-                )
-        except Error as error:
-            raise RepositoryPersonSnapshotReidQueuePushError(error) from error
+        with self.database as session:
+            session.add(self._domain_to_model(person_snapshot))
+            self.redis.push(
+                key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID,
+                value={"id": str(person_snapshot.id.id)},
+            )
 
     def push_all(self, person_snapshot_images: DomainPersonSnapshotImageSequence) -> None:
         """
@@ -106,7 +85,7 @@ class RepositoryPersonSnapshotReidQueue:
             except Error as error:
                 errors.append(error)
         if len(errors) > 0:
-            raise RepositoryPersonSnapshotReidQueuePushAllError(errors[0]) from errors[0]
+            raise errors[0]
 
     def push_id(self, id: DomainId) -> None:
         """
@@ -115,13 +94,10 @@ class RepositoryPersonSnapshotReidQueue:
         :param DomainId id: 人物検出結果のID
         :raise RepositoryPersonSnapshotReidQueuePushIdError: キューへの追加が失敗した場合
         """
-        try:
-            self.redis.push(
-                key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID,
-                value={"id": str(id.id)},
-            )
-        except Error as error:
-            raise RepositoryPersonSnapshotReidQueuePushIdError(error) from error
+        self.redis.push(
+            key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID,
+            value={"id": str(id.id)},
+        )
 
     def push_ids(self, ids: DomainIdSequence) -> None:
         """
@@ -137,20 +113,17 @@ class RepositoryPersonSnapshotReidQueue:
             except Error as error:
                 errors.append(error)
         if len(errors) > 0:
-            raise RepositoryPersonSnapshotReidQueuePushIdsError(errors[0]) from errors[0]
+            raise errors[0]
 
     def pop(self) -> DomainPersonSnapshotImage:
-        try:
-            data = self.redis.dequeue(RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID)
-            with self.database as session:
-                model = session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id == data["id"]).first()
-                if model is None:
-                    raise RepositoryPersonSnapshotReidQueuePopError()
-                image = self.storage.search_image(
-                    path=RepositoryUtilStoragePathPersonSnapshot(
-                        id=DomainId(id=model.id),
-                    )
+        data = self.redis.dequeue(RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID)
+        with self.database as session:
+            model = session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id == data["id"]).first()
+            if model is None:
+                raise NotFoundError("人物検出結果が見つかりません")
+            image = self.storage.search_image(
+                path=RepositoryUtilStoragePathPersonSnapshot(
+                    id=DomainId(id=model.id),
                 )
-                return self._model_to_domain(model, image)
-        except Error as error:
-            raise RepositoryPersonSnapshotReidQueuePopError(error) from error
+            )
+            return self._model_to_domain(model, image)
