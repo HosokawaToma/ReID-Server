@@ -1,6 +1,4 @@
-from builtins import BaseException
-
-class Error(BaseException):
+class Error(Exception):
     """
     カスタムエラークラスの基底クラス
     :param str message: エラーの詳細情報
@@ -9,7 +7,7 @@ class Error(BaseException):
         self.message = message
 
 
-class SystemError(Error):
+class CustomSystemError(Error):
     """
     システムエラークラスの基底クラス
     アプリケーションのバグやインフラの問題など、想定外の事態に発生するエラー
@@ -17,7 +15,7 @@ class SystemError(Error):
     """
     pass
 
-class InternalServerError(SystemError):
+class InternalServerError(CustomSystemError):
     """
     内部サーバーエラークラス
     予期せぬ例外の発生に対して投げるエラー
@@ -25,7 +23,7 @@ class InternalServerError(SystemError):
     :param str message: エラーの詳細情報
     """
     pass
-class BadGatewayError(SystemError):
+class BadGatewayError(CustomSystemError):
     """
     外部連携エラークラス
     外部システムが原因の予期せぬ例外の発生に対して投げるエラー
@@ -33,11 +31,20 @@ class BadGatewayError(SystemError):
     :param str message: エラーの詳細情報
     """
     pass
-class ServiceUnavailableError(SystemError):
+class ServiceUnavailableError(CustomSystemError):
     """
     サービス利用不可エラークラス
     サーバーが一時的にリクエストを処理できない場合に対して投げるエラー
     HTTPステータス: `503 Service Unavailable`
+    :param str message: エラーの詳細情報
+    """
+    pass
+
+class GatewayTimeoutError(CustomSystemError):
+    """
+    ゲートウェイタイムアウトエラークラス
+    処理が規定時間内に終わらなかった場合に対して投げるエラー
+    HTTPステータス: `504 Gateway Timeout`
     :param str message: エラーの詳細情報
     """
     pass

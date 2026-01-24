@@ -16,6 +16,7 @@ from error import (
     InternalServerError,
     BadGatewayError,
     ServiceUnavailableError,
+    GatewayTimeoutError,
     AuthenticationError,
     AuthorizationError,
     ValidationError,
@@ -136,6 +137,11 @@ class PresentationMiddleware(BaseHTTPMiddleware):
             self.logger.error(e)
             return PresentationJSONResponse(status=503, content={
                 "message": "Service Unavailable",
+            })
+        except GatewayTimeoutError as e:
+            self.logger.error(e)
+            return PresentationJSONResponse(status=504, content={
+                "message": "Gateway Timeout",
             })
         except AuthenticationError as e:
             self.logger.error(e)
