@@ -229,7 +229,9 @@ class PresentationImage:
             raise PresentationImageError("image filename is None")
         content = await image.read()
         format = pathlib.Path(image.filename).suffix[1:]
-        return DtoImage(bytes=content, format=format)
+        if format == "":
+            raise PresentationImageError("image format is empty")
+        return DtoImage(bytes=content, format=format.lower())
 
 
 PresentationTypeImage = Annotated[DtoImage, Depends(PresentationImage())]
