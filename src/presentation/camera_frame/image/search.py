@@ -4,8 +4,8 @@ from presentation.utils.factory import get_application
 from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
 from presentation.utils.response import PresentationUtilImageResponse
 from presentation.utils.request import PresentationUtilRequest
+from presentation.utils.type import PresentationUtilPathUUID
 from logger import Logger
-import uuid
 from dto.id import DtoId
 
 class PresentationCameraFrameImageSearch(PresentationUtilBase):
@@ -33,7 +33,7 @@ class PresentationCameraFrameImageSearch(PresentationUtilBase):
         self,
         admin_client_id: PresentationUtilAdminClientAuthenticated,
         request: PresentationUtilRequest,
-        id: uuid.UUID,
+        id: PresentationUtilPathUUID,
         application: ApplicationCameraFrameImageSearch = get_application(ApplicationCameraFrameImageSearch),
     ) -> PresentationUtilImageResponse:
         image = application.search(
