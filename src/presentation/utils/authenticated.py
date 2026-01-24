@@ -1,6 +1,5 @@
-from typing import Type, TypeVar, Generic, Annotated
+from typing import Annotated
 from fastapi import Depends
-from applications import ApplicationBase
 from environment import Environment
 from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordBearer
