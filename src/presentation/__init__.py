@@ -240,11 +240,11 @@ PresentationAdminClientAuthenticated = Annotated[DtoAdminClientId, Depends(
 class PresentationImage:
     async def __call__(self, image: UploadFile) -> DtoImage:
         if image.filename is None:
-            raise NotFoundError("image filename is None")
+            raise ValidationError("image filename is None")
         content = await image.read()
         format = pathlib.Path(image.filename).suffix[1:]
         if format == "":
-            raise NotFoundError("image format is empty")
+            raise ValidationError("image format is empty")
         return DtoImage(bytes=content, format=format.lower())
 
 
