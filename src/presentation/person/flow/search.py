@@ -5,7 +5,6 @@ from presentation import PresentationRequestBody
 from presentation import PresentationJSONResponse
 from presentation import PresentationAdminClientAuthenticated
 from applications.person.flow.search import ApplicationPersonFlowSearch
-from applications.person.flow.search import ApplicationPersonFlowSearchNoFlowsFoundError
 from dto.person.flow.query import DtoPersonFlowQuery
 from logger import Logger
 from datetime import datetime
@@ -55,13 +54,7 @@ class PresentationPersonFlowSearch(PresentationBase):
             timestamp_after=body.timestamp_after,
             timestamp_before=body.timestamp_before,
         )
-        try:
-            items = application.search(query=query)
-        except ApplicationPersonFlowSearchNoFlowsFoundError as error:
-            self.logger.api_response_info(request_id=request.get_request_id(), response_status_code=404)
-            return PresentationJSONResponse(status=404, content={
-                "message": "Person flows not found",
-            })
+        items = application.search(query=query)
         return PresentationJSONResponse(status=200, content={
             "person_flows": [
                 {

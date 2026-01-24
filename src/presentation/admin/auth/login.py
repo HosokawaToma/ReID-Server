@@ -5,7 +5,6 @@ from presentation import PresentationRequest
 from presentation import PresentationRequestBody
 from presentation import PresentationJSONResponse
 from applications.admin_client.auth.login import ApplicationAdminClientAuthLogin
-from applications.admin_client.auth.login import ApplicationAdminClientAuthLoginInvalidCredentialsError
 from dto.admin_client.auth.credentials import DtoAdminClientAuthCredentials
 
 
@@ -40,18 +39,12 @@ class PresentationAdminAuthLogin(PresentationBase):
         body: PresentationAdminAuthLoginRequestBody,
         application: ApplicationAdminClientAuthLogin = get_application(ApplicationAdminClientAuthLogin),
     ):
-        try:
-            result = application.login(
-                DtoAdminClientAuthCredentials(
-                    id=body.id,
-                    password=body.password,
-                ),
-            )
-        except ApplicationAdminClientAuthLoginInvalidCredentialsError as error:
-            self.logger.api_response_info(request_id=request.get_request_id(), response_status_code=401)
-            return PresentationJSONResponse(status=401, content={
-                "message": "Invalid credentials",
-            })
+        result = application.login(
+            DtoAdminClientAuthCredentials(
+                id=body.id,
+                password=body.password,
+            ),
+        )
         response = PresentationJSONResponse(
             status=200, content={"token": result.token})
         response.set_refresh_token(refresh_token=result.refresh_token)

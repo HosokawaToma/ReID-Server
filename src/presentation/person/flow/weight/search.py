@@ -1,5 +1,4 @@
 from applications.person.flow.weight.search import ApplicationPersonFlowWeightSearch
-from applications.person.flow.weight.search import ApplicationPersonFlowWeightSearchError
 from dto.person.flow.weight.query import DtoPersonFlowWeightQuery
 from presentation import PresentationBase
 from presentation import PresentationAdminClientAuthenticated
@@ -55,13 +54,7 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
                 timestamp_after=body.timestamp_after,
                 timestamp_before=body.timestamp_before,
             )
-        try:
-            items = application.search(query=query)
-        except ApplicationPersonFlowWeightSearchError as error:
-            self.logger.api_response_info(request_id=request.get_request_id(), response_status_code=404)
-            return PresentationJSONResponse(status=404, content={
-                "message": "Person flow weight not found",
-            })
+        items = application.search(query=query)
         return PresentationJSONResponse(
             status=200,
             content={

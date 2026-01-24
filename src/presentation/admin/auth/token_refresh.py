@@ -3,8 +3,8 @@ from logger import Logger
 from presentation import PresentationRequest
 from presentation import PresentationJSONResponse
 from applications.admin_client.auth.token_refresh import ApplicationAdminClientAuthTokenRefresh
-from applications.admin_client.auth.token_refresh import ApplicationAdminClientAuthTokenRefreshError
 from dto.admin_client.auth.token import DtoAdminClientAuthToken
+from error import AuthenticationError
 
 
 class PresentationAdminAuthTokenRefresh(PresentationBase):
@@ -32,17 +32,11 @@ class PresentationAdminAuthTokenRefresh(PresentationBase):
         request: PresentationRequest,
         application: ApplicationAdminClientAuthTokenRefresh = get_application(ApplicationAdminClientAuthTokenRefresh),
     ):
-        try:
-            result = application.refresh(
-                DtoAdminClientAuthToken(
-                    token=request.get_refresh_token(),
-                ),
-            )
-        except ApplicationAdminClientAuthTokenRefreshError as error:
-            self.logger.api_response_info(request_id=request.get_request_id(), response_status_code=401)
-            return PresentationJSONResponse(status=401, content={
-                "message": "Invalid token",
-            })
+        result = application.refresh(
+            DtoAdminClientAuthToken(
+                token=request.get_refresh_token(),
+            ),
+        )
         response = PresentationJSONResponse(
             status=200, content={"token": result.token})
         response.set_refresh_token(refresh_token=result.refresh_token)

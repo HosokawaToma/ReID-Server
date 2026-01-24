@@ -12,12 +12,22 @@ import io
 from datetime import datetime
 from fastapi import Request, Response
 from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2
-from applications.admin_client.auth.oauth2 import ApplicationAdminClientAuthOAuth2Error
+from error import (
+    InternalServerError,
+    BadGatewayError,
+    ServiceUnavailableError,
+    AuthenticationError,
+    AuthorizationError,
+    ValidationError,
+    NotFoundError,
+    UnprocessableError,
+    TooManyRequestsError,
+    PayloadTooLargeError,
+)
 from dto.admin_client.auth.token import DtoAdminClientAuthToken
 from dto.admin_client.id import DtoAdminClientId
 from environment import Environment
 from pydantic import BaseModel
-from error import Error
 import uuid
 from logger import Logger
 from applications import ApplicationBase
@@ -110,63 +120,65 @@ class PresentationMiddleware(BaseHTTPMiddleware):
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
         self.logger.api_request_info(request_id=request_id, request_path=request.url.path, request_method=request.method)
-        response = await call_next(request)
+        try:
+            response = await call_next(request)
+        except InternalServerError as e:
+            self.logger.error(e)
+            return PresentationJSONResponse(status=500, content={
+                "message": "Internal Server Error",
+            })
+        except BadGatewayError as e:
+            self.logger.error(e)
+            return PresentationJSONResponse(status=502, content={
+                "message": "Bad Gateway",
+            })
+        except ServiceUnavailableError as e:
+            self.logger.error(e)
+            return PresentationJSONResponse(status=503, content={
+                "message": "Service Unavailable",
+            })
+        except AuthenticationError as e:
+            self.logger.error(e)
+            return PresentationJSONResponse(status=401, content={
+                "message": "Unauthorized",
+            })
+        except AuthorizationError as e:
+            self.logger.error(e)
+            return PresentationJSONResponse(status=403, content={
+                "message": "Forbidden",
+            })
+        except ValidationError as e:
+            self.logger.error(e)
+            return PresentationJSONResponse(status=400, content={
+                "message": "Bad Request",
+            })
+        except NotFoundError as e:
+            self.logger.error(e)
+            return PresentationJSONResponse(status=404, content={
+                "message": "Not Found",
+            })
+        except UnprocessableError as e:
+            self.logger.error(e)
+            return PresentationJSONResponse(status=422, content={
+                "message": "Unprocessable Entity",
+            })
+        except TooManyRequestsError as e:
+            self.logger.error(e)
+            return PresentationJSONResponse(status=429, content={
+                "message": "Too Many Requests",
+            })
+        except PayloadTooLargeError as e:
+            self.logger.error(e)
+            return PresentationJSONResponse(status=413, content={
+                "message": "Payload Too Large",
+            })
+        except Exception as e:
+            self.logger.unexpected_error(e)
+            return PresentationJSONResponse(status=500, content={
+                "message": "Internal Server Error",
+            })
         self.logger.api_response_info(request_id=request_id, response_status_code=response.status_code)
         return response
-
-
-class PresentationExceptionHandler:
-    def __init__(self, logger: Logger):
-        self.logger = logger
-
-    @classmethod
-    def create(cls) -> "PresentationExceptionHandler":
-        return cls(logger=Logger("presentation_exception_handler"))
-
-    def setup(self, app: fastapi.FastAPI):
-        app.add_exception_handler(Error, self.error_handler)
-        app.add_exception_handler(Exception, self.exception_handler)
-
-    async def exception_handler(self, request: Request, exc: Exception):
-        """
-        実装上想定していない例外が発生した場合の処理
-        :param Request request: リクエスト
-        :param Exception exc: 例外
-        :return PresentationJSONResponse: 500エラー
-        """
-        if request.state is not None and request.state.request_id is not None:
-            self.logger.api_response_info(
-                request_id=request.state.request_id,
-                response_status_code=500,
-            )
-        self.logger.unexpected_error(exc)
-        return PresentationJSONResponse(
-            status=500,
-            content={
-                "message": "Internal Server Error",
-            },
-        )
-
-    async def error_handler(self, request: Request, exc: Exception):
-        """
-        実装上想定したエラーだが、ユーザに表示する必要のないエラーが発生した場合の処理
-        ユーザに表示する必要がないため、500エラーを返す
-        :param Request request: リクエスト
-        :param Exception exc: 例外
-        :return PresentationJSONResponse: 500エラー
-        """
-        if request.state is not None and request.state.request_id is not None:
-            self.logger.api_response_info(
-                request_id=request.state.request_id,
-                response_status_code=500,
-            )
-        self.logger.error(Error(exc))
-        return PresentationJSONResponse(
-            status=500,
-            content={
-                "message": "Internal Server Error",
-            },
-        )
 
 
 T = TypeVar("T", bound=ApplicationBase)
@@ -206,7 +218,7 @@ def admin_client_authenticated(
     try:
         result = application.oauth2(
             DtoAdminClientAuthToken(token=token))
-    except ApplicationAdminClientAuthOAuth2Error as error:
+    except AuthenticationError:
         raise HTTPException(
             status_code=401,
             detail="Invalid authorization",
@@ -219,18 +231,14 @@ PresentationAdminClientAuthenticated = Annotated[DtoAdminClientId, Depends(
     admin_client_authenticated)]
 
 
-class PresentationImageError(Exception):
-    pass
-
-
 class PresentationImage:
     async def __call__(self, image: UploadFile) -> DtoImage:
         if image.filename is None:
-            raise PresentationImageError("image filename is None")
+            raise NotFoundError("image filename is None")
         content = await image.read()
         format = pathlib.Path(image.filename).suffix[1:]
         if format == "":
-            raise PresentationImageError("image format is empty")
+            raise NotFoundError("image format is empty")
         return DtoImage(bytes=content, format=format.lower())
 
 

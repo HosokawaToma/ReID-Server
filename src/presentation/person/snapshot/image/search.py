@@ -1,12 +1,10 @@
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearch
-from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearchNotFoundError
 from dto.id import DtoId
 from presentation import PresentationBase
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationRequest
 from presentation import get_application
 from logger import Logger
-from presentation import PresentationJSONResponse
 from presentation import PresentationImageResponse
 import uuid
 
@@ -48,16 +46,7 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
         id: uuid.UUID,
         application: ApplicationPersonSnapshotImageSearch = get_application(ApplicationPersonSnapshotImageSearch),
     ):
-        try:
-            image = application.search(
-                id=DtoId(id=id),
-            )
-            return PresentationImageResponse(status=200, image=image)
-        except ApplicationPersonSnapshotImageSearchNotFoundError:
-            self.logger.api_response_info(request_id=request.get_request_id(), response_status_code=404)
-            return PresentationJSONResponse(
-                status=404,
-                content={
-                    "message": "Person snapshot image not found",
-                },
-            )
+        image = application.search(
+            id=DtoId(id=id),
+        )
+        return PresentationImageResponse(status=200, image=image)
