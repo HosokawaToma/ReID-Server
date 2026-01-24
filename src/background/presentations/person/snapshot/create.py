@@ -4,10 +4,6 @@ from background.applications.person.snapshot.create import BackgroundApplication
 from environment import Environment
 
 class BackgroundPersonSnapshotCreate(BackgroundPresentationUtilsBase):
-    @property
-    def name(self) -> str:
-        return "person snapshot create"
-
     def __init__(
         self,
         logger: Logger,
@@ -23,10 +19,14 @@ class BackgroundPersonSnapshotCreate(BackgroundPresentationUtilsBase):
             application=BackgroundApplicationPersonSnapshotCreate.create(environment),
         )
 
-    def handle(self, background_id: str) -> None:
+    @property
+    def name(self) -> str:
+        return "person_snapshot_create"
+
+    def handle(self, process_id: str) -> None:
         self.application.save()
         self.logger.background_info(
-            background_id=background_id,
+            process_id=process_id,
             name=self.name,
             message=f"person snapshot created",
         )

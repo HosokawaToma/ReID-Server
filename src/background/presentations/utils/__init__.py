@@ -36,26 +36,26 @@ class BackgroundPresentationUtilsBase(ABC):
 
     async def run(self) -> None:
         while not self.event.is_set():
+            process_id = str(uuid.uuid4())
             try:
-                background_id = str(uuid.uuid4())
                 self.logger.background_info(
-                    background_id=background_id,
+                    process_id=process_id,
                     name=self.name,
                     message=f"background started",
                 )
-                await asyncio.to_thread(self.handle, background_id=background_id)
+                await asyncio.to_thread(self.handle, process_id=process_id)
                 self.logger.background_info(
-                    background_id=background_id,
+                    process_id=process_id,
                     name=self.name,
                     message=f"background finished",
                 )
             except Error as e:
-                self.logger.error(error=e, id=self.name)
+                self.logger.error(error=e, id=process_id)
                 continue
             except Exception as e:
-                self.logger.unexpected_error(exception=e, id=self.name)
+                self.logger.unexpected_error(exception=e, id=process_id)
                 continue
 
     @abstractmethod
-    def handle(self, background_id: str) -> None:
+    def handle(self, process_id: str) -> None:
         pass

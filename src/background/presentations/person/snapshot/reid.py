@@ -21,12 +21,12 @@ class BackgroundPersonSnapshotReid(BackgroundPresentationUtilsBase):
 
     @property
     def name(self) -> str:
-        return "person snapshot reid"
+        return "person_snapshot_reid"
 
-    def handle(self, background_id: str) -> None:
+    def handle(self, process_id: str) -> None:
         person_snapshot_person_id = self.application.reid()
         self.logger.background_info(
-            background_id=background_id,
+            process_id=process_id,
             name=self.name,
             message=f"person snapshot id: {person_snapshot_person_id.id} reid",
         )

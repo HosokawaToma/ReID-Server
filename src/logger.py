@@ -44,9 +44,7 @@ class Logger:
     Timestamp: {self._timestamp()}
 """)
 
-    def background_info(self, background_id: str, name: str, message: str):
-        self.logger.info(f"""Background: {message}
-    ID: {background_id}
-    Name: {name}
+    def background_info(self, process_id: str, name: str, message: str):
+        self.logger.info(f"""Background: id: {process_id}, name: {name}, message: {message}
     Timestamp: {self._timestamp()}
 """)
