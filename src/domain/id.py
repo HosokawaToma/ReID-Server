@@ -10,7 +10,7 @@ class DomainId(DomainUtilsBase):
     id: uuid.UUID = field(default_factory=uuid.uuid4)
 
     def __str__(self) -> str:
-        return self.id.hex
+        return str(self.id)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, DomainId):
