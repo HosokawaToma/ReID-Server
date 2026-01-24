@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, InitVar, field
 import torch
 from typing import ClassVar
 from domain.utils.base import DomainUtilsBase
@@ -8,23 +8,23 @@ class DomainPersonFeature(DomainUtilsBase):
     """
     人物の特徴量のドメインモデル
     """
-    feature: torch.Tensor
+    feature: InitVar[torch.Tensor]
+    _feature: torch.Tensor = field(init=False)
     THRESHOLD: ClassVar[float] = 0.895
 
-    def __post_init__(self):
+    def __post_init__(self, feature: torch.Tensor):
         """
         不変性を保つために、torch.Tensorを複製して代入する
         """
-        cloned = self.feature.detach().clone()
-        object.__setattr__(self, "feature", cloned)
+        object.__setattr__(self, "_feature", feature.detach().clone())
 
     @property
     def value(self) -> torch.Tensor:
-        return self.feature.clone()
+        return self._feature.clone()
 
     @property
     def shape(self):
-        return self.feature.shape
+        return self._feature.shape
 
     def is_same(self, other: "DomainPersonFeature") -> bool:
-        return torch.nn.functional.cosine_similarity(self.feature, other.feature, dim=0).item() > self.THRESHOLD
+        return torch.nn.functional.cosine_similarity(self._feature, other._feature, dim=0).item() > self.THRESHOLD
