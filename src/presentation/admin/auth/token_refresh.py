@@ -4,7 +4,6 @@ from presentation import PresentationRequest
 from presentation import PresentationJSONResponse
 from applications.admin_client.auth.token_refresh import ApplicationAdminClientAuthTokenRefresh
 from dto.admin_client.auth.token import DtoAdminClientAuthToken
-from error import AuthenticationError
 
 
 class PresentationAdminAuthTokenRefresh(PresentationBase):
