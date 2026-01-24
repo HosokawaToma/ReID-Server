@@ -1,8 +1,10 @@
 import logging
 from error import Error
+from types import TracebackType
 import traceback
 import datetime
 import zoneinfo
+import sys
 
 class Logger:
     def __init__(self, name: str):
@@ -11,36 +13,41 @@ class Logger:
         self.logger.addHandler(logging.StreamHandler())
         self.logger.addHandler(logging.FileHandler(f"{name}.log"))
 
+    def _traceback(self, exc_traceback: TracebackType):
+        stack_summary = traceback.extract_tb(exc_traceback)
+        return "->\n".join([f"{summary.filename}:{summary.lineno}:{summary.name}" for summary in stack_summary])
+
+    def _timestamp(self):
+        return datetime.datetime.now(zoneinfo.ZoneInfo("Asia/Tokyo")).isoformat()
+
     def unexpected_error(self, exception: Exception):
-        self.logger.error(f"""Unexpected error: {exception.__class__.__name__}
-    Timestamp: {datetime.datetime.now(zoneinfo.ZoneInfo("Asia/Tokyo")).isoformat()}
-    Traceback: {traceback.format_exc()}
+        self.logger.error(f"""Unexpected error:
+    Error: {exception.__class__.__name__} -> {str(exception)}
+    Timestamp: {self._timestamp()}
+    Traceback: {self._traceback(exception.__traceback__) if exception.__traceback__ is not None else None}
 """
         )
 
     def error(self, error: Error):
-        self.logger.error(f"""Error: {str(error)}
-    Timestamp: {datetime.datetime.now(zoneinfo.ZoneInfo("Asia/Tokyo")).isoformat()}
-""")
-
-    def info(self, message: str):
-        self.logger.info(f"""Info: {message}
-    Timestamp: {datetime.datetime.now(zoneinfo.ZoneInfo("Asia/Tokyo")).isoformat()}
+        self.logger.error(f"""Error:
+    Error: {error.__class__.__name__} -> {error.message}
+    Timestamp: {self._timestamp()}
+    Traceback: {self._traceback(error.__traceback__) if error.__traceback__ is not None else None}
 """)
 
     def api_request_info(self, request_id: str, request_path: str, request_method: str):
         self.logger.info(f"""API Request: id: {request_id}, path: {request_path}, method: {request_method}
-    Timestamp: {datetime.datetime.now(zoneinfo.ZoneInfo("Asia/Tokyo")).isoformat()}
+    Timestamp: {self._timestamp()}
 """)
 
     def api_response_info(self, request_id: str, response_status_code: int):
         self.logger.info(f"""API Response: id: {request_id}, status: {response_status_code}
-    Timestamp: {datetime.datetime.now(zoneinfo.ZoneInfo("Asia/Tokyo")).isoformat()}
+    Timestamp: {self._timestamp()}
 """)
 
     def background_info(self, background_id: str, name: str, message: str):
         self.logger.info(f"""Background: {message}
     ID: {background_id}
     Name: {name}
-    Timestamp: {datetime.datetime.now(zoneinfo.ZoneInfo("Asia/Tokyo")).isoformat()}
+    Timestamp: {self._timestamp()}
 """)
