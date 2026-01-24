@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, InitVar, field
 import numpy as np
 from domain.utils.base import DomainUtilsBase
 
@@ -7,10 +7,13 @@ class DomainYoloMask(DomainUtilsBase):
     """
     YOLOのマスクのドメインモデル
     """
-    mask: np.ndarray
+    mask: InitVar[np.ndarray]
+    _mask: np.ndarray = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self, mask: np.ndarray):
         """
         不変性を保つために、numpy.ndarrayを書き込み不可にする
         """
-        self.mask.flags.writeable = False
+        cloned_mask = mask.copy()
+        cloned_mask.flags.writeable = False
+        object.__setattr__(self, "_mask", cloned_mask)
