@@ -5,7 +5,14 @@ from typing import ClassVar
 
 @dataclass
 class RepositoryUtilStoragePathCameraFrame(RepositoryUtilStoragePathBase):
-    directory: ClassVar[str] = "camera_frame_images"
+    """
+    カメラフレーム画像のパスを表すドメインモデル
+    保存先がcamera_frame_imagesではなくframe_imagesになっているのは、過去の設計に合わせているため
+    Todo: 将来的にcamera_frame_imagesに変更する
+    :param directory: ディレクトリ
+    :param id: カメラフレームID
+    """
+    directory: ClassVar[str] = "frame_images"
     id: DomainId
 
     @property
