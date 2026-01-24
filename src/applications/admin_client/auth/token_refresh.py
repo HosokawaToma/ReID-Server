@@ -4,16 +4,11 @@ from domain.client.password import DomainClientPassword
 from domain.client.token import DomainClientToken
 from domain.token import DomainToken
 from environment import Environment
-from error import Error
 from applications import ApplicationBase
 from dto.admin_client.auth.token import DtoAdminClientAuthToken
 from dto.admin_client.auth.result import DtoAdminClientAuthResult
+from error import AuthenticationError
 
-class ApplicationAdminClientAuthTokenRefreshError(Error):
-    pass
-
-class ApplicationAdminClientAuthTokenRefreshInvalidRefreshTokenError(ApplicationAdminClientAuthTokenRefreshError):
-    pass
 
 class ApplicationAdminClientAuthTokenRefresh(ApplicationBase):
     def __init__(
@@ -56,16 +51,13 @@ class ApplicationAdminClientAuthTokenRefresh(ApplicationBase):
         :return DtoAdminClientAuthResult: アドミンクライアントのトークン更新結果
         :raises ApplicationAdminClientAuthTokenRefreshInvalidRefreshTokenError: アドミンクライアントのトークン更新用トークンが不正な場合に発生するエラー
         """
-        try:
-            client_token = DomainClientToken.decode(
-                token=DomainToken(token=refresh_token.token),
-                secret_key=self.refresh_secret_key,
-                algorithm=self.refresh_algorithm,
-            )
-            if client_token.is_expired():
-                raise ApplicationAdminClientAuthTokenRefreshInvalidRefreshTokenError()
-        except Error as error:
-            raise ApplicationAdminClientAuthTokenRefreshInvalidRefreshTokenError(error)
+        client_token = DomainClientToken.decode(
+            token=DomainToken(token=refresh_token.token),
+            secret_key=self.refresh_secret_key,
+            algorithm=self.refresh_algorithm,
+        )
+        if client_token.is_expired():
+            raise AuthenticationError("アドミンクライアントのトークン更新用トークンが期限切れです")
         return DtoAdminClientAuthResult(
             token=self.client_auth_credentials.to_token(
                 secret_key=self.secret_key,

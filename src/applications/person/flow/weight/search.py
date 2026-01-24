@@ -1,16 +1,10 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.utils.database.query.person_snapshot import RepositoryUtilDatabaseQueryPersonSnapshot
 from environment import Environment
-from error import Error
 from applications import ApplicationBase
 from dto.person.flow.weight.query import DtoPersonFlowWeightQuery
 from dto.person.flow.weight import DtoPersonFlowWeight
 
-class ApplicationPersonFlowWeightSearchError(Error):
-    pass
-
-class ApplicationPersonFlowWeightSearchNoFlowsFoundError(ApplicationPersonFlowWeightSearchError):
-    pass
 
 class ApplicationPersonFlowWeightSearch(ApplicationBase):
     def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot):
@@ -35,12 +29,9 @@ class ApplicationPersonFlowWeightSearch(ApplicationBase):
                 timestamp_after=query.timestamp_after,
                 timestamp_before=query.timestamp_before,
             )
-        try:
-            person_snapshots = self.repository_person_snapshot.find_details(query=filters)
-            flows = person_snapshots.to_flows()
-            weights = flows.to_weights()
-        except Error as error:
-            raise ApplicationPersonFlowWeightSearchError(error) from error
+        person_snapshots = self.repository_person_snapshot.find_details(query=filters)
+        flows = person_snapshots.to_flows()
+        weights = flows.to_weights()
         return [DtoPersonFlowWeight(
             source_camera_id=weight.source_location.camera_id,
             target_camera_id=weight.target_location.camera_id,
