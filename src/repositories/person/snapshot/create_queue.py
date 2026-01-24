@@ -74,10 +74,10 @@ class RepositoryPersonSnapshotCreateQueue:
                     ),
                 )
                 session.add(self._domain_to_model(frame_image))
-                self.redis.push(
-                    key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_CREATE,
-                    value={"id": str(frame_image.id.id)},
-                )
+            self.redis.push(
+                key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_CREATE,
+                value={"id": str(frame_image.id)},
+            )
         except Error as error:
             raise RepositoryPersonSnapshotCreateQueuePushError(error) from error
 
@@ -86,7 +86,9 @@ class RepositoryPersonSnapshotCreateQueue:
         try:
             data = self.redis.dequeue(RepositoryUtilRedisKey.PERSON_SNAPSHOT_CREATE)
             with self.database as session:
-                model = session.query(MigrationModelCameraFrame).filter(MigrationModelCameraFrame.id == UUID(data["id"])).first()
+                query = session.query(MigrationModelCameraFrame)
+                query = query.filter(MigrationModelCameraFrame.id == UUID(data["id"]))
+                model = query.first()
                 if model is None:
                     raise RepositoryPersonSnapshotCreateQueuePopError()
                 image = self.storage.search_image(
