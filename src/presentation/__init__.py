@@ -124,62 +124,62 @@ class PresentationMiddleware(BaseHTTPMiddleware):
         try:
             response = await call_next(request)
         except InternalServerError as e:
-            self.logger.error(e)
+            self.logger.error(error=e, id=request_id)
             return PresentationJSONResponse(status=500, content={
                 "message": "Internal Server Error",
             })
         except BadGatewayError as e:
-            self.logger.error(e)
+            self.logger.error(error=e, id=request_id)
             return PresentationJSONResponse(status=502, content={
                 "message": "Bad Gateway",
             })
         except ServiceUnavailableError as e:
-            self.logger.error(e)
+            self.logger.error(error=e, id=request_id)
             return PresentationJSONResponse(status=503, content={
                 "message": "Service Unavailable",
             })
         except GatewayTimeoutError as e:
-            self.logger.error(e)
+            self.logger.error(error=e, id=request_id)
             return PresentationJSONResponse(status=504, content={
                 "message": "Gateway Timeout",
             })
         except AuthenticationError as e:
-            self.logger.error(e)
+            self.logger.error(error=e, id=request_id)
             return PresentationJSONResponse(status=401, content={
                 "message": "Unauthorized",
             })
         except AuthorizationError as e:
-            self.logger.error(e)
+            self.logger.error(error=e, id=request_id)
             return PresentationJSONResponse(status=403, content={
                 "message": "Forbidden",
             })
         except ValidationError as e:
-            self.logger.error(e)
+            self.logger.error(error=e, id=request_id)
             return PresentationJSONResponse(status=400, content={
                 "message": "Bad Request",
             })
         except NotFoundError as e:
-            self.logger.error(e)
+            self.logger.error(error=e, id=request_id)
             return PresentationJSONResponse(status=404, content={
                 "message": "Not Found",
             })
         except UnprocessableError as e:
-            self.logger.error(e)
+            self.logger.error(error=e, id=request_id)
             return PresentationJSONResponse(status=422, content={
                 "message": "Unprocessable Entity",
             })
         except TooManyRequestsError as e:
-            self.logger.error(e)
+            self.logger.error(error=e, id=request_id)
             return PresentationJSONResponse(status=429, content={
                 "message": "Too Many Requests",
             })
         except PayloadTooLargeError as e:
-            self.logger.error(e)
+            self.logger.error(error=e, id=request_id)
             return PresentationJSONResponse(status=413, content={
                 "message": "Payload Too Large",
             })
         except Exception as e:
-            self.logger.unexpected_error(e)
+            self.logger.unexpected_error(exception=e, id=request_id)
             return PresentationJSONResponse(status=500, content={
                 "message": "Internal Server Error",
             })

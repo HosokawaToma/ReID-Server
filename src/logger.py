@@ -19,16 +19,16 @@ class Logger:
     def _timestamp(self):
         return datetime.datetime.now(zoneinfo.ZoneInfo("Asia/Tokyo")).isoformat()
 
-    def unexpected_error(self, exception: Exception):
-        self.logger.error(f"""Unexpected error:
+    def unexpected_error(self, exception: Exception, id: str):
+        self.logger.error(f"""Unexpected error: id: {id}
     Error: {exception.__class__.__name__} -> {str(exception)}
     Timestamp: {self._timestamp()}
     Traceback: {self._traceback(exception.__traceback__) if exception.__traceback__ is not None else None}
 """
         )
 
-    def error(self, error: Error):
-        self.logger.error(f"""Error:
+    def error(self, error: Error, id: str):
+        self.logger.error(f"""Error: id: {id}
     Error: {error.__class__.__name__} -> {error.message}
     Timestamp: {self._timestamp()}
     Traceback: {self._traceback(error.__traceback__) if error.__traceback__ is not None else None}
