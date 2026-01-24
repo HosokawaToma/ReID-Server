@@ -10,17 +10,8 @@ from domain.timestamp import DomainTimestamp
 from domain.image import DomainImage
 from migration.models.camera_frames import MigrationModelCameraFrame
 from environment import Environment
-from error import Error
+from error import NotFoundError
 from uuid import UUID
-
-class RepositoryPersonSnapshotCreateQueueError(Error):
-    pass
-
-class RepositoryPersonSnapshotCreateQueuePushError(RepositoryPersonSnapshotCreateQueueError):
-    pass
-
-class RepositoryPersonSnapshotCreateQueuePopError(RepositoryPersonSnapshotCreateQueueError):
-    pass
 
 
 class RepositoryPersonSnapshotCreateQueue:
@@ -63,39 +54,32 @@ class RepositoryPersonSnapshotCreateQueue:
         画像を人物検出キューに追加します
         キューへの追加が失敗してもストレージとデータベースへの追加は行われます
         :param DomainCameraFrameImage frame_image: 画像
-        :raise RepositoryPersonSnapshotCreateQueuePushError: 画像のキューへの追加が失敗した場合
+        :raise InternalServerError: 画像のキューへの追加が失敗した場合
         """
-        try:
-            with self.database as session:
-                self.storage.save_image(
-                    image=frame_image.image,
-                    path=RepositoryUtilStoragePathCameraFrame(
-                        id=frame_image.id,
-                    ),
-                )
-                session.add(self._domain_to_model(frame_image))
-            self.redis.push(
-                key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_CREATE,
-                value={"id": str(frame_image.id)},
+        with self.database as session:
+            self.storage.save_image(
+                image=frame_image.image,
+                path=RepositoryUtilStoragePathCameraFrame(
+                    id=frame_image.id,
+                ),
             )
-        except Error as error:
-            raise RepositoryPersonSnapshotCreateQueuePushError(error) from error
-
+            session.add(self._domain_to_model(frame_image))
+        self.redis.push(
+            key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_CREATE,
+            value={"id": str(frame_image.id)},
+        )
 
     def pop(self) -> DomainCameraFrameImage:
-        try:
-            data = self.redis.dequeue(RepositoryUtilRedisKey.PERSON_SNAPSHOT_CREATE)
-            with self.database as session:
-                query = session.query(MigrationModelCameraFrame)
-                query = query.filter(MigrationModelCameraFrame.id == UUID(data["id"]))
-                model = query.first()
-                if model is None:
-                    raise RepositoryPersonSnapshotCreateQueuePopError()
-                image = self.storage.search_image(
-                    path=RepositoryUtilStoragePathCameraFrame(
-                        id=DomainId(id=model.id),
-                    )
+        data = self.redis.dequeue(RepositoryUtilRedisKey.PERSON_SNAPSHOT_CREATE)
+        with self.database as session:
+            query = session.query(MigrationModelCameraFrame)
+            query = query.filter(MigrationModelCameraFrame.id == UUID(data["id"]))
+            model = query.first()
+            if model is None:
+                raise NotFoundError("画像が見つかりません")
+            image = self.storage.search_image(
+                path=RepositoryUtilStoragePathCameraFrame(
+                    id=DomainId(id=model.id),
                 )
-                return self._model_to_domain(model, image)
-        except Error as error:
-            raise RepositoryPersonSnapshotCreateQueuePopError(error) from error
+            )
+            return self._model_to_domain(model, image)

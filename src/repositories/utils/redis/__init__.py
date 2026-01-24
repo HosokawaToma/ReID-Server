@@ -1,4 +1,4 @@
-from error import Error
+from error import InternalServerError
 from redis import Redis, RedisError
 from environment import Environment
 import json
@@ -8,37 +8,6 @@ from enum import Enum
 class RepositoryUtilRedisKey(str, Enum):
     PERSON_SNAPSHOT_CREATE = "person_snapshot:create"
     PERSON_SNAPSHOT_REID = "person_snapshot:reid"
-
-class RepositoryUtilRedisError(Error):
-    pass
-
-
-class RepositoryUtilRedisPushError(RepositoryUtilRedisError):
-    pass
-
-
-class RepositoryUtilRedisDequeueError(RepositoryUtilRedisError):
-    pass
-
-
-class RepositoryUtilRedisResultNoneError(RepositoryUtilRedisError):
-    pass
-
-
-class RepositoryUtilRedisResultAwaitableError(RepositoryUtilRedisError):
-    pass
-
-
-class RepositoryUtilRedisResultLengthNot2Error(RepositoryUtilRedisError):
-    pass
-
-
-class RepositoryUtilRedisResultValueNotStrOrBytesError(RepositoryUtilRedisError):
-    pass
-
-
-class RepositoryUtilRedisResultDataNotDictError(RepositoryUtilRedisError):
-    pass
 
 
 class RepositoryUtilRedis:
@@ -61,11 +30,11 @@ class RepositoryUtilRedis:
         try:
             result = self.redis.rpush(key.value, json.dumps(value))
         except RedisError as error:
-            raise RepositoryUtilRedisPushError(error) from error
+            raise InternalServerError("キューにデータを追加することに失敗しました") from error
         if result is None:
-            raise RepositoryUtilRedisResultNoneError()
+            raise InternalServerError("キューにデータを追加することに失敗しました")
         if isinstance(result, Awaitable):
-            raise RepositoryUtilRedisResultAwaitableError()
+            raise InternalServerError("キューにデータを追加することに失敗しました")
 
     def dequeue(self, key: RepositoryUtilRedisKey) -> dict[str, str]:
         """
@@ -75,21 +44,21 @@ class RepositoryUtilRedis:
         try:
             result = self.redis.blpop([key.value])
         except RedisError as error:
-            raise RepositoryUtilRedisDequeueError(error) from error
+            raise InternalServerError("キューからデータを取得することに失敗しました") from error
         if result is None:
-            raise RepositoryUtilRedisResultNoneError()
+            raise InternalServerError("キューからデータを取得することに失敗しました")
         if isinstance(result, Awaitable):
-            raise RepositoryUtilRedisResultAwaitableError()
+            raise InternalServerError("キューからデータを取得することに失敗しました")
         if len(result) != 2:
-            raise RepositoryUtilRedisResultLengthNot2Error()
+            raise InternalServerError("キューからデータを取得することに失敗しました")
         value = result[1]
         if isinstance(value, str):
             pass
         elif isinstance(value, bytes):
             value = value.decode("utf-8")
         else:
-            raise RepositoryUtilRedisResultValueNotStrOrBytesError()
+            raise InternalServerError("キューからデータを取得することに失敗しました")
         data = json.loads(value)
         if not isinstance(data, dict):
-            raise RepositoryUtilRedisResultDataNotDictError()
+            raise InternalServerError("キューからデータを取得することに失敗しました")
         return data
