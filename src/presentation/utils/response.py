@@ -3,9 +3,10 @@ from fastapi.responses import StreamingResponse
 from dto.image import DtoImage
 import io
 from typing import Any
+from datetime import timedelta
 
 class PresentationUtilJSONResponse(JSONResponse):
-    REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24  # 1 day
+    REFRESH_TOKEN_MAX_AGE = int(timedelta(days=1).total_seconds())
 
     def __init__(self, status: int, content: dict[str, Any]):
         super().__init__(content=content, status_code=status)
