@@ -4,7 +4,6 @@ from types import TracebackType
 import traceback
 import datetime
 import zoneinfo
-import sys
 
 class Logger:
     def __init__(self, name: str):
