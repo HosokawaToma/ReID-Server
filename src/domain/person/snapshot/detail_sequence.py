@@ -53,4 +53,4 @@ class DomainPersonSnapshotDetailSequence(DomainUtilsSequenceBase[DomainPersonSna
         人物検出の集合を時間順にソートする
         :return DomainPersonSnapshotDetailSequence: 時間順にソートした人物検出の集合
         """
-        return DomainPersonSnapshotDetailSequence(items=sorted(self.items, key=lambda x: x.timestamp))
+        return DomainPersonSnapshotDetailSequence(items=sorted(self.items.copy(), key=lambda x: x.timestamp))
