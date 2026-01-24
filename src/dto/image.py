@@ -1,10 +1,11 @@
 from dataclasses import dataclass
-from PIL import Image
 
-@dataclass
+@dataclass(frozen=True)
 class DtoImage:
     """
     画像データを表すDTO
-    :param Image.Image image: 画像
+    :param bytes: 画像データ
+    :param format: 画像フォーマット
     """
-    image: Image.Image
+    bytes: bytes
+    format: str

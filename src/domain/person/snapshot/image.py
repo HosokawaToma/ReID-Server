@@ -1,69 +1,84 @@
-from dataclasses import dataclass, field
-import uuid
-from PIL import Image
-from datetime import datetime
-
-from domain.yolo.pose_model import DomainYoloPoseModel
-from domain.yolo.segment_model import DomainYoloSegmentModel
-from error import Error
-from modules.reid.model import ModuleReIDModel
+from dataclasses import dataclass
+from domain.id import DomainId
+from domain.location import DomainLocation
+from domain.timestamp import DomainTimestamp
+from domain.image import DomainImage
+from domain.person.id import DomainPersonId
+from domain.yolo.instance_segmenter import DomainYoloInstanceSegmenter
+from domain.yolo.pose_estimator import DomainYoloPoseEstimator
+from domain.utils.base import DomainUtilsBase
+from domain.reid.model import DomainReIDModel
 from domain.person.snapshot.feature import DomainPersonSnapshotFeature
 
-class DomainPersonSnapshotImageError(Error):
-    pass
 
-class DomainPersonSnapshotImageSelfJunkError(DomainPersonSnapshotImageError):
-    pass
-
-@dataclass
-class DomainPersonSnapshotImage:
+@dataclass(frozen=True)
+class DomainPersonSnapshotImage(DomainUtilsBase):
     """
-    人物検出の画像に関するドメイン知識を集約する
-    :param int camera_id: カメラID
-    :param int view_id: ビューID
-    :param datetime timestamp: タイムスタンプ
-    :param Image.Image image: 画像
-    :param bool | None is_junk: ジャンクフラグ
-    :param uuid.UUID id: 人物検出のID
+    人物検出結果の画像のドメインモデル
     """
-    camera_id: int
-    view_id: int
-    timestamp: datetime
-    image: Image.Image
-    is_junk: bool = field(default=True)
-    id: uuid.UUID = field(default_factory=uuid.uuid4)
+    id: DomainId
+    location: DomainLocation
+    timestamp: DomainTimestamp
+    image: DomainImage
+    person_id: DomainPersonId
 
     def detect_junk(
         self,
-        pose_model: DomainYoloPoseModel,
-        segment_model: DomainYoloSegmentModel,
-    ) -> None:
+        instance_segmenter: DomainYoloInstanceSegmenter,
+        pose_estimator: DomainYoloPoseEstimator,
+    ) -> "DomainPersonSnapshotImage":
         """
-        不採用なPersonSnapshotかどうかを検出する
-        :param DomainYoloPoseModel pose_model: 姿勢推定モデル
-        :param DomainYoloSegmentModel segment_model: 個別物体推定モデル
+        人物検出結果の画像からゴミデータを判定する
+        画像に全身が写っておらず、かつ一人のみ写った画像以外はゴミデータと判定する
+        :param DomainYoloInstanceSegmenter instance_segmenter: 個体推定器
+        :param DomainYoloPoseEstimator pose_estimator: 姿勢推定器
+        :return DomainPersonSnapshotImage: ゴミデータを判定した人物検出結果の画像
         """
-        if not pose_model.is_full_body(self.image):
-            self.is_junk = True
-            return
-        if not segment_model.is_one_person(self.image):
-            self.is_junk = True
-            return
-        self.is_junk = False
+        instances = instance_segmenter.extract(self.image)
+        if not instances.is_one_person():
+            return DomainPersonSnapshotImage(
+                id=self.id,
+                location=self.location,
+                timestamp=self.timestamp,
+                image=self.image,
+                person_id=self.person_id.junk(),
+            )
+        poses = pose_estimator.extract(self.image)
+        if not poses.is_one_person():
+            return DomainPersonSnapshotImage(
+                id=self.id,
+                location=self.location,
+                timestamp=self.timestamp,
+                image=self.image,
+                person_id=self.person_id.junk(),
+            )
+        pose = poses.one_person()
+        if not pose.is_full_length():
+            return DomainPersonSnapshotImage(
+                id=self.id,
+                location=self.location,
+                timestamp=self.timestamp,
+                image=self.image,
+                person_id=self.person_id.junk(),
+            )
+        return DomainPersonSnapshotImage(
+            id=self.id,
+            location=self.location,
+            timestamp=self.timestamp,
+            image=self.image,
+            person_id=self.person_id.new_id(),
+        )
 
-    def extract_feature(self, reid_model: ModuleReIDModel) -> DomainPersonSnapshotFeature:
+    def extract_feature(self, reid_model: DomainReIDModel) -> DomainPersonSnapshotFeature:
         """
-        画像から特徴量を抽出する
-        :param ModuleReIDModel reid_model: 特徴量抽出モデル
+        人物検出結果の画像から特徴量を抽出する
+        :param DomainReIDModel reid_model: ReIDモデル
+        :return DomainPersonSnapshotFeature: 特徴量を抽出した人物検出結果の特徴量
         """
-        if self.is_junk:
-            raise DomainPersonSnapshotImageSelfJunkError()
-        feature = reid_model.extract_feature(self.image, self.camera_id, self.view_id)
         return DomainPersonSnapshotFeature(
             id=self.id,
-            camera_id=self.camera_id,
-            view_id=self.view_id,
+            location=self.location,
             timestamp=self.timestamp,
-            is_junk=self.is_junk,
-            feature=feature,
+            feature=reid_model.extract(image=self.image, location=self.location),
+            person_id=self.person_id,
         )

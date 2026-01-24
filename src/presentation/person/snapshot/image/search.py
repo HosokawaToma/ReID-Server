@@ -49,11 +49,11 @@ class PresentationPersonSnapshotImageSearch(PresentationBase):
         application: ApplicationPersonSnapshotImageSearch = get_application(ApplicationPersonSnapshotImageSearch),
     ):
         try:
-            person_snapshot = application.search(
+            image = application.search(
                 id=DtoId(id=id),
             )
-            return PresentationImageResponse(status=200, image=person_snapshot.image)
-        except ApplicationPersonSnapshotImageSearchNotFoundError as error:
+            return PresentationImageResponse(status=200, image=image)
+        except ApplicationPersonSnapshotImageSearchNotFoundError:
             self.logger.api_response_info(request_id=request.get_request_id(), response_status_code=404)
             return PresentationJSONResponse(
                 status=404,

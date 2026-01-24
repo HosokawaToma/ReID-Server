@@ -1,5 +1,5 @@
 from repositories.person.snapshot import RepositoryPersonSnapshot
-from repositories.person.snapshot import RepositoryPersonSnapshotFilters
+from repositories.utils.database.query.person_snapshot import RepositoryUtilDatabaseQueryPersonSnapshot
 from environment import Environment
 from error import Error
 from applications import ApplicationBase
@@ -27,23 +27,29 @@ class ApplicationPersonFlowSearch(ApplicationBase):
             ),
         )
 
-    def search(self, query: DtoPersonFlowQuery) -> list[DtoPersonFlow]:
-        filters = RepositoryPersonSnapshotFilters(
-            timestamp_after=query.timestamp_after,
-            timestamp_before=query.timestamp_before,
-            person_ids=[query.person_id],
-        )
+    def search(self, query: DtoPersonFlowQuery | None = None) -> list[DtoPersonFlow]:
+        """
+        人流を検索する
+        :param DtoPersonFlowQuery query: 人流検索条件
+        :return list[DtoPersonFlow]: 人流リスト
+        :raises ApplicationPersonFlowSearchError: 人流検索に失敗した場合に発生するエラー
+        """
+        database_query = None
+        if query is not None:
+            database_query = RepositoryUtilDatabaseQueryPersonSnapshot(
+                timestamp_after=query.timestamp_after,
+                timestamp_before=query.timestamp_before,
+                person_ids=[query.person_id],
+            )
         try:
-            person_snapshots = self.repository_person_snapshot.find(filters=filters)
+            person_snapshots = self.repository_person_snapshot.find_details(query=database_query)
             flows = person_snapshots.to_flows()
         except Error as error:
             raise ApplicationPersonFlowSearchError(error) from error
-        if flows is None:
-            raise ApplicationPersonFlowSearchNoFlowsFoundError()
         return [DtoPersonFlow(
-            person_id=query.person_id,
-            source_camera_id=flow.source_camera_id,
-            target_camera_id=flow.target_camera_id,
-            source_timestamp=flow.source_timestamp,
-            target_timestamp=flow.target_timestamp,
-        ) for flow in flows.flows]
+            person_id=flow.person_id.id,
+            source_camera_id=flow.source_location.camera_id,
+            target_camera_id=flow.target_location.camera_id,
+            source_timestamp=flow.source_timestamp.timestamp,
+            target_timestamp=flow.target_timestamp.timestamp,
+        ) for flow in flows]

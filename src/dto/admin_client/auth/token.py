@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-@dataclass
+@dataclass(frozen=True)
 class DtoAdminClientAuthToken:
     """
     アドミンクライアント認証トークンを表すDTO

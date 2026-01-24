@@ -1,5 +1,5 @@
-from domain.admin_client import DomainAdminClient
-from domain.token_converter import DomainTokenConverter
+from domain.client.token import DomainClientToken
+from domain.token import DomainToken
 from environment import Environment
 from error import Error
 from dto.admin_client.auth.token import DtoAdminClientAuthToken
@@ -13,23 +13,39 @@ class ApplicationAdminClientAuthOAuth2InvalidTokenError(ApplicationAdminClientAu
     pass
 
 class ApplicationAdminClientAuthOAuth2:
-    def __init__(self, admin_client: DomainAdminClient, token_converter: DomainTokenConverter):
-        self.admin_client = admin_client
-        self.token_converter = token_converter
+    def __init__(
+        self,
+        secret_key: str,
+        algorithm: str,
+        expire_minutes: int,
+    ):
+        self.secret_key = secret_key
+        self.algorithm = algorithm
+        self.expire_minutes = expire_minutes
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationAdminClientAuthOAuth2":
         return cls(
-            admin_client=DomainAdminClient(id=environment.admin_client_id, password=environment.admin_client_password),
-            token_converter=DomainTokenConverter(
-                secret_key=environment.jwt_secret_key,
-                algorithm=environment.jwt_algorithm,
-                expire_minutes=environment.jwt_expire_minutes,
-            ),
+            secret_key=environment.jwt_secret_key,
+            algorithm=environment.jwt_algorithm,
+            expire_minutes=environment.jwt_expire_minutes,
         )
 
     def oauth2(self, token: DtoAdminClientAuthToken) -> DtoAdminClientId:
-        admin_client_id = self.admin_client.verify_token(token.token, self.token_converter)
-        if admin_client_id is None:
-            raise ApplicationAdminClientAuthOAuth2InvalidTokenError()
-        return DtoAdminClientId(id=admin_client_id.id)
+        """
+        アドミンクライアントのOAuth2認証を行う
+        :param DtoAdminClientAuthToken token: アドミンクライアントのOAuth2認証トークン
+        :return DtoAdminClientId: アドミンクライアントのID
+        :raises ApplicationAdminClientAuthOAuth2InvalidTokenError: アドミンクライアントのOAuth2認証トークンが不正な場合に発生するエラー
+        """
+        try:
+            client_token = DomainClientToken.decode(
+                token=DomainToken(token=token.token),
+                secret_key=self.secret_key,
+                algorithm=self.algorithm,
+            )
+            if client_token.is_expired():
+                raise ApplicationAdminClientAuthOAuth2InvalidTokenError()
+        except Error as error:
+            raise ApplicationAdminClientAuthOAuth2InvalidTokenError(error)
+        return DtoAdminClientId(id=str(client_token.client_id))

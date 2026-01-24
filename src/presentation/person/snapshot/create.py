@@ -1,6 +1,7 @@
 from applications.person.snapshot.create import ApplicationPersonSnapshotCreate
 from dto.image import DtoImage
-from dto.frame_image.property import DtoFrameImageProperty
+from dto.location import DtoLocation
+from dto.timestamp import DtoTimestamp
 from presentation import PresentationBase
 from presentation import PresentationAdminClientAuthenticated
 from presentation import PresentationTypeImage
@@ -44,13 +45,8 @@ class PresentationPersonSnapshotCreate(PresentationBase):
         application: ApplicationPersonSnapshotCreate = get_application(ApplicationPersonSnapshotCreate),
     ):
         application.save(
-            image=DtoImage(
-                image=image,
-            ),
-            frame_image_property=DtoFrameImageProperty(
-                camera_id=camera_id,
-                view_id=view_id,
-                timestamp=timestamp,
-            ),
+            location=DtoLocation(camera_id=camera_id, view_id=view_id),
+            timestamp=DtoTimestamp(timestamp=timestamp),
+            image=image,
         )
         return PresentationJSONResponse(status=200, content={"message": "Person snapshot created"})

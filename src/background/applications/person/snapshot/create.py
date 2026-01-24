@@ -1,10 +1,11 @@
-from repositories.frame_image import RepositoryFrameImage
-from repositories.person.snapshot import RepositoryPersonSnapshot
-from dto.frame_image.meta_data import DtoFrameImageMetaData
+from repositories.person.snapshot.create_queue import RepositoryPersonSnapshotCreateQueue
+from repositories.person.snapshot.reid_queue import RepositoryPersonSnapshotReidQueue
 from environment import Environment
-from domain.yolo.detection_model import DomainYoloDetectionModel
 from error import Error
 from background.applications.utils import BackgroundApplicationUtilsBase
+from repositories.yolo.object_detector import RepositoryYoloObjectDetector
+from repositories.yolo.instance_segmenter import RepositoryYoloInstanceSegmenter
+from repositories.yolo.pose_estimator import RepositoryYoloPoseEstimator
 
 class BackgroundApplicationPersonSnapshotCreateError(Error):
     pass
@@ -12,41 +13,38 @@ class BackgroundApplicationPersonSnapshotCreateError(Error):
 class BackgroundApplicationPersonSnapshotCreate(BackgroundApplicationUtilsBase):
     def __init__(
         self,
-        repository_frame_image: RepositoryFrameImage,
-        detection_model: DomainYoloDetectionModel,
-        repository_person_snapshot: RepositoryPersonSnapshot,
-        is_delete_unnecessary_images: bool,
+        repository_person_snapshot_create_queue: RepositoryPersonSnapshotCreateQueue,
+        repository_person_snapshot_reid_queue: RepositoryPersonSnapshotReidQueue,
+        repository_yolo_object_detector: RepositoryYoloObjectDetector,
+        repository_yolo_instance_segmenter: RepositoryYoloInstanceSegmenter,
+        repository_yolo_pose_estimator: RepositoryYoloPoseEstimator,
     ):
-        self.repository_frame_image = repository_frame_image
-        self.detection_model = detection_model
-        self.repository_person_snapshot = repository_person_snapshot
-        self.is_delete_unnecessary_images = is_delete_unnecessary_images
+        self.repository_person_snapshot_create_queue = repository_person_snapshot_create_queue
+        self.repository_yolo_object_detector = repository_yolo_object_detector
+        self.repository_yolo_instance_segmenter = repository_yolo_instance_segmenter
+        self.repository_yolo_pose_estimator = repository_yolo_pose_estimator
+        self.repository_person_snapshot_reid_queue = repository_person_snapshot_reid_queue
 
     @classmethod
     def create(cls, environment: Environment) -> "BackgroundApplicationPersonSnapshotCreate":
         return cls(
-            repository_frame_image=RepositoryFrameImage.create(
+            repository_person_snapshot_create_queue=RepositoryPersonSnapshotCreateQueue.create(
                 environment),
-            detection_model=DomainYoloDetectionModel(),
-            repository_person_snapshot=RepositoryPersonSnapshot.create(
+            repository_yolo_object_detector=RepositoryYoloObjectDetector.create(),
+            repository_yolo_instance_segmenter=RepositoryYoloInstanceSegmenter.create(),
+            repository_yolo_pose_estimator=RepositoryYoloPoseEstimator.create(),
+            repository_person_snapshot_reid_queue=RepositoryPersonSnapshotReidQueue.create(
                 environment),
-            is_delete_unnecessary_images=environment.is_delete_unnecessary_images,
         )
 
-    def save(self) -> DtoFrameImageMetaData:
+    def save(self) -> None:
         try:
-            frame_image = self.repository_frame_image.next_person_snapshot_create()
-            person_snapshots = frame_image.crop_person(self.detection_model)
-            for person_snapshot in person_snapshots:
-                self.repository_person_snapshot.save(person_snapshot)
-                self.repository_person_snapshot.push_junk_detection(person_snapshot)
-            if self.is_delete_unnecessary_images:
-                self.repository_frame_image.delete(frame_image)
-            return DtoFrameImageMetaData(
-                id=frame_image.id,
-                camera_id=frame_image.camera_id,
-                view_id=frame_image.view_id,
-                timestamp=frame_image.timestamp,
+            frame_image = self.repository_person_snapshot_create_queue.pop()
+            person_snapshots = frame_image.create_person_snapshot_images(
+                yolo_object_detector=self.repository_yolo_object_detector.find(),
+                yolo_instance_segmenter=self.repository_yolo_instance_segmenter.find(),
+                yolo_pose_estimator=self.repository_yolo_pose_estimator.find(),
             )
+            self.repository_person_snapshot_reid_queue.push_all(person_snapshots)
         except Error as error:
             raise BackgroundApplicationPersonSnapshotCreateError(error) from error

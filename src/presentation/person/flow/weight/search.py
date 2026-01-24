@@ -10,12 +10,10 @@ from presentation import PresentationRequestBody
 from presentation import PresentationJSONResponse
 from dataclasses import dataclass
 from datetime import datetime
-import uuid
 
 
 @dataclass
 class PresentationPersonFlowWeightSearchRequestBody(PresentationRequestBody):
-    person_ids: list[uuid.UUID] | None = None
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
 
@@ -54,7 +52,6 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
         query = None
         if body is not None:
             query = DtoPersonFlowWeightQuery(
-                person_ids=body.person_ids,
                 timestamp_after=body.timestamp_after,
                 timestamp_before=body.timestamp_before,
             )

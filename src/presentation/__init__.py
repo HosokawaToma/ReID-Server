@@ -8,7 +8,6 @@ from fastapi.security import OAuth2PasswordBearer
 import abc
 from typing import Any, Annotated, Sequence, Callable, Awaitable, Type, TypeVar, Generic
 from enum import Enum
-from PIL import Image
 import io
 from datetime import datetime
 from fastapi import Request, Response
@@ -21,8 +20,9 @@ from pydantic import BaseModel
 from error import Error
 import uuid
 from logger import Logger
-import asyncio
 from applications import ApplicationBase
+from dto.image import DtoImage
+import pathlib
 
 
 class PresentationRequest(Request):
@@ -63,19 +63,13 @@ class PresentationJSONResponse(JSONResponse):
         )
 
 
-class PresentationImageResponseError(Exception):
-    pass
-
-
 class PresentationImageResponse(StreamingResponse):
-    def __init__(self, status: int, image: Image.Image):
-        if image.format is None:
-            raise PresentationImageResponseError
-        img_buffer = io.BytesIO()
-        image.save(img_buffer, format=image.format)
-        img_buffer.seek(0)
-        super().__init__(content=img_buffer,
-                         media_type=f"image/{image.format.lower()}", status_code=status)
+    def __init__(self, status: int, image: DtoImage):
+        super().__init__(
+            content=io.BytesIO(image.bytes),
+            media_type=f"image/{image.format.lower()}",
+            status_code=status,
+        )
 
 
 class PresentationBase:
@@ -230,17 +224,17 @@ class PresentationImageError(Exception):
 
 
 class PresentationImage:
-    async def __call__(self, image: UploadFile) -> Image.Image:
+    async def __call__(self, image: UploadFile) -> DtoImage:
+        if image.filename is None:
+            raise PresentationImageError("image filename is None")
         content = await image.read()
-        pil_image = Image.open(io.BytesIO(content))
-        pil_image.load()
-        if pil_image.format is None:
-            raise PresentationImageError(
-                f"image format is None: {image.filename}")
-        return pil_image
+        format = pathlib.Path(image.filename).suffix[1:]
+        if format == "":
+            raise PresentationImageError("image format is empty")
+        return DtoImage(bytes=content, format=format.lower())
 
 
-PresentationTypeImage = Annotated[Image.Image, Depends(PresentationImage())]
+PresentationTypeImage = Annotated[DtoImage, Depends(PresentationImage())]
 
 PresentationTypeDatetime = Annotated[datetime, Form(...)]
 

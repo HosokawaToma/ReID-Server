@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-@dataclass
+@dataclass(frozen=True)
 class DtoAdminClientId:
     """
     Admin Client IDを表すDTO

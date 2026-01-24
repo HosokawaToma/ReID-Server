@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import uuid
 
-@dataclass
+@dataclass(frozen=True)
 class DtoId:
     """
     IDを表すDTO
