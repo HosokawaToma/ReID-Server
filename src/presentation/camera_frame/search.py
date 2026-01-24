@@ -1,12 +1,13 @@
 from applications.camera_frame.search import ApplicationCameraFrameSearch
-from presentation import PresentationBase, get_application
+from presentation.utils.base import PresentationUtilBase
+from presentation.utils.factory import get_application
 from logger import Logger
-from presentation import PresentationRequestBody
+from presentation.utils.request import PresentationUtilRequestBody
 from dto.camera_frame.query import DtoCameraFrameQuery, DtoCameraFrameQuerySortByKey
 from dataclasses import dataclass
 from datetime import datetime
-from presentation import PresentationJSONResponse
-from presentation import PresentationAdminClientAuthenticated
+from presentation.utils.response import PresentationUtilJSONResponse
+from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
 import uuid
 from enum import Enum
 
@@ -15,7 +16,7 @@ class PresentationCameraFrameSearchSortByKey(str, Enum):
     TIMESTAMP_DESC = "timestamp_desc"
 
 @dataclass
-class PresentationCameraFrameSearchRequestBody(PresentationRequestBody):
+class PresentationCameraFrameSearchRequestBody(PresentationUtilRequestBody):
     ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
@@ -23,7 +24,7 @@ class PresentationCameraFrameSearchRequestBody(PresentationRequestBody):
     timestamp_before: datetime | None = None
     sort_by_list: list[PresentationCameraFrameSearchSortByKey] | None = None
 
-class PresentationCameraFrameSearch(PresentationBase):
+class PresentationCameraFrameSearch(PresentationUtilBase):
     router_path = "/frame/search"
     methods = ["POST"]
     tags = ["Camera Frame"]
@@ -46,25 +47,25 @@ class PresentationCameraFrameSearch(PresentationBase):
 
     async def handle(
         self,
-        admin_client_id: PresentationAdminClientAuthenticated,
-        request: PresentationCameraFrameSearchRequestBody | None = None,
+        admin_client_id: PresentationUtilAdminClientAuthenticated,
+        body: PresentationCameraFrameSearchRequestBody | None = None,
         application: ApplicationCameraFrameSearch = get_application(ApplicationCameraFrameSearch),
-    ) -> PresentationJSONResponse:
+    ) -> PresentationUtilJSONResponse:
         query = None
-        if request is not None:
+        if body is not None:
             query = DtoCameraFrameQuery(
-                ids=request.ids,
-                camera_ids=request.camera_ids,
-                view_ids=request.view_ids,
-                timestamp_after=request.timestamp_after,
-                timestamp_before=request.timestamp_before,
+                ids=body.ids,
+                camera_ids=body.camera_ids,
+                view_ids=body.view_ids,
+                timestamp_after=body.timestamp_after,
+                timestamp_before=body.timestamp_before,
                 sort_by_list=[
                     DtoCameraFrameQuerySortByKey(sort_by.value)
-                    for sort_by in request.sort_by_list
-                ] if request.sort_by_list is not None else None,
+                    for sort_by in body.sort_by_list
+                ] if body.sort_by_list is not None else None,
             )
         camera_frames = application.search(query=query)
-        return PresentationJSONResponse(status=200, content={
+        return PresentationUtilJSONResponse(status=200, content={
             "camera_frames": [
                 {
                     "id": str(camera_frame.id),

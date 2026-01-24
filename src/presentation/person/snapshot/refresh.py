@@ -1,20 +1,22 @@
-from presentation import PresentationBase, PresentationJSONResponse, PresentationRequestBody
+from presentation.utils.base import PresentationUtilBase
+from presentation.utils.request import PresentationUtilRequestBody
+from presentation.utils.response import PresentationUtilJSONResponse
 from applications.person.snapshot.refresh import ApplicationPersonSnapshotRefresh
 from dto.person.snapshot.query import DtoPersonSnapshotQuery
-from presentation import PresentationAdminClientAuthenticated
+from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
 from logger import Logger
 from datetime import datetime
-from presentation import get_application
+from presentation.utils.factory import get_application
 
 
-class PresentationPersonSnapshotRefreshRequest(PresentationRequestBody):
+class PresentationPersonSnapshotRefreshRequest(PresentationUtilRequestBody):
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
 
 
-class PresentationPersonSnapshotRefresh(PresentationBase):
+class PresentationPersonSnapshotRefresh(PresentationUtilBase):
     router_path = "/person/snapshot/refresh"
     methods = ["POST"]
     tags = ["Person Snapshot"]
@@ -40,7 +42,7 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
 
     async def handle(
         self,
-        admin_client_id: PresentationAdminClientAuthenticated,
+        admin_client_id: PresentationUtilAdminClientAuthenticated,
         request: PresentationPersonSnapshotRefreshRequest | None = None,
         application: ApplicationPersonSnapshotRefresh = get_application(ApplicationPersonSnapshotRefresh),
     ):
@@ -53,4 +55,4 @@ class PresentationPersonSnapshotRefresh(PresentationBase):
                 view_ids=request.view_ids,
             )
         application.refresh(query=query)
-        return PresentationJSONResponse(status=200, content={"message": "Person snapshots refreshed"})
+        return PresentationUtilJSONResponse(status=200, content={"message": "Person snapshots refreshed"})

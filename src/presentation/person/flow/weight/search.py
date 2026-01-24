@@ -1,23 +1,23 @@
 from applications.person.flow.weight.search import ApplicationPersonFlowWeightSearch
 from dto.person.flow.weight.query import DtoPersonFlowWeightQuery
-from presentation import PresentationBase
-from presentation import PresentationAdminClientAuthenticated
-from presentation import get_application
-from presentation import PresentationRequest
+from presentation.utils.base import PresentationUtilBase
+from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
+from presentation.utils.factory import get_application
+from presentation.utils.response import PresentationUtilJSONResponse
 from logger import Logger
-from presentation import PresentationRequestBody
-from presentation import PresentationJSONResponse
+from presentation.utils.request import PresentationUtilRequestBody
+from presentation.utils.response import PresentationUtilJSONResponse
 from dataclasses import dataclass
 from datetime import datetime
 
 
 @dataclass
-class PresentationPersonFlowWeightSearchRequestBody(PresentationRequestBody):
+class PresentationPersonFlowWeightSearchRequestBody(PresentationUtilRequestBody):
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
 
 
-class PresentationPersonFlowWeightSearch(PresentationBase):
+class PresentationPersonFlowWeightSearch(PresentationUtilBase):
     router_path = "/person/flow/weight/search"
     methods = ["POST"]
     tags = ["Person Flow"]
@@ -43,8 +43,7 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
 
     async def handle(
         self,
-        admin_client_id: PresentationAdminClientAuthenticated,
-        request: PresentationRequest,
+        admin_client_id: PresentationUtilAdminClientAuthenticated,
         body: PresentationPersonFlowWeightSearchRequestBody | None = None,
         application: ApplicationPersonFlowWeightSearch = get_application(ApplicationPersonFlowWeightSearch),
     ):
@@ -55,7 +54,7 @@ class PresentationPersonFlowWeightSearch(PresentationBase):
                 timestamp_before=body.timestamp_before,
             )
         items = application.search(query=query)
-        return PresentationJSONResponse(
+        return PresentationUtilJSONResponse(
             status=200,
             content={
                 "weights": [

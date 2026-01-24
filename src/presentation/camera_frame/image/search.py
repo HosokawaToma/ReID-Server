@@ -1,13 +1,14 @@
 from applications.camera_frame.image.search import ApplicationCameraFrameImageSearch
-from presentation import PresentationBase, get_application
-from presentation import PresentationAdminClientAuthenticated
-from presentation import PresentationImageResponse
-from presentation import PresentationRequest
+from presentation.utils.base import PresentationUtilBase
+from presentation.utils.factory import get_application
+from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
+from presentation.utils.response import PresentationUtilImageResponse
+from presentation.utils.request import PresentationUtilRequest
 from logger import Logger
 import uuid
 from dto.id import DtoId
 
-class PresentationCameraFrameImageSearch(PresentationBase):
+class PresentationCameraFrameImageSearch(PresentationUtilBase):
     router_path = "/camera_frame/image/search/{id}"
     methods = ["GET"]
     tags = ["Camera Frame Image"]
@@ -30,12 +31,12 @@ class PresentationCameraFrameImageSearch(PresentationBase):
 
     async def handle(
         self,
-        admin_client_id: PresentationAdminClientAuthenticated,
-        request: PresentationRequest,
+        admin_client_id: PresentationUtilAdminClientAuthenticated,
+        request: PresentationUtilRequest,
         id: uuid.UUID,
         application: ApplicationCameraFrameImageSearch = get_application(ApplicationCameraFrameImageSearch),
-    ) -> PresentationImageResponse:
+    ) -> PresentationUtilImageResponse:
         image = application.search(
             id=DtoId(id=id),
         )
-        return PresentationImageResponse(status=200, image=image)
+        return PresentationUtilImageResponse(status=200, image=image)
