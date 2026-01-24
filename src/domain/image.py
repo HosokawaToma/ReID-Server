@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from PIL import Image
 import io
 from domain.utils.base import DomainUtilsBase
+from typing import ClassVar
 
 @dataclass(frozen=True)
 class DomainImage(DomainUtilsBase):
@@ -10,6 +11,11 @@ class DomainImage(DomainUtilsBase):
     """
     bytes: bytes
     format: str
+    EXTENSIONS: ClassVar[list[str]] = ["jpg", "jpeg", "png"]
+
+    def __post_init__(self):
+        if self.format not in self.EXTENSIONS:
+            raise ValueError(f"不正なフォーマットです: {self.format}")
 
     @classmethod
     def from_image(cls, image: Image.Image) -> "DomainImage":
@@ -17,7 +23,7 @@ class DomainImage(DomainUtilsBase):
             raise ValueError("画像のフォーマットが不明です")
         buffer = io.BytesIO()
         image.save(buffer, format=image.format)
-        return cls(bytes=buffer.getvalue(), format=image.format)
+        return cls(bytes=buffer.getvalue(), format=image.format.lower())
 
     @property
     def image(self) -> Image.Image:

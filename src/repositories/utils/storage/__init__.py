@@ -41,7 +41,6 @@ class RepositoryUtilStorage:
     ストレージ操作に関するユーティリティを集約する
     :param Path path: ストレージディレクトリ
     """
-    IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"]
 
     def __init__(self, path: Path):
         self.path = path
@@ -61,7 +60,7 @@ class RepositoryUtilStorage:
         :raise RepositoryUtilStorageMultipleError: 画像が複数見つかった場合
         """
         extension_list: list[str] = []
-        for extension in self.IMAGE_EXTENSIONS:
+        for extension in DomainImage.EXTENSIONS:
             file_path = self.path / path.directory / f"{path.name}.{extension}"
             if file_path.exists():
                 extension_list.append(extension)
@@ -91,9 +90,7 @@ class RepositoryUtilStorage:
         path: RepositoryUtilStoragePathBase,
     ) -> None:
         try:
-            if image.image.format is None:
-                raise RepositoryUtilStorageInvalidFormatError()
-            image.image.save(self.path / path.directory / f"{path.name}.{image.image.format}")
+            image.image.save(self.path / path.directory / f"{path.name}.{image.format}")
         except ValueError as error:
             raise RepositoryUtilStorageInvalidSaveError(error) from error
         except OSError as error:
