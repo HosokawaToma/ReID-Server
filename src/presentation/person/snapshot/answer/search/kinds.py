@@ -38,7 +38,7 @@ class PresentationPersonSnapshotAnswerSearchKinds(PresentationUtilBase):
                 "person_snapshot_answer_kinds": [
                     {
                         "id": str(item.id),
-                        "person_id": str(item.person_id),
+                        "person_id": str(item.person_id) if item.person_id is not None else None,
                         "is_junk": item.is_junk,
                     } for item in items
                 ],
