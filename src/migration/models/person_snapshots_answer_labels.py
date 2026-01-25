@@ -19,9 +19,9 @@ class MigrationModelPersonSnapshotsAnswerLabels(Base):
     __tablename__ = "person_snapshots_answer_labels"
     person_snapshot_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
+        ForeignKey("person_snapshots.id")
         nullable=False,
         primary_key=True,
-        foreign_key=ForeignKey("person_snapshots.id"),
     )
     person_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
