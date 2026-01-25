@@ -11,7 +11,7 @@ class MigrationModelPersonSnapshotsAnswerLabels(Base):
     人物検出結果の正解ラベルを保存するテーブル
     機械的に割り当てるIDではなく、人の手で割り当てるIDを保存する
     :param UUID person_snapshot_id: 人物検出結果のID
-    :param UUID person_id: 正解人物のID
+    :param UUID person_id: 正解人物のID（ゴミデータの場合はNone）
     :param bool is_junk: 正解人物がゴミデータかどうか
     :param datetime created_at: 作成日時
     :param datetime updated_at: 更新日時
@@ -23,9 +23,9 @@ class MigrationModelPersonSnapshotsAnswerLabels(Base):
         nullable=False,
         primary_key=True,
     )
-    person_id: Mapped[uuid.UUID] = mapped_column(
+    person_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
-        nullable=False,
+        nullable=True,
     )
     is_junk: Mapped[bool] = mapped_column(
         Boolean,

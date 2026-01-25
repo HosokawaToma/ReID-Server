@@ -5,6 +5,7 @@ from repositories.utils.database.query.person_snapshot import RepositoryUtilData
 from domain.id_sequence import DomainIdSequence
 from domain.id import DomainId
 from migration.models.person_snapshots import MigrationModelPersonSnapshot
+from migration.models.person_snapshots_answer_labels import MigrationModelPersonSnapshotsAnswerLabels
 from domain.person.snapshot.detail import DomainPersonSnapshotDetail
 from domain.person.snapshot.detail_sequence import DomainPersonSnapshotDetailSequence
 from domain.location import DomainLocation
@@ -12,6 +13,8 @@ from domain.timestamp import DomainTimestamp
 from domain.person.id import DomainPersonId
 from domain.person.feature import DomainPersonFeature
 from domain.person.snapshot.feature import DomainPersonSnapshotFeature
+from domain.person.snapshot.person_id import DomainPersonSnapshotPersonId
+from domain.person.snapshot.person_id_sequence import DomainPersonSnapshotPersonIdSequence
 import torch
 
 class RepositoryPersonSnapshot:
@@ -77,6 +80,26 @@ class RepositoryPersonSnapshot:
                     is_junk=model.is_junk,
                 ),
             )
+
+    def find_answer_label_kinds(self) -> DomainPersonSnapshotPersonIdSequence:
+        """
+        人物検出結果の正解ラベルの種類を検索する
+        :return DomainPersonSnapshotPersonIdSequence: 人物検出結果の正解ラベルの種類リスト
+        :raises NotFoundError: 人物検出結果の正解ラベルの種類が見つからない場合
+        """
+        with self.database as session:
+            session_query = session.query(MigrationModelPersonSnapshotsAnswerLabels)
+            session_query = session_query.filter(MigrationModelPersonSnapshotsAnswerLabels.is_junk.is_(False))
+            session_query = session_query.distinct(MigrationModelPersonSnapshotsAnswerLabels.person_id)
+            models = session_query.all()
+            return DomainPersonSnapshotPersonIdSequence(items=[
+                DomainPersonSnapshotPersonId(
+                    id=DomainId(id=model.person_snapshot_id),
+                    person_id=DomainPersonId(
+                        id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                        is_junk=model.is_junk,
+                    ),
+                ) for model in models])
 
     def save_feature(self, person_snapshot: DomainPersonSnapshotFeature) -> None:
         with self.database as session:
