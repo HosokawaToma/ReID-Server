@@ -2,6 +2,7 @@ from repositories.utils.database import RepositoryUtilDatabase
 from error import NotFoundError
 from environment import Environment
 from repositories.utils.database.query.person_snapshot import RepositoryUtilDatabaseQueryPersonSnapshot
+from repositories.utils.database.query.person_snapshot_answer_label import RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabel
 from domain.id_sequence import DomainIdSequence
 from domain.id import DomainId
 from migration.models.person_snapshots import MigrationModelPersonSnapshot
@@ -80,6 +81,26 @@ class RepositoryPersonSnapshot:
                     is_junk=model.is_junk,
                 ),
             )
+
+    def find_answer_labels(self, query: RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabel | None = None) -> DomainPersonSnapshotPersonIdSequence:
+        """
+        人物検出結果の正解ラベルを検索する
+        :param RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabel query: クエリ
+        :return DomainPersonSnapshotPersonIdSequence: 人物検出結果の正解ラベルリスト
+        :raises NotFoundError: 人物検出結果の正解ラベルが見つからない場合
+        """
+        with self.database as session:
+            session_query = session.query(MigrationModelPersonSnapshotsAnswerLabels)
+            if query is not None:
+                session_query = query.build(session_query)
+            models = session_query.all()
+            return DomainPersonSnapshotPersonIdSequence(items=[DomainPersonSnapshotPersonId(
+                id=DomainId(id=model.person_snapshot_id),
+                person_id=DomainPersonId(
+                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                    is_junk=model.is_junk,
+                ),
+            ) for model in models])
 
     def find_answer_label_kinds(self) -> DomainPersonSnapshotPersonIdSequence:
         """
