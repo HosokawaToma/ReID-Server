@@ -82,11 +82,15 @@ class RepositoryPersonSnapshot:
             )
 
     def find_answer_label_kinds(self) -> DomainPersonSnapshotPersonIdSequence:
+        """
+        人物検出結果の正解ラベルの種類を検索する
+        :return DomainPersonSnapshotPersonIdSequence: 人物検出結果の正解ラベルの種類リスト
+        :raises NotFoundError: 人物検出結果の正解ラベルの種類が見つからない場合
+        """
         with self.database as session:
             session_query = session.query(MigrationModelPersonSnapshotsAnswerLabels)
             session_query = session_query.filter(MigrationModelPersonSnapshotsAnswerLabels.is_junk.is_(False))
             session_query = session_query.distinct(MigrationModelPersonSnapshotsAnswerLabels.person_id)
-            session_query = session_query.order_by(MigrationModelPersonSnapshotsAnswerLabels.created_at.desc())
             models = session_query.all()
             return DomainPersonSnapshotPersonIdSequence(items=[
                 DomainPersonSnapshotPersonId(
