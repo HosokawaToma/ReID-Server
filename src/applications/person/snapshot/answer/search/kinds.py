@@ -14,6 +14,11 @@ class ApplicationPersonSnapshotAnswerSearchKinds(ApplicationBase):
         )
 
     def search(self) -> list[DtoPersonSnapshotPersonId]:
+        """
+        人物検出結果の正解ラベルの種類を検索する
+        :return list[DtoPersonSnapshotPersonId]: 人物検出結果の正解ラベルの種類リスト
+        :raises ApplicationPersonSnapshotAnswerSearchKindsError: 人物検出結果の正解ラベルの種類検索に失敗した場合に発生するエラー
+        """
         answer_label_kinds = self.repository_person_snapshot.find_answer_label_kinds()
         return [DtoPersonSnapshotPersonId(
                 id=answer_label_kind.id.id,
