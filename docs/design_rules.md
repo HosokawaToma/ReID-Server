@@ -35,3 +35,21 @@ Repository(リポジトリ層) | データの永続化・参照処理 | デー�
 - 本システムでは、Backgroundクラスが存在します。
 - Backgroundクラスは、プレゼンテーション層に位置するクラスとします。
 - Backgroundクラスは、非同期処理（バックグラウンド処理）の知識を一つに集約するために作成されます。
+
+## 3. テーブル設計
+
+### 3.1. `created_at`, `updated_at` カラムは必ず付ける
+
+```python
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.now,
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.now,
+        onupdate=datetime.now,
+        nullable=False,
+    )
+```
