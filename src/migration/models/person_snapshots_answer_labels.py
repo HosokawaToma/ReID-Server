@@ -23,8 +23,9 @@ class MigrationModelPersonSnapshotsAnswerLabels(Base):
         nullable=False,
         primary_key=True,
     )
-    person_id: Mapped[uuid.UUID] = mapped_column(
+    person_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
+        nullable=True,
     )
     is_junk: Mapped[bool] = mapped_column(
         Boolean,
