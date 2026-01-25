@@ -31,6 +31,11 @@ class PresentationPersonSnapshotAnswerSearchKinds(PresentationUtilBase):
         admin_client_id: PresentationUtilAdminClientAuthenticated,
         application: ApplicationPersonSnapshotAnswerSearchKinds = get_application(ApplicationPersonSnapshotAnswerSearchKinds),
     ):
+        """
+        人物検出結果の正解ラベルの種類を検索する
+        :return PresentationUtilJSONResponse: 人物検出結果の正解ラベルの種類リスト
+        :raises PresentationPersonSnapshotAnswerSearchKindsError: 人物検出結果の正解ラベルの種類検索に失敗した場合に発生するエラー
+        """
         items = application.search()
         return PresentationUtilJSONResponse(
             status=200,
