@@ -33,12 +33,12 @@ class MigrationModelPersonSnapshotsAnswerLabels(Base):
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.now,
+        default=sa.func.now(),
         nullable=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.now,
-        onupdate=datetime.now,
+        default=sa.func.now(),
+        onupdate=sa.func.now(),
         nullable=False,
     )
