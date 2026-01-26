@@ -145,6 +145,43 @@ class RepositoryPersonSnapshot:
                     ),
                 ) for model in models])
 
+    def update_answer_label(self, person_snapshot_person_id: DomainPersonSnapshotPersonId) -> None:
+        """
+        人物検出結果の正解ラベルを更新する
+        :param DomainPersonSnapshotPersonId person_snapshot_person_id: 人物検出結果の正解ラベル
+        """
+        with self.database as session:
+            model = session.query(MigrationModelPersonSnapshotsAnswerLabels).filter(
+                MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == person_snapshot_person_id.id.id
+            ).first()
+            person_id = person_snapshot_person_id.person_id.id.id if person_snapshot_person_id.person_id.id is not None else None
+            is_junk = person_snapshot_person_id.person_id.is_junk
+            if model is None:
+                session.add(MigrationModelPersonSnapshotsAnswerLabels(
+                    person_snapshot_id=person_snapshot_person_id.id.id,
+                    person_id=person_id,
+                    is_junk=is_junk,
+                ))
+            else:
+                model.person_id = person_id
+                model.is_junk = is_junk
+
+    def update_answer_labels_batch(self, person_snapshot_person_ids: DomainPersonSnapshotPersonIdSequence) -> None:
+        """
+        人物検出結果の正解ラベルを一括更新する
+        :param DomainPersonSnapshotPersonIdSequence person_snapshot_person_ids: 人物検出結果の正解ラベルリスト
+        """
+        with self.database as session:
+            for person_snapshot_person_id in person_snapshot_person_ids.items:
+                person_id = person_snapshot_person_id.person_id.id.id if person_snapshot_person_id.person_id.id is not None else None
+                is_junk = person_snapshot_person_id.person_id.is_junk
+                session.merge(MigrationModelPersonSnapshotsAnswerLabels(
+                    person_snapshot_id=person_snapshot_person_id.id.id,
+                    person_id=person_id,
+                    is_junk=is_junk,
+                ))
+
+
     def save_feature(self, person_snapshot: DomainPersonSnapshotFeature) -> None:
         with self.database as session:
             session.add(MigrationModelPersonSnapshot(
