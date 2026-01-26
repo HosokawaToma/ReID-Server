@@ -9,7 +9,7 @@ from domain.yolo.pose_estimator import DomainYoloPoseEstimator
 from domain.utils.base import DomainUtilsBase
 from domain.reid.model import DomainReIDModel
 from domain.person.snapshot.feature import DomainPersonSnapshotFeature
-
+from domain.person.feature import DomainPersonFeature
 
 @dataclass(frozen=True)
 class DomainPersonSnapshotImage(DomainUtilsBase):
@@ -20,6 +20,7 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
     location: DomainLocation
     timestamp: DomainTimestamp
     image: DomainImage
+    feature: DomainPersonFeature
     person_id: DomainPersonId
 
     def detect_junk(
@@ -41,6 +42,7 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
                 location=self.location,
                 timestamp=self.timestamp,
                 image=self.image,
+                feature=self.feature,
                 person_id=self.person_id.junk(),
             )
         poses = pose_estimator.extract(self.image)
@@ -50,6 +52,7 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
                 location=self.location,
                 timestamp=self.timestamp,
                 image=self.image,
+                feature=self.feature,
                 person_id=self.person_id.junk(),
             )
         pose = poses.one_person()
@@ -59,6 +62,7 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
                 location=self.location,
                 timestamp=self.timestamp,
                 image=self.image,
+                feature=self.feature,
                 person_id=self.person_id.junk(),
             )
         return DomainPersonSnapshotImage(
@@ -66,6 +70,7 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
             location=self.location,
             timestamp=self.timestamp,
             image=self.image,
+            feature=self.feature,
             person_id=self.person_id.new_id(),
         )
 

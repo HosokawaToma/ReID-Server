@@ -24,9 +24,9 @@ class BackgroundPersonSnapshotCreate(BackgroundPresentationUtilsBase):
         return "person_snapshot_create"
 
     def handle(self, process_id: str) -> None:
-        self.application.save()
+        person_snapshots = self.application.save()
         self.logger.background_info(
             process_id=process_id,
             name=self.name,
-            message=f"person snapshot created",
+            message=f"person snapshots created: {len(person_snapshots)}",
         )

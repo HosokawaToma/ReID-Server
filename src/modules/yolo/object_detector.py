@@ -12,7 +12,7 @@ class ModuleYoloObjectDetector:
     def __init__(self):
         self.model = YOLO(self.WEIGHTS_PATH)
 
-    def extract_person(self, image: Image.Image) -> Results:
+    def extract_person(self, image: Image.Image) -> list[Results]:
         results = self.model(
             image,
             classes=[self.PERSON_CLASS],
@@ -20,5 +20,4 @@ class ModuleYoloObjectDetector:
             conf=self.CONFIDENCE_THRESHOLD,
             verbose=False,
         )
-        items: Results = results[0]
-        return items
+        return results

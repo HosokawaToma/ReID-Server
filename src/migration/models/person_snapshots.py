@@ -17,5 +17,5 @@ class MigrationModelPersonSnapshot(Base):
         Boolean, nullable=False, default=True, server_default=sa.true())
     person_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), nullable=True, default=None, server_default=None)
-    feature: Mapped[Vector | None] = mapped_column(
-        Vector(1280), nullable=True, default=None, server_default=None)
+    feature: Mapped[Vector] = mapped_column(
+        Vector(1280), nullable=False, default=None, server_default=None)

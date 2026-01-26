@@ -10,11 +10,9 @@ from dto.person.snapshot.person_id import DtoPersonSnapshotPersonId
 class BackgroundApplicationPersonSnapshotReid(BackgroundApplicationUtilsBase):
     def __init__(
         self,
-        reid_model: DomainReIDModel,
         repository_person_snapshot_reid_queue: RepositoryPersonSnapshotReidQueue,
         repository_person_snapshot: RepositoryPersonSnapshot,
     ):
-        self.reid_model = reid_model
         self.repository_person_snapshot_reid_queue = repository_person_snapshot_reid_queue
         self.repository_person_snapshot = repository_person_snapshot
 
@@ -24,7 +22,6 @@ class BackgroundApplicationPersonSnapshotReid(BackgroundApplicationUtilsBase):
         environment: Environment,
     ) -> "BackgroundApplicationPersonSnapshotReid":
         return cls(
-            reid_model=DomainReIDModel(model=ModuleReIDModel()),
             repository_person_snapshot_reid_queue=RepositoryPersonSnapshotReidQueue.create(
                 environment),
             repository_person_snapshot=RepositoryPersonSnapshot.create(
@@ -32,8 +29,7 @@ class BackgroundApplicationPersonSnapshotReid(BackgroundApplicationUtilsBase):
         )
 
     def reid(self) -> DtoPersonSnapshotPersonId:
-        person_snapshot_image = self.repository_person_snapshot_reid_queue.pop()
-        person_snapshot_feature = person_snapshot_image.extract_feature(self.reid_model)
+        person_snapshot_feature = self.repository_person_snapshot_reid_queue.pop()
         nearest_person_snapshot_feature = self.repository_person_snapshot.find_features_by_nearest(person_snapshot_feature)
         reid_person_snapshot_feature = person_snapshot_feature.reid(nearest_person_snapshot_feature)
         self.repository_person_snapshot.save_feature(reid_person_snapshot_feature)
