@@ -63,7 +63,7 @@ class TestDomainPersonId:
         
         # 手動で構築した場合（Repository層で以前使われていた方法）
         manual_result = DomainPersonId(
-            id=DomainId(id=None) if None is not None else None,
+            id=None,
             is_junk=True,
         )
         
