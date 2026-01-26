@@ -131,15 +131,17 @@ class RepositoryPersonSnapshot:
             model = session.query(MigrationModelPersonSnapshotsAnswerLabels).filter(
                 MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == person_snapshot_person_id.id.id
             ).first()
+            person_id = person_snapshot_person_id.person_id.id.id if person_snapshot_person_id.person_id.id is not None else None
+            is_junk = person_snapshot_person_id.person_id.is_junk
             if model is None:
                 session.add(MigrationModelPersonSnapshotsAnswerLabels(
                     person_snapshot_id=person_snapshot_person_id.id.id,
-                    person_id=person_snapshot_person_id.person_id.id.id if person_snapshot_person_id.person_id.id is not None else None,
-                    is_junk=person_snapshot_person_id.person_id.is_junk,
+                    person_id=person_id,
+                    is_junk=is_junk,
                 ))
             else:
-                model.person_id = person_snapshot_person_id.person_id.id.id if person_snapshot_person_id.person_id.id is not None else None
-                model.is_junk = person_snapshot_person_id.person_id.is_junk
+                model.person_id = person_id
+                model.is_junk = is_junk
 
     def save_feature(self, person_snapshot: DomainPersonSnapshotFeature) -> None:
         with self.database as session:

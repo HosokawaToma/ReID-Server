@@ -21,7 +21,6 @@ class ApplicationPersonSnapshotAnswerNewId(ApplicationBase):
         """
         人物検出結果の正解ラベルを更新する
         :param DtoPersonSnapshotAnswerNewId new_id: 人物検出結果の正解ラベルの新しいID
-        :raises ApplicationPersonSnapshotAnswerNewIdError: 人物検出結果の正解ラベル更新に失敗した場合に発生するエラー
         """
         self.repository_person_snapshot.update_answer_label(DomainPersonSnapshotPersonId(
             id=DomainId(id=new_id.person_snapshot_id),
