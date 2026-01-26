@@ -30,11 +30,12 @@ class PresentationAdminAuthTokenRefresh(PresentationUtilBase):
     async def handle(
         self,
         request: PresentationUtilRequest,
-        application: ApplicationAdminClientAuthTokenRefresh = get_application(ApplicationAdminClientAuthTokenRefresh),
+        application: ApplicationAdminClientAuthTokenRefresh = get_application(
+            ApplicationAdminClientAuthTokenRefresh),
     ):
         result = application.refresh(
             DtoAdminClientAuthToken(
-                token=request.get_refresh_token(),
+                token=request.cookies.get("refresh_token", ""),
             ),
         )
         response = PresentationUtilJSONResponse(
