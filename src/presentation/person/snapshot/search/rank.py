@@ -10,14 +10,14 @@ import uuid
 
 class PresentationPersonSnapshotSearchRankRequestBody(PresentationUtilRequestBody):
     person_snapshot_id: uuid.UUID
-    limit: int
+    limit: int | None = None
 
 class PresentationPersonSnapshotSearchRank(PresentationUtilBase):
     router_path = "/person/snapshot/search/rank"
     methods = ["POST"]
     tags = ["Person Snapshot"]
     summary = "Search person snapshot rank"
-    description = "Search person snapshot rank"
+    description = "Search person snapshots with similar features from different cameras on the same date"
     responses = {
         200: {
             "description": "Person snapshot rank found",
@@ -39,7 +39,10 @@ class PresentationPersonSnapshotSearchRank(PresentationUtilBase):
         request: PresentationPersonSnapshotSearchRankRequestBody,
         application: ApplicationPersonSnapshotSearchRank = get_application(ApplicationPersonSnapshotSearchRank),
     ):
-        items = application.search(person_snapshot_id=DtoId(id=request.person_snapshot_id), limit=request.limit)
+        items = application.search(
+            person_snapshot_id=DtoId(id=request.person_snapshot_id),
+            limit=request.limit if request.limit is not None else 1,
+        )
         return PresentationUtilJSONResponse(status=200, content={
             "person_snapshots": [
                 {
