@@ -11,9 +11,11 @@ from domain.location import DomainLocation
 from domain.timestamp import DomainTimestamp
 from domain.person.id import DomainPersonId
 from domain.id_sequence import DomainIdSequence
-from domain.image import DomainImage
 from domain.person.snapshot.image_sequence import DomainPersonSnapshotImageSequence
+from domain.person.snapshot.feature import DomainPersonSnapshotFeature
+from domain.person.feature import DomainPersonFeature
 from migration.models.person_snapshots import MigrationModelPersonSnapshot
+import torch
 
 
 class RepositoryPersonSnapshotReidQueue:
@@ -35,28 +37,6 @@ class RepositoryPersonSnapshotReidQueue:
             storage=RepositoryUtilStorage.create(environment),
         )
 
-    def _domain_to_model(self, domain: DomainPersonSnapshotImage) -> MigrationModelPersonSnapshot:
-        return MigrationModelPersonSnapshot(
-            id=domain.id.id,
-            camera_id=domain.location.camera_id,
-            view_id=domain.location.view_id,
-            timestamp=domain.timestamp.timestamp,
-            is_junk=domain.person_id.is_junk,
-            person_id=domain.person_id.id.id if domain.person_id.id is not None else None,
-        )
-
-    def _model_to_domain(self, model: MigrationModelPersonSnapshot, image: DomainImage) -> DomainPersonSnapshotImage:
-        return DomainPersonSnapshotImage(
-            id=DomainId(id=model.id),
-            location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
-            timestamp=DomainTimestamp(timestamp=model.timestamp),
-            image=image,
-            person_id=DomainPersonId(
-                id=DomainId(id=model.person_id) if model.person_id is not None else None,
-                is_junk=model.is_junk,
-            ),
-        )
-
     def push(self, person_snapshot: DomainPersonSnapshotImage) -> None:
         """
         人物検出結果を再識別キューに追加します
@@ -64,12 +44,26 @@ class RepositoryPersonSnapshotReidQueue:
         :param DomainPersonSnapshotImage person_snapshot: 人物検出結果
         :raise RepositoryPersonSnapshotReidQueuePushError: キューへの追加が失敗した場合
         """
+        self.storage.save_image(
+            image=person_snapshot.image,
+            path=RepositoryUtilStoragePathPersonSnapshot(
+                id=person_snapshot.id,
+            ),
+        )
         with self.database as session:
-            session.add(self._domain_to_model(person_snapshot))
-            self.redis.push(
-                key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID,
-                value={"id": str(person_snapshot.id.id)},
-            )
+            session.add(MigrationModelPersonSnapshot(
+                id=person_snapshot.id.id,
+                camera_id=person_snapshot.location.camera_id,
+                view_id=person_snapshot.location.view_id,
+                timestamp=person_snapshot.timestamp.timestamp,
+                is_junk=person_snapshot.person_id.is_junk,
+                person_id=person_snapshot.person_id.id.id if person_snapshot.person_id.id is not None else None,
+                feature=person_snapshot.feature._feature.cpu().numpy().tolist(),
+            ))
+        self.redis.push(
+            key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID,
+            value={"id": str(person_snapshot.id.id)},
+        )
 
     def push_all(self, person_snapshot_images: DomainPersonSnapshotImageSequence) -> None:
         """
@@ -115,15 +109,19 @@ class RepositoryPersonSnapshotReidQueue:
         if len(errors) > 0:
             raise errors[0]
 
-    def pop(self) -> DomainPersonSnapshotImage:
+    def pop(self) -> DomainPersonSnapshotFeature:
         data = self.redis.dequeue(RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID)
         with self.database as session:
             model = session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id == data["id"]).first()
             if model is None:
                 raise NotFoundError("人物検出結果が見つかりません")
-            image = self.storage.search_image(
-                path=RepositoryUtilStoragePathPersonSnapshot(
-                    id=DomainId(id=model.id),
-                )
+            return DomainPersonSnapshotFeature(
+                id=DomainId(id=model.id),
+                location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                timestamp=DomainTimestamp(timestamp=model.timestamp),
+                feature=DomainPersonFeature(feature=torch.tensor(model.feature)),
+                person_id=DomainPersonId(
+                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                    is_junk=model.is_junk,
+                ),
             )
-            return self._model_to_domain(model, image)

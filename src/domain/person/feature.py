@@ -18,13 +18,9 @@ class DomainPersonFeature(DomainUtilsBase):
         """
         object.__setattr__(self, "_feature", feature.detach().clone())
 
-    @property
-    def value(self) -> torch.Tensor:
-        return self._feature.clone()
-
-    @property
-    def shape(self):
-        return self._feature.shape
-
     def is_same(self, other: "DomainPersonFeature") -> bool:
-        return torch.nn.functional.cosine_similarity(self._feature, other._feature, dim=0).item() > self.THRESHOLD
+        if self._feature.device != other._feature.device:
+            feature = other._feature.to(self._feature.device)
+        else:
+            feature = other._feature
+        return torch.nn.functional.cosine_similarity(self._feature, feature, dim=0).item() > self.THRESHOLD

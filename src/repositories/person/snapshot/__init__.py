@@ -83,9 +83,9 @@ class RepositoryPersonSnapshot:
             query = query.filter(MigrationModelPersonSnapshot.id != person_snapshot.id.id)
             query = query.filter(MigrationModelPersonSnapshot.camera_id != person_snapshot.location.camera_id)
             query = query.filter(MigrationModelPersonSnapshot.is_junk.is_(False))
-            query = query.filter(MigrationModelPersonSnapshot.timestamp < person_snapshot.timestamp.yesterday().timestamp)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp < person_snapshot.timestamp.tomorrow().timestamp)
             query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
-            query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature.value.cpu().numpy().tolist()))
+            query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature._feature.cpu().numpy().tolist()))
             models = query.limit(limit).all()
             return DomainPersonSnapshotDetailSequence(items=[
                 DomainPersonSnapshotDetail(
@@ -138,7 +138,7 @@ class RepositoryPersonSnapshot:
             query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
             query = query.filter(MigrationModelPersonSnapshot.is_junk.is_(False))
             query = query.filter(MigrationModelPersonSnapshot.feature.isnot(None))
-            query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature.value.cpu().numpy().tolist()))
+            query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature._feature.cpu().numpy().tolist()))
             model = query.first()
             if model is None:
                 raise NotFoundError("特徴量が最も近い人物検出結果が見つかりません")
@@ -231,17 +231,21 @@ class RepositoryPersonSnapshot:
                     is_junk=is_junk,
                 ))
 
-
     def save_feature(self, person_snapshot: DomainPersonSnapshotFeature) -> None:
+        """
+        人物検出結果の特徴量を保存する
+        既存レコードがある場合は更新し、ない場合は追加する
+        :param DomainPersonSnapshotFeature person_snapshot: 人物検出結果の特徴量
+        """
         with self.database as session:
-            session.add(MigrationModelPersonSnapshot(
+            session.merge(MigrationModelPersonSnapshot(
                 id=person_snapshot.id.id,
                 camera_id=person_snapshot.location.camera_id,
                 view_id=person_snapshot.location.view_id,
                 timestamp=person_snapshot.timestamp.timestamp,
                 is_junk=person_snapshot.person_id.is_junk,
                 person_id=person_snapshot.person_id.id.id if person_snapshot.person_id.id is not None else None,
-                feature=person_snapshot.feature.value.cpu().numpy().tolist(),
+                feature=person_snapshot.feature._feature.cpu().numpy().tolist(),
             ))
 
     def update_answer_labels(self, person_snapshot_person_ids: DomainPersonSnapshotPersonIdSequence) -> None:

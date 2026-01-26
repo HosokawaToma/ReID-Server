@@ -10,6 +10,7 @@ from domain.person.snapshot.image_sequence import DomainPersonSnapshotImageSeque
 from domain.person.snapshot.image import DomainPersonSnapshotImage
 from domain.person.id import DomainPersonId
 from domain.utils.base import DomainUtilsBase
+from domain.reid.model import DomainReIDModel
 
 @dataclass(frozen=True)
 class DomainCameraFrameImage(DomainUtilsBase):
@@ -26,6 +27,7 @@ class DomainCameraFrameImage(DomainUtilsBase):
         yolo_object_detector: DomainYoloObjectDetector,
         yolo_instance_segmenter: DomainYoloInstanceSegmenter,
         yolo_pose_estimator: DomainYoloPoseEstimator,
+        reid_model: DomainReIDModel,
         ) -> DomainPersonSnapshotImageSequence:
         """
         カメラフレーム画像から人物検出結果の画像を生成する
@@ -36,17 +38,26 @@ class DomainCameraFrameImage(DomainUtilsBase):
         :return DomainPersonSnapshotImageSequence: 人物検出結果の画像のシーケンス
         """
         bounding_boxes = yolo_object_detector.extract_person(image=self.image)
-        return DomainPersonSnapshotImageSequence(items=[
-            DomainPersonSnapshotImage(
+        person_snapshot_images = []
+        for bounding_box in bounding_boxes:
+            image = self.image.crop(
+                x1=bounding_box.x1,
+                y1=bounding_box.y1,
+                x2=bounding_box.x2,
+                y2=bounding_box.y2,
+            )
+            feature = reid_model.extract(
+                image=image,
+                location=self.location,
+            )
+            person_snapshot_image = DomainPersonSnapshotImage(
                 id=DomainId(),
                 location=self.location,
                 timestamp=self.timestamp,
-                image=self.image.crop(
-                    x1=bounding_box.x1,
-                    y1=bounding_box.y1,
-                    x2=bounding_box.x2,
-                    y2=bounding_box.y2,
-                ),
+                image=image,
+                feature=feature,
                 person_id=DomainPersonId(),
-            ) for bounding_box in bounding_boxes
-        ]).detect_junk(yolo_instance_segmenter, yolo_pose_estimator)
+            )
+            person_snapshot_image = person_snapshot_image.detect_junk(yolo_instance_segmenter, yolo_pose_estimator)
+            person_snapshot_images.append(person_snapshot_image)
+        return DomainPersonSnapshotImageSequence(items=person_snapshot_images)

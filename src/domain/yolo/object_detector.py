@@ -17,25 +17,24 @@ class DomainYoloObjectDetector(DomainUtilsBase):
         results = self.model.extract_person(
             image.image,
         )
-        items: Results = results[0]
-        if items.boxes is None:
-            return DomainYoloBoundingBoxSequence(items=[])
         detections = []
-        for box in items.boxes:
-            box: Boxes
-            xyxy = box.xyxy[0].cpu().numpy()
-            x1 = float(xyxy[0])
-            y1 = float(xyxy[1])
-            x2 = float(xyxy[2])
-            y2 = float(xyxy[3])
-            conf = float(box.conf[0].cpu().numpy())
-            class_id = int(box.cls[0].cpu().numpy())
-            detections.append(DomainYoloBoundingBox(
-                x1=x1,
-                y1=y1,
-                x2=x2,
-                y2=y2,
-                confidence=conf,
-                class_id=class_id,
-            ))
+        for result in results:
+            if result.boxes is None:
+                continue
+            for box in result.boxes:
+                xyxy = box.xyxy[0].cpu().numpy()
+                x1 = float(xyxy[0])
+                y1 = float(xyxy[1])
+                x2 = float(xyxy[2])
+                y2 = float(xyxy[3])
+                conf = float(box.conf[0].cpu().numpy())
+                class_id = int(box.cls[0].cpu().numpy())
+                detections.append(DomainYoloBoundingBox(
+                    x1=x1,
+                    y1=y1,
+                    x2=x2,
+                    y2=y2,
+                    confidence=conf,
+                    class_id=class_id,
+                ))
         return DomainYoloBoundingBoxSequence(items=detections)
