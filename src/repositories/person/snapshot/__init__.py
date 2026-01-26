@@ -96,6 +96,31 @@ class RepositoryPersonSnapshot:
                     ),
                 ) for model in models])
 
+    def find_feature_by_id(self, person_snapshot_id: DomainId) -> DomainPersonSnapshotFeature:
+        """
+        人物検出結果の特徴量を取得します
+        :param DomainId person_snapshot_id: 人物検出結果のID
+        :return DomainPersonSnapshotFeature: 人物検出結果の特徴量
+        :raise NotFoundError: 人物検出結果が見つからない場合
+        :raise NotFoundError: 人物検出結果の特徴量が存在しない場合
+        """
+        with self.database as session:
+            model = session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id == person_snapshot_id.id).first()
+            if model is None:
+                raise NotFoundError("人物検出結果が見つかりません")
+            if model.feature is None:
+                raise NotFoundError("人物検出結果の特徴量が存在しません")
+            return DomainPersonSnapshotFeature(
+                id=DomainId(id=model.id),
+                location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                timestamp=DomainTimestamp(timestamp=model.timestamp),
+                feature=DomainPersonFeature(feature=torch.tensor(model.feature)),
+                person_id=DomainPersonId(
+                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                    is_junk=model.is_junk,
+                ),
+            )
+
     def find_features_by_nearest(self, person_snapshot: DomainPersonSnapshotFeature) -> DomainPersonSnapshotFeature:
         """
         同じ日付で過去に検出された特徴量が最も近い人物検出結果を取得します
