@@ -122,6 +122,25 @@ class RepositoryPersonSnapshot:
                     ),
                 ) for model in models])
 
+    def update_answer_label(self, person_snapshot_person_id: DomainPersonSnapshotPersonId) -> None:
+        """
+        人物検出結果の正解ラベルを更新する
+        :param DomainPersonSnapshotPersonId person_snapshot_person_id: 人物検出結果の正解ラベル
+        """
+        with self.database as session:
+            model = session.query(MigrationModelPersonSnapshotsAnswerLabels).filter(
+                MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == person_snapshot_person_id.id.id
+            ).first()
+            if model is None:
+                session.add(MigrationModelPersonSnapshotsAnswerLabels(
+                    person_snapshot_id=person_snapshot_person_id.id.id,
+                    person_id=person_snapshot_person_id.person_id.id.id if person_snapshot_person_id.person_id.id is not None else None,
+                    is_junk=person_snapshot_person_id.person_id.is_junk,
+                ))
+            else:
+                model.person_id = person_snapshot_person_id.person_id.id.id if person_snapshot_person_id.person_id.id is not None else None
+                model.is_junk = person_snapshot_person_id.person_id.is_junk
+
     def save_feature(self, person_snapshot: DomainPersonSnapshotFeature) -> None:
         with self.database as session:
             session.add(MigrationModelPersonSnapshot(
