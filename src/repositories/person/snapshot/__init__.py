@@ -140,13 +140,25 @@ class RepositoryPersonSnapshot:
         人物検出結果に新しい人物IDを割り当てる
         :param DomainIdSequence person_snapshot_ids: 人物検出結果IDリスト
         :return DomainId: 新しく生成された人物ID
+        :raises NotFoundError: 指定されたperson_snapshot_idが存在しない場合
         """
         with self.database as session:
-            # 新しい人物IDを生成
-            new_person_id = uuid.uuid4()
-            
             # person_snapshot_idsのリストをPythonのUUIDリストに変換
             snapshot_id_list = [snapshot_id.id for snapshot_id in person_snapshot_ids.items]
+            
+            # person_snapshot_idsが実際に存在するか検証
+            existing_snapshots = session.query(MigrationModelPersonSnapshot).filter(
+                MigrationModelPersonSnapshot.id.in_(snapshot_id_list)
+            ).all()
+            
+            existing_snapshot_ids = {snapshot.id for snapshot in existing_snapshots}
+            missing_ids = [sid for sid in snapshot_id_list if sid not in existing_snapshot_ids]
+            
+            if missing_ids:
+                raise NotFoundError(f"指定された人物検出結果が見つかりません: {missing_ids}")
+            
+            # 新しい人物IDを生成
+            new_person_id = uuid.uuid4()
             
             # 既存のラベルを取得
             existing_labels = session.query(MigrationModelPersonSnapshotsAnswerLabels).filter(
