@@ -30,6 +30,11 @@ class DomainTimestamp(DomainUtilsBase):
             timestamp=datetime.combine(self.timestamp.date(), datetime.min.time()),
         )
 
+    def yesterday(self) -> "DomainTimestamp":
+        return DomainTimestamp(
+            timestamp=datetime.combine(self.timestamp.date() - timedelta(days=1), datetime.min.time()),
+        )
+
     def __add__(self, other: "DomainTime") -> "DomainTimestamp":
         return DomainTimestamp(
             timestamp=self.timestamp + timedelta(seconds=other.seconds),

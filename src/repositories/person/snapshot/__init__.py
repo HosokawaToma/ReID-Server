@@ -81,10 +81,8 @@ class RepositoryPersonSnapshot:
             query = session.query(MigrationModelPersonSnapshot)
             query = query.filter(MigrationModelPersonSnapshot.id != person_snapshot.id.id)
             query=query.filter(MigrationModelPersonSnapshot.camera_id != person_snapshot.location.camera_id)
-            query = query.filter(MigrationModelPersonSnapshot.timestamp <= person_snapshot.timestamp.timestamp)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp < person_snapshot.timestamp.yesterday().timestamp)
             query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
-            query = query.filter(MigrationModelPersonSnapshot.is_junk.is_(False))
-            query = query.filter(MigrationModelPersonSnapshot.feature.isnot(None))
             query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature.value.cpu().numpy().tolist()))
             models = query.limit(limit).all()
             return DomainPersonSnapshotDetailSequence(items=[
