@@ -70,7 +70,7 @@ class RepositoryPersonSnapshot:
                     ),
                 ) for model in models])
 
-    def find_details_by_nearest_feature(self, person_snapshot: DomainPersonSnapshotFeature, limit: int = 1) -> DomainPersonSnapshotDetailSequence:
+    def find_details_by_ranking(self, person_snapshot: DomainPersonSnapshotFeature, limit: int = 1) -> DomainPersonSnapshotDetailSequence:
         """
         特徴量が最も近い人物検出結果を取得します
         :param DomainPersonSnapshotFeature person_snapshot: 特徴量
