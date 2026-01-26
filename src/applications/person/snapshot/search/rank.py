@@ -44,4 +44,4 @@ class ApplicationPersonSnapshotSearchRank(ApplicationBase):
         if limit < self.DEFAULT_LIMIT:
             raise ValidationError("limitは1以上である必要があります")
         if limit > self.MAX_LIMIT:
-            raise ValidationError("limitは10以下である必要があります")
+            raise ValidationError("limitは1000以下である必要があります")
