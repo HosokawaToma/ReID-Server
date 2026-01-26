@@ -17,7 +17,6 @@ from domain.person.snapshot.feature import DomainPersonSnapshotFeature
 from domain.person.snapshot.person_id import DomainPersonSnapshotPersonId
 from domain.person.snapshot.person_id_sequence import DomainPersonSnapshotPersonIdSequence
 import torch
-import uuid
 
 class RepositoryPersonSnapshot:
     def __init__(self, database: RepositoryUtilDatabase):
@@ -135,11 +134,12 @@ class RepositoryPersonSnapshot:
                 feature=person_snapshot.feature.value.cpu().numpy().tolist(),
             ))
 
-    def assign_new_person_id(self, person_snapshot_ids: DomainIdSequence) -> DomainId:
+    def update_answer_labels(self, person_snapshot_ids: DomainIdSequence, person_id: DomainId, is_junk: bool) -> None:
         """
-        人物検出結果に新しい人物IDを割り当てる
+        人物検出結果の正解ラベルを更新する
         :param DomainIdSequence person_snapshot_ids: 人物検出結果IDリスト
-        :return DomainId: 新しく生成された人物ID
+        :param DomainId person_id: 割り当てる人物ID
+        :param bool is_junk: ゴミかどうか
         :raises NotFoundError: 指定されたperson_snapshot_idが存在しない場合
         """
         with self.database as session:
@@ -157,9 +157,6 @@ class RepositoryPersonSnapshot:
             if missing_ids:
                 raise NotFoundError(f"指定された人物検出結果が見つかりません: {missing_ids}")
             
-            # 新しい人物IDを生成
-            new_person_id = uuid.uuid4()
-            
             # 既存のラベルを取得
             existing_labels = session.query(MigrationModelPersonSnapshotsAnswerLabels).filter(
                 MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id.in_(snapshot_id_list)
@@ -167,19 +164,18 @@ class RepositoryPersonSnapshot:
             
             existing_label_dict = {label.person_snapshot_id: label for label in existing_labels}
             
-            # すべてのスナップショットに新しいperson_idを割り当て
+            # すべてのスナップショットのラベルを更新または作成
             for snapshot_id in person_snapshot_ids.items:
                 if snapshot_id.id in existing_label_dict:
                     # 既存のラベルを更新
-                    existing_label_dict[snapshot_id.id].person_id = new_person_id
-                    existing_label_dict[snapshot_id.id].is_junk = False
+                    existing_label_dict[snapshot_id.id].person_id = person_id.id
+                    existing_label_dict[snapshot_id.id].is_junk = is_junk
                 else:
                     # 新しいラベルを作成
                     session.add(MigrationModelPersonSnapshotsAnswerLabels(
                         person_snapshot_id=snapshot_id.id,
-                        person_id=new_person_id,
-                        is_junk=False,
+                        person_id=person_id.id,
+                        is_junk=is_junk,
                     ))
-            
-            return DomainId(id=new_person_id)
+
 
