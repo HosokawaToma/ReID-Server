@@ -5,12 +5,11 @@ from presentation.utils.request import PresentationUtilRequestBody
 from presentation.utils.response import PresentationUtilJSONResponse
 from logger import Logger
 from applications.person.snapshot.answer.new_id import ApplicationPersonSnapshotAnswerNewId
-from dto.person.snapshot.answer.new_id import DtoPersonSnapshotAnswerNewId
 import uuid
 
 
 class PresentationPersonSnapshotAnswerNewIdRequestBody(PresentationUtilRequestBody):
-    person_snapshot_id: uuid.UUID
+    person_snapshot_ids: list[uuid.UUID]
     person_id: uuid.UUID | None = None
     is_junk: bool
 
@@ -43,11 +42,9 @@ class PresentationPersonSnapshotAnswerNewId(PresentationUtilBase):
         application: ApplicationPersonSnapshotAnswerNewId = get_application(ApplicationPersonSnapshotAnswerNewId),
     ):
         application.update(
-            new_id=DtoPersonSnapshotAnswerNewId(
-                person_snapshot_id=request.person_snapshot_id,
-                person_id=request.person_id,
-                is_junk=request.is_junk,
-            )
+            person_snapshot_ids=request.person_snapshot_ids,
+            person_id=request.person_id,
+            is_junk=request.is_junk,
         )
         return PresentationUtilJSONResponse(
             status=200,
