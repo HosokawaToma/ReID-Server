@@ -43,17 +43,13 @@ class RepositoryPersonSnapshot:
         """
         with self.database as session:
             id_list = [id_item.id for id_item in ids.items]
-            
             models = session.query(MigrationModelPersonSnapshot).filter(
                 MigrationModelPersonSnapshot.id.in_(id_list)
             ).all()
-            
             found_ids = {model.id for model in models}
             missing_ids = [id_val for id_val in id_list if id_val not in found_ids]
-            
             if missing_ids:
                 raise NotFoundError(f"person_snapshot not found: {missing_ids}")
-            
             return DomainIdSequence(items=[DomainId(id=model.id) for model in models])
 
 
@@ -74,6 +70,59 @@ class RepositoryPersonSnapshot:
                     ),
                 ) for model in models])
 
+    def find_details_by_ranking(self, person_snapshot: DomainPersonSnapshotFeature, limit: int = 1) -> DomainPersonSnapshotDetailSequence:
+        """
+        別カメラの同じ日に検出されたゴミデータではない人物検出結果を特徴量が最も近い順に取得します
+        ※同じ検出結果は除外する
+        :param DomainPersonSnapshotFeature person_snapshot: 人物検出結果
+        :param int limit: 取得する人物検出結果の数
+        :return DomainPersonSnapshotDetailSequence: 特徴量が最も近い順に取得した人物検出結果リスト
+        """
+        with self.database as session:
+            query = session.query(MigrationModelPersonSnapshot)
+            query = query.filter(MigrationModelPersonSnapshot.id != person_snapshot.id.id)
+            query = query.filter(MigrationModelPersonSnapshot.camera_id != person_snapshot.location.camera_id)
+            query = query.filter(MigrationModelPersonSnapshot.is_junk.is_(False))
+            query = query.filter(MigrationModelPersonSnapshot.timestamp < person_snapshot.timestamp.yesterday().timestamp)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
+            query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature.value.cpu().numpy().tolist()))
+            models = query.limit(limit).all()
+            return DomainPersonSnapshotDetailSequence(items=[
+                DomainPersonSnapshotDetail(
+                    id=DomainId(id=model.id),
+                    location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                    timestamp=DomainTimestamp(timestamp=model.timestamp),
+                    person_id=DomainPersonId(
+                        id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                        is_junk=model.is_junk,
+                    ),
+                ) for model in models])
+
+    def find_feature_by_id(self, person_snapshot_id: DomainId) -> DomainPersonSnapshotFeature:
+        """
+        人物検出結果の特徴量を取得します
+        :param DomainId person_snapshot_id: 人物検出結果のID
+        :return DomainPersonSnapshotFeature: 人物検出結果の特徴量
+        :raise NotFoundError: 人物検出結果が見つからない場合
+        :raise NotFoundError: 人物検出結果の特徴量が存在しない場合
+        """
+        with self.database as session:
+            model = session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id == person_snapshot_id.id).first()
+            if model is None:
+                raise NotFoundError("人物検出結果が見つかりません")
+            if model.feature is None:
+                raise NotFoundError("人物検出結果の特徴量が存在しません")
+            return DomainPersonSnapshotFeature(
+                id=DomainId(id=model.id),
+                location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                timestamp=DomainTimestamp(timestamp=model.timestamp),
+                feature=DomainPersonFeature(feature=torch.tensor(model.feature)),
+                person_id=DomainPersonId(
+                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                    is_junk=model.is_junk,
+                ),
+            )
+
     def find_features_by_nearest(self, person_snapshot: DomainPersonSnapshotFeature) -> DomainPersonSnapshotFeature:
         """
         同じ日付で過去に検出された特徴量が最も近い人物検出結果を取得します
@@ -84,6 +133,7 @@ class RepositoryPersonSnapshot:
         """
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
+            query = query.filter(MigrationModelPersonSnapshot.id != person_snapshot.id.id)
             query = query.filter(MigrationModelPersonSnapshot.timestamp <= person_snapshot.timestamp.timestamp)
             query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
             query = query.filter(MigrationModelPersonSnapshot.is_junk.is_(False))
