@@ -10,7 +10,7 @@ from typing import ClassVar
 
 class ApplicationPersonSnapshotSearchRank(ApplicationBase):
     DEFAULT_LIMIT: ClassVar[int] = 1
-    MAX_LIMIT: ClassVar[int] = 10
+    MAX_LIMIT: ClassVar[int] = 1000
     def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot):
         self.repository_person_snapshot = repository_person_snapshot
 
