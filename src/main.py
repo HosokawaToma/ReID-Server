@@ -17,6 +17,7 @@ from presentation.person.snapshot.answer.search.kinds import PresentationPersonS
 from presentation.person.snapshot.answer.search import PresentationPersonSnapshotAnswerSearch
 from presentation.person.snapshot.answer.new_id import PresentationPersonSnapshotAnswerNewId
 from presentation.person.snapshot.answer.copy import PresentationPersonSnapshotAnswerCopy
+from presentation.person.snapshot.search.rank import PresentationPersonSnapshotSearchRank
 
 class ServerApp:
     def __init__(
@@ -36,6 +37,7 @@ class ServerApp:
         person_snapshot_answer_search: PresentationPersonSnapshotAnswerSearch,
         person_snapshot_answer_new_id: PresentationPersonSnapshotAnswerNewId,
         person_snapshot_answer_copy: PresentationPersonSnapshotAnswerCopy,
+        person_snapshot_search_rank: PresentationPersonSnapshotSearchRank,
         camera_frame_search: PresentationCameraFrameSearch,
         camera_frame_image_search: PresentationCameraFrameImageSearch,
     ):
@@ -54,6 +56,7 @@ class ServerApp:
         self.person_snapshot_answer_search = person_snapshot_answer_search
         self.person_snapshot_answer_new_id = person_snapshot_answer_new_id
         self.person_snapshot_answer_copy = person_snapshot_answer_copy
+        self.person_snapshot_search_rank = person_snapshot_search_rank
         self.camera_frame_search = camera_frame_search
         self.camera_frame_image_search = camera_frame_image_search
 
@@ -81,6 +84,7 @@ class ServerApp:
             person_snapshot_answer_search=PresentationPersonSnapshotAnswerSearch.create(),
             person_snapshot_answer_new_id=PresentationPersonSnapshotAnswerNewId.create(),
             person_snapshot_answer_copy=PresentationPersonSnapshotAnswerCopy.create(),
+            person_snapshot_search_rank=PresentationPersonSnapshotSearchRank.create(),
             camera_frame_search=PresentationCameraFrameSearch.create(),
             camera_frame_image_search=PresentationCameraFrameImageSearch.create(),
         )
@@ -105,6 +109,7 @@ class ServerApp:
         self.person_snapshot_answer_search.setup(self.fastapi_app)
         self.person_snapshot_answer_new_id.setup(self.fastapi_app)
         self.person_snapshot_answer_copy.setup(self.fastapi_app)
+        self.person_snapshot_search_rank.setup(self.fastapi_app)
         self.camera_frame_search.setup(self.fastapi_app)
         self.camera_frame_image_search.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.app_host, port=self.app_port)
