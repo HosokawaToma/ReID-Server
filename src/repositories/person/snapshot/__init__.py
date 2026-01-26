@@ -45,10 +45,7 @@ class RepositoryPersonSnapshot:
                     id=DomainId(id=model.id),
                     location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
                     timestamp=DomainTimestamp(timestamp=model.timestamp),
-                    person_id=DomainPersonId(
-                        id=DomainId(id=model.person_id) if model.person_id is not None else None,
-                        is_junk=model.is_junk,
-                    ),
+                    person_id=DomainPersonId.from_model(person_id=model.person_id, is_junk=model.is_junk),
                 ) for model in models])
 
     def find_features_by_nearest(self, person_snapshot: DomainPersonSnapshotFeature) -> DomainPersonSnapshotFeature:
@@ -76,10 +73,7 @@ class RepositoryPersonSnapshot:
                 location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
                 timestamp=DomainTimestamp(timestamp=model.timestamp),
                 feature=DomainPersonFeature(feature=torch.tensor(model.feature)),
-                person_id=DomainPersonId(
-                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
-                    is_junk=model.is_junk,
-                ),
+                person_id=DomainPersonId.from_model(person_id=model.person_id, is_junk=model.is_junk),
             )
 
     def find_answer_labels(self, query: RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabel | None = None) -> DomainPersonSnapshotPersonIdSequence:
@@ -96,10 +90,7 @@ class RepositoryPersonSnapshot:
             models = session_query.all()
             return DomainPersonSnapshotPersonIdSequence(items=[DomainPersonSnapshotPersonId(
                 id=DomainId(id=model.person_snapshot_id),
-                person_id=DomainPersonId(
-                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
-                    is_junk=model.is_junk,
-                ),
+                person_id=DomainPersonId.from_model(person_id=model.person_id, is_junk=model.is_junk),
             ) for model in models])
 
     def find_answer_label_kinds(self) -> DomainPersonSnapshotPersonIdSequence:
@@ -116,10 +107,7 @@ class RepositoryPersonSnapshot:
             return DomainPersonSnapshotPersonIdSequence(items=[
                 DomainPersonSnapshotPersonId(
                     id=DomainId(id=model.person_snapshot_id),
-                    person_id=DomainPersonId(
-                        id=DomainId(id=model.person_id) if model.person_id is not None else None,
-                        is_junk=model.is_junk,
-                    ),
+                    person_id=DomainPersonId.from_model(person_id=model.person_id, is_junk=model.is_junk),
                 ) for model in models])
 
     def save_feature(self, person_snapshot: DomainPersonSnapshotFeature) -> None:

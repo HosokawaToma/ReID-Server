@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from domain.id import DomainId
 from domain.utils.base import DomainUtilsBase
+import uuid
 
 @dataclass(frozen=True)
 class DomainPersonId(DomainUtilsBase):
@@ -9,6 +10,19 @@ class DomainPersonId(DomainUtilsBase):
     """
     id: DomainId | None = field(default=None)
     is_junk: bool = field(default=True)
+
+    @staticmethod
+    def from_model(person_id: uuid.UUID | None, is_junk: bool) -> "DomainPersonId":
+        """
+        データベースモデルから人物IDを生成する
+        :param uuid.UUID | None person_id: データベースの人物ID
+        :param bool is_junk: ゴミデータかどうか
+        :return DomainPersonId: 人物ID
+        """
+        return DomainPersonId(
+            id=DomainId(id=person_id) if person_id is not None else None,
+            is_junk=is_junk,
+        )
 
     def new_id(self) -> "DomainPersonId":
         """
