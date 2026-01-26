@@ -1,5 +1,5 @@
 from repositories.utils.database import RepositoryUtilDatabase
-from error import NotFoundError, Error
+from error import NotFoundError
 from environment import Environment
 from repositories.utils.database.query.person_snapshot import RepositoryUtilDatabaseQueryPersonSnapshot
 from repositories.utils.database.query.person_snapshot_answer_label import RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabel
@@ -17,9 +17,6 @@ from domain.person.snapshot.feature import DomainPersonSnapshotFeature
 from domain.person.snapshot.person_id import DomainPersonSnapshotPersonId
 from domain.person.snapshot.person_id_sequence import DomainPersonSnapshotPersonIdSequence
 import torch
-
-class RepositoryPersonSnapshotError(Error):
-    pass
 
 class RepositoryPersonSnapshot:
     def __init__(self, database: RepositoryUtilDatabase):
@@ -42,7 +39,7 @@ class RepositoryPersonSnapshot:
         指定されたIDリストに対応する人物検出結果のIDを取得する
         :param DomainIdSequence ids: 検索するIDリスト
         :return DomainIdSequence: 見つかったIDリスト
-        :raises RepositoryPersonSnapshotError: 指定されたIDが存在しない場合
+        :raises NotFoundError: 指定されたIDが存在しない場合
         """
         with self.database as session:
             id_list = [id_item.id for id_item in ids.items]
@@ -55,7 +52,7 @@ class RepositoryPersonSnapshot:
             missing_ids = [id_val for id_val in id_list if id_val not in found_ids]
             
             if missing_ids:
-                raise RepositoryPersonSnapshotError(f"person_snapshot not found: {missing_ids}")
+                raise NotFoundError(f"person_snapshot not found: {missing_ids}")
             
             return DomainIdSequence(items=[DomainId(id=model.id) for model in models])
 

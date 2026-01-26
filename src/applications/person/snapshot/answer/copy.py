@@ -1,6 +1,6 @@
 from applications import ApplicationBase
 from environment import Environment
-from repositories.person.snapshot import RepositoryPersonSnapshot, RepositoryPersonSnapshotError
+from repositories.person.snapshot import RepositoryPersonSnapshot
 from domain.id import DomainId
 from domain.id_sequence import DomainIdSequence
 from domain.person.id import DomainPersonId
@@ -52,5 +52,5 @@ class ApplicationPersonSnapshotAnswerCopy(ApplicationBase):
         """
         try:
             self.repository_person_snapshot.find_ids_by_ids(person_snapshot_ids)
-        except RepositoryPersonSnapshotError as e:
+        except NotFoundError as e:
             raise NotFoundError(f"指定された人物検出結果が見つかりません: {str(e)}")
