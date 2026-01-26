@@ -122,6 +122,35 @@ class RepositoryPersonSnapshot:
                     ),
                 ) for model in models])
 
+    def copy_answer_label(self, source_id: DomainId, target_ids: DomainIdSequence) -> None:
+        """
+        人物検出結果の正解ラベルをコピーする
+        :param DomainId source_id: コピー元の人物検出結果ID
+        :param DomainIdSequence target_ids: コピー先の人物検出結果IDリスト
+        :raises NotFoundError: コピー元の正解ラベルが見つからない場合
+        """
+        with self.database as session:
+            source_label = session.query(MigrationModelPersonSnapshotsAnswerLabels).filter(
+                MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == source_id.id
+            ).first()
+            if source_label is None:
+                raise NotFoundError("コピー元の正解ラベルが見つかりません")
+            
+            for target_id in target_ids.items:
+                existing_label = session.query(MigrationModelPersonSnapshotsAnswerLabels).filter(
+                    MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == target_id.id
+                ).first()
+                
+                if existing_label is not None:
+                    existing_label.person_id = source_label.person_id
+                    existing_label.is_junk = source_label.is_junk
+                else:
+                    session.add(MigrationModelPersonSnapshotsAnswerLabels(
+                        person_snapshot_id=target_id.id,
+                        person_id=source_label.person_id,
+                        is_junk=source_label.is_junk,
+                    ))
+
     def save_feature(self, person_snapshot: DomainPersonSnapshotFeature) -> None:
         with self.database as session:
             session.add(MigrationModelPersonSnapshot(
