@@ -136,14 +136,17 @@ class RepositoryPersonSnapshot:
             if source_label is None:
                 raise NotFoundError("コピー元の正解ラベルが見つかりません")
             
+            target_id_list = [target_id.id for target_id in target_ids.items]
+            existing_labels = session.query(MigrationModelPersonSnapshotsAnswerLabels).filter(
+                MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id.in_(target_id_list)
+            ).all()
+            
+            existing_label_dict = {label.person_snapshot_id: label for label in existing_labels}
+            
             for target_id in target_ids.items:
-                existing_label = session.query(MigrationModelPersonSnapshotsAnswerLabels).filter(
-                    MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == target_id.id
-                ).first()
-                
-                if existing_label is not None:
-                    existing_label.person_id = source_label.person_id
-                    existing_label.is_junk = source_label.is_junk
+                if target_id.id in existing_label_dict:
+                    existing_label_dict[target_id.id].person_id = source_label.person_id
+                    existing_label_dict[target_id.id].is_junk = source_label.is_junk
                 else:
                     session.add(MigrationModelPersonSnapshotsAnswerLabels(
                         person_snapshot_id=target_id.id,
