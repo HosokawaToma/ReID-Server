@@ -25,6 +25,8 @@ class ApplicationPersonSnapshotAnswerCopy(ApplicationBase):
         :return DomainId: 新しく生成された人物ID
         :raises NotFoundError: 指定されたperson_snapshot_idが存在しない場合
         """
+        self._validate_person_snapshots_exist(person_snapshot_ids)
+        
         new_person_id = DomainPersonId().new_id()
         
         person_snapshot_person_ids = DomainPersonSnapshotPersonIdSequence(items=[
@@ -40,3 +42,18 @@ class ApplicationPersonSnapshotAnswerCopy(ApplicationBase):
         )
         
         return new_person_id.id
+
+    def _validate_person_snapshots_exist(self, person_snapshot_ids: DomainIdSequence) -> None:
+        """
+        人物検出結果が存在するかを検証する
+        :param DomainIdSequence person_snapshot_ids: 人物検出結果IDリスト
+        :raises NotFoundError: 指定されたperson_snapshot_idが存在しない場合
+        """
+        existing_ids = self.repository_person_snapshot.find_ids()
+        existing_id_set = {existing_id.id for existing_id in existing_ids.items}
+        
+        missing_ids = [snapshot_id.id for snapshot_id in person_snapshot_ids.items if snapshot_id.id not in existing_id_set]
+        
+        if missing_ids:
+            from error import NotFoundError
+            raise NotFoundError(f"指定された人物検出結果が見つかりません: {missing_ids}")

@@ -138,21 +138,8 @@ class RepositoryPersonSnapshot:
         """
         人物検出結果の正解ラベルを更新する
         :param DomainPersonSnapshotPersonIdSequence person_snapshot_person_ids: 人物検出結果の人物IDリスト
-        :raises NotFoundError: 指定されたperson_snapshot_idが存在しない場合
         """
         with self.database as session:
-            snapshot_id_list = [item.id.id for item in person_snapshot_person_ids.items]
-            
-            existing_snapshots = session.query(MigrationModelPersonSnapshot).filter(
-                MigrationModelPersonSnapshot.id.in_(snapshot_id_list)
-            ).all()
-            
-            existing_snapshot_ids = {snapshot.id for snapshot in existing_snapshots}
-            missing_ids = [sid for sid in snapshot_id_list if sid not in existing_snapshot_ids]
-            
-            if missing_ids:
-                raise NotFoundError(f"指定された人物検出結果が見つかりません: {missing_ids}")
-            
             for item in person_snapshot_person_ids.items:
                 session.merge(MigrationModelPersonSnapshotsAnswerLabels(
                     person_snapshot_id=item.id.id,
