@@ -20,6 +20,6 @@ class ApplicationPersonSnapshotAnswerCopy(ApplicationBase):
         人物検出結果の正解ラベルをコピーする
         :param DomainId source_id: コピー元の人物検出結果ID
         :param DomainIdSequence target_ids: コピー先の人物検出結果IDリスト
-        :raises ApplicationPersonSnapshotAnswerCopyError: 人物検出結果の正解ラベルのコピーに失敗した場合に発生するエラー
+        :raises NotFoundError: コピー元の正解ラベルが見つからない場合に発生するエラー
         """
         self.repository_person_snapshot.copy_answer_label(source_id=source_id, target_ids=target_ids)

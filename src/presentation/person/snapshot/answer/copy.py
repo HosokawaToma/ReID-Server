@@ -48,7 +48,7 @@ class PresentationPersonSnapshotAnswerCopy(PresentationUtilBase):
         :param PresentationPersonSnapshotAnswerCopyRequestBody request: リクエストボディ
         :param ApplicationPersonSnapshotAnswerCopy application: アプリケーション
         :return PresentationUtilJSONResponse: レスポンス
-        :raises PresentationPersonSnapshotAnswerCopyError: 人物検出結果の正解ラベルのコピーに失敗した場合に発生するエラー
+        :raises NotFoundError: コピー元の正解ラベルが見つからない場合に発生するエラー
         """
         application.copy(
             source_id=DomainId(id=request.source_id),
