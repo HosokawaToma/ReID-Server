@@ -50,10 +50,7 @@ class ApplicationPersonSnapshotAnswerCopy(ApplicationBase):
         :param DomainIdSequence person_snapshot_ids: 人物検出結果IDリスト
         :raises NotFoundError: 指定されたperson_snapshot_idが存在しない場合
         """
-        existing_ids = self.repository_person_snapshot.find_ids()
-        existing_id_set = {existing_id.id for existing_id in existing_ids.items}
-        
-        missing_ids = [snapshot_id.id for snapshot_id in person_snapshot_ids.items if snapshot_id.id not in existing_id_set]
-        
-        if missing_ids:
-            raise NotFoundError(f"指定された人物検出結果が見つかりません: {missing_ids}")
+        try:
+            self.repository_person_snapshot.find_ids_by_ids(person_snapshot_ids)
+        except NotFoundError as e:
+            raise NotFoundError(f"指定された人物検出結果が見つかりません: {str(e)}")

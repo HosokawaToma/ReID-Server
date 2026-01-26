@@ -34,6 +34,29 @@ class RepositoryPersonSnapshot:
             models = session_query.all()
             return DomainIdSequence(items=[DomainId(id=model.id) for model in models])
 
+    def find_ids_by_ids(self, ids: DomainIdSequence) -> DomainIdSequence:
+        """
+        指定されたIDリストに対応する人物検出結果のIDを取得する
+        :param DomainIdSequence ids: 検索するIDリスト
+        :return DomainIdSequence: 見つかったIDリスト
+        :raises NotFoundError: 指定されたIDが存在しない場合
+        """
+        with self.database as session:
+            id_list = [id_item.id for id_item in ids.items]
+            
+            models = session.query(MigrationModelPersonSnapshot).filter(
+                MigrationModelPersonSnapshot.id.in_(id_list)
+            ).all()
+            
+            found_ids = {model.id for model in models}
+            missing_ids = [id_val for id_val in id_list if id_val not in found_ids]
+            
+            if missing_ids:
+                raise NotFoundError(f"person_snapshot not found: {missing_ids}")
+            
+            return DomainIdSequence(items=[DomainId(id=model.id) for model in models])
+
+
     def find_details(self, query: RepositoryUtilDatabaseQueryPersonSnapshot | None = None) -> DomainPersonSnapshotDetailSequence:
         with self.database as session:
             session_query = session.query(MigrationModelPersonSnapshot)
