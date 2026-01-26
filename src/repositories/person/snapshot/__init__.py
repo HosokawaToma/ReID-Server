@@ -79,6 +79,7 @@ class RepositoryPersonSnapshot:
         """
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
+            query = query.filter(MigrationModelPersonSnapshot.id != person_snapshot.id.id)
             query = query.filter(MigrationModelPersonSnapshot.timestamp <= person_snapshot.timestamp.timestamp)
             query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
             query = query.filter(MigrationModelPersonSnapshot.is_junk.is_(False))
@@ -131,6 +132,7 @@ class RepositoryPersonSnapshot:
         """
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
+            query = query.filter(MigrationModelPersonSnapshot.id != person_snapshot.id.id)
             query = query.filter(MigrationModelPersonSnapshot.timestamp <= person_snapshot.timestamp.timestamp)
             query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
             query = query.filter(MigrationModelPersonSnapshot.is_junk.is_(False))
