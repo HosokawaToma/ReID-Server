@@ -1,10 +1,10 @@
 from sqlalchemy import UUID, DateTime, Boolean, ForeignKey
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 import uuid
 from datetime import datetime
 import sqlalchemy as sa
+from .base import Base
 
-Base = declarative_base()
 
 class MigrationModelPersonSnapshotsAnswerLabels(Base):
     """
