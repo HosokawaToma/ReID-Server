@@ -3,7 +3,9 @@ from environment import Environment
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from domain.id import DomainId
 from domain.id_sequence import DomainIdSequence
-import uuid
+from domain.person.id import DomainPersonId
+from domain.person.snapshot.person_id import DomainPersonSnapshotPersonId
+from domain.person.snapshot.person_id_sequence import DomainPersonSnapshotPersonIdSequence
 
 
 class ApplicationPersonSnapshotAnswerCopy(ApplicationBase):
@@ -23,14 +25,18 @@ class ApplicationPersonSnapshotAnswerCopy(ApplicationBase):
         :return DomainId: 新しく生成された人物ID
         :raises NotFoundError: 指定されたperson_snapshot_idが存在しない場合
         """
-        # 新しい人物IDを生成
-        new_person_id = DomainId(id=uuid.uuid4())
+        new_person_id = DomainPersonId().new_id()
         
-        # Repository層を使ってラベルを更新
+        person_snapshot_person_ids = DomainPersonSnapshotPersonIdSequence(items=[
+            DomainPersonSnapshotPersonId(
+                id=snapshot_id,
+                person_id=new_person_id
+            )
+            for snapshot_id in person_snapshot_ids.items
+        ])
+        
         self.repository_person_snapshot.update_answer_labels(
-            person_snapshot_ids=person_snapshot_ids,
-            person_id=new_person_id,
-            is_junk=False
+            person_snapshot_person_ids=person_snapshot_person_ids
         )
         
-        return new_person_id
+        return new_person_id.id

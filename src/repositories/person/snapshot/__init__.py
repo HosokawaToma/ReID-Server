@@ -134,19 +134,15 @@ class RepositoryPersonSnapshot:
                 feature=person_snapshot.feature.value.cpu().numpy().tolist(),
             ))
 
-    def update_answer_labels(self, person_snapshot_ids: DomainIdSequence, person_id: DomainId, is_junk: bool) -> None:
+    def update_answer_labels(self, person_snapshot_person_ids: DomainPersonSnapshotPersonIdSequence) -> None:
         """
         人物検出結果の正解ラベルを更新する
-        :param DomainIdSequence person_snapshot_ids: 人物検出結果IDリスト
-        :param DomainId person_id: 割り当てる人物ID
-        :param bool is_junk: ゴミかどうか
+        :param DomainPersonSnapshotPersonIdSequence person_snapshot_person_ids: 人物検出結果の人物IDリスト
         :raises NotFoundError: 指定されたperson_snapshot_idが存在しない場合
         """
         with self.database as session:
-            # person_snapshot_idsのリストをPythonのUUIDリストに変換
-            snapshot_id_list = [snapshot_id.id for snapshot_id in person_snapshot_ids.items]
+            snapshot_id_list = [item.id.id for item in person_snapshot_person_ids.items]
             
-            # person_snapshot_idsが実際に存在するか検証
             existing_snapshots = session.query(MigrationModelPersonSnapshot).filter(
                 MigrationModelPersonSnapshot.id.in_(snapshot_id_list)
             ).all()
@@ -157,25 +153,11 @@ class RepositoryPersonSnapshot:
             if missing_ids:
                 raise NotFoundError(f"指定された人物検出結果が見つかりません: {missing_ids}")
             
-            # 既存のラベルを取得
-            existing_labels = session.query(MigrationModelPersonSnapshotsAnswerLabels).filter(
-                MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id.in_(snapshot_id_list)
-            ).all()
-            
-            existing_label_dict = {label.person_snapshot_id: label for label in existing_labels}
-            
-            # すべてのスナップショットのラベルを更新または作成
-            for snapshot_id in person_snapshot_ids.items:
-                if snapshot_id.id in existing_label_dict:
-                    # 既存のラベルを更新
-                    existing_label_dict[snapshot_id.id].person_id = person_id.id
-                    existing_label_dict[snapshot_id.id].is_junk = is_junk
-                else:
-                    # 新しいラベルを作成
-                    session.add(MigrationModelPersonSnapshotsAnswerLabels(
-                        person_snapshot_id=snapshot_id.id,
-                        person_id=person_id.id,
-                        is_junk=is_junk,
-                    ))
+            for item in person_snapshot_person_ids.items:
+                session.merge(MigrationModelPersonSnapshotsAnswerLabels(
+                    person_snapshot_id=item.id.id,
+                    person_id=item.person_id.id.id if item.person_id.id is not None else None,
+                    is_junk=item.person_id.is_junk,
+                ))
 
 
