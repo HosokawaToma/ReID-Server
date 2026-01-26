@@ -27,6 +27,7 @@ class ApplicationPersonSnapshotAnswerSearch(ApplicationBase):
         database_query = None
         if query is not None:
             database_query = RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabel(
+                person_snapshot_ids=query.person_snapshot_ids,
                 person_ids=query.person_ids,
                 is_junk=query.is_junk,
                 sort_by_list=[
