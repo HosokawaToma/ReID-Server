@@ -6,6 +6,7 @@ from domain.id_sequence import DomainIdSequence
 from domain.person.id import DomainPersonId
 from domain.person.snapshot.person_id import DomainPersonSnapshotPersonId
 from domain.person.snapshot.person_id_sequence import DomainPersonSnapshotPersonIdSequence
+from error import NotFoundError
 
 
 class ApplicationPersonSnapshotAnswerCopy(ApplicationBase):
@@ -55,5 +56,4 @@ class ApplicationPersonSnapshotAnswerCopy(ApplicationBase):
         missing_ids = [snapshot_id.id for snapshot_id in person_snapshot_ids.items if snapshot_id.id not in existing_id_set]
         
         if missing_ids:
-            from error import NotFoundError
             raise NotFoundError(f"指定された人物検出結果が見つかりません: {missing_ids}")
