@@ -11,6 +11,7 @@ from presentation.person.snapshot.search import PresentationPersonSnapshotSearch
 from presentation.person.flow.search import PresentationPersonFlowSearch
 from presentation.person.flow.weight.search import PresentationPersonFlowWeightSearch
 from presentation.person.snapshot.image.search import PresentationPersonSnapshotImageSearch
+from presentation.person.snapshot.image.search.person_id import PresentationPersonSnapshotImageSearchPersonId
 from presentation.camera_frame.search import PresentationCameraFrameSearch
 from presentation.camera_frame.image.search import PresentationCameraFrameImageSearch
 from presentation.person.snapshot.answer.search.kinds import PresentationPersonSnapshotAnswerSearchKinds
@@ -30,6 +31,7 @@ class ServerApp:
         person_flow_search: PresentationPersonFlowSearch,
         person_flow_weight_search: PresentationPersonFlowWeightSearch,
         person_snapshot_image_search: PresentationPersonSnapshotImageSearch,
+        person_snapshot_image_search_person_id: PresentationPersonSnapshotImageSearchPersonId,
         person_snapshot_answer_search_kinds: PresentationPersonSnapshotAnswerSearchKinds,
         person_snapshot_answer_search: PresentationPersonSnapshotAnswerSearch,
         camera_frame_search: PresentationCameraFrameSearch,
@@ -46,6 +48,7 @@ class ServerApp:
         self.person_flow_search = person_flow_search
         self.person_flow_weight_search = person_flow_weight_search
         self.person_snapshot_image_search = person_snapshot_image_search
+        self.person_snapshot_image_search_person_id = person_snapshot_image_search_person_id
         self.person_snapshot_answer_search_kinds = person_snapshot_answer_search_kinds
         self.person_snapshot_answer_search = person_snapshot_answer_search
         self.camera_frame_search = camera_frame_search
@@ -71,6 +74,7 @@ class ServerApp:
             person_flow_search=PresentationPersonFlowSearch.create(),
             person_flow_weight_search=PresentationPersonFlowWeightSearch.create(),
             person_snapshot_image_search=PresentationPersonSnapshotImageSearch.create(),
+            person_snapshot_image_search_person_id=PresentationPersonSnapshotImageSearchPersonId.create(),
             person_snapshot_answer_search_kinds=PresentationPersonSnapshotAnswerSearchKinds.create(),
             person_snapshot_answer_search=PresentationPersonSnapshotAnswerSearch.create(),
             camera_frame_search=PresentationCameraFrameSearch.create(),
@@ -93,6 +97,7 @@ class ServerApp:
         self.person_flow_search.setup(self.fastapi_app)
         self.person_flow_weight_search.setup(self.fastapi_app)
         self.person_snapshot_image_search.setup(self.fastapi_app)
+        self.person_snapshot_image_search_person_id.setup(self.fastapi_app)
         self.person_snapshot_answer_search_kinds.setup(self.fastapi_app)
         self.person_snapshot_answer_search.setup(self.fastapi_app)
         self.camera_frame_search.setup(self.fastapi_app)
