@@ -1,9 +1,8 @@
 from sqlalchemy import UUID, Integer, DateTime, Index
-from sqlalchemy.orm import declarative_base, mapped_column, Mapped
+from sqlalchemy.orm import mapped_column, Mapped
 import uuid
 from datetime import datetime
-
-Base = declarative_base()
+from .base import Base
 
 class MigrationModelCameraFrame(Base):
     __tablename__ = "camera_frames"
