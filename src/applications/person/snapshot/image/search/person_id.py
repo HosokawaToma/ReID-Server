@@ -24,7 +24,6 @@ class ApplicationPersonSnapshotImageSearchPersonId(ApplicationBase):
         人物IDに紐づく人物検出画像IDリストを検索する
         :param DtoId person_id: 人物ID
         :return list[uuid.UUID]: 人物検出画像IDリスト
-        :raises ApplicationPersonSnapshotImageSearchPersonIdError: 人物検出画像検索に失敗した場合に発生するエラー
         """
         # person_idで人物検出IDのリストを取得
         database_query = RepositoryUtilDatabaseQueryPersonSnapshot(
