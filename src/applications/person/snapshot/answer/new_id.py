@@ -4,6 +4,7 @@ from repositories.person.snapshot import RepositoryPersonSnapshot
 from domain.id import DomainId
 from domain.person.id import DomainPersonId
 from domain.person.snapshot.person_id import DomainPersonSnapshotPersonId
+from domain.person.snapshot.person_id_sequence import DomainPersonSnapshotPersonIdSequence
 import uuid
 
 
@@ -24,11 +25,13 @@ class ApplicationPersonSnapshotAnswerNewId(ApplicationBase):
         :param uuid.UUID | None person_id: 正解人物のID（ゴミデータの場合はNone）
         :param bool is_junk: 正解人物がゴミデータかどうか
         """
-        for person_snapshot_id in person_snapshot_ids:
-            self.repository_person_snapshot.update_answer_label(DomainPersonSnapshotPersonId(
+        person_snapshot_person_ids = DomainPersonSnapshotPersonIdSequence(items=[
+            DomainPersonSnapshotPersonId(
                 id=DomainId(id=person_snapshot_id),
                 person_id=DomainPersonId(
                     id=DomainId(id=person_id) if person_id is not None else None,
                     is_junk=is_junk,
                 ),
-            ))
+            ) for person_snapshot_id in person_snapshot_ids
+        ])
+        self.repository_person_snapshot.update_answer_labels_batch(person_snapshot_person_ids)
