@@ -142,8 +142,6 @@ class RepositoryPersonSnapshot:
             model = query.first()
             if model is None:
                 raise NotFoundError("特徴量が最も近い人物検出結果が見つかりません")
-            if model.feature is None:
-                raise NotFoundError("特徴量が最も近い人物検出結果の特徴量が存在しません")
             return DomainPersonSnapshotFeature(
                 id=DomainId(id=model.id),
                 location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
