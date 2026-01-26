@@ -16,6 +16,7 @@ from presentation.camera_frame.image.search import PresentationCameraFrameImageS
 from presentation.person.snapshot.answer.search.kinds import PresentationPersonSnapshotAnswerSearchKinds
 from presentation.person.snapshot.answer.search import PresentationPersonSnapshotAnswerSearch
 from presentation.person.snapshot.answer.new_id import PresentationPersonSnapshotAnswerNewId
+from presentation.person.snapshot.answer.copy import PresentationPersonSnapshotAnswerCopy
 
 class ServerApp:
     def __init__(
@@ -34,6 +35,7 @@ class ServerApp:
         person_snapshot_answer_search_kinds: PresentationPersonSnapshotAnswerSearchKinds,
         person_snapshot_answer_search: PresentationPersonSnapshotAnswerSearch,
         person_snapshot_answer_new_id: PresentationPersonSnapshotAnswerNewId,
+        person_snapshot_answer_copy: PresentationPersonSnapshotAnswerCopy,
         camera_frame_search: PresentationCameraFrameSearch,
         camera_frame_image_search: PresentationCameraFrameImageSearch,
     ):
@@ -51,6 +53,7 @@ class ServerApp:
         self.person_snapshot_answer_search_kinds = person_snapshot_answer_search_kinds
         self.person_snapshot_answer_search = person_snapshot_answer_search
         self.person_snapshot_answer_new_id = person_snapshot_answer_new_id
+        self.person_snapshot_answer_copy = person_snapshot_answer_copy
         self.camera_frame_search = camera_frame_search
         self.camera_frame_image_search = camera_frame_image_search
 
@@ -77,6 +80,7 @@ class ServerApp:
             person_snapshot_answer_search_kinds=PresentationPersonSnapshotAnswerSearchKinds.create(),
             person_snapshot_answer_search=PresentationPersonSnapshotAnswerSearch.create(),
             person_snapshot_answer_new_id=PresentationPersonSnapshotAnswerNewId.create(),
+            person_snapshot_answer_copy=PresentationPersonSnapshotAnswerCopy.create(),
             camera_frame_search=PresentationCameraFrameSearch.create(),
             camera_frame_image_search=PresentationCameraFrameImageSearch.create(),
         )
@@ -100,6 +104,7 @@ class ServerApp:
         self.person_snapshot_answer_search_kinds.setup(self.fastapi_app)
         self.person_snapshot_answer_search.setup(self.fastapi_app)
         self.person_snapshot_answer_new_id.setup(self.fastapi_app)
+        self.person_snapshot_answer_copy.setup(self.fastapi_app)
         self.camera_frame_search.setup(self.fastapi_app)
         self.camera_frame_image_search.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.app_host, port=self.app_port)

@@ -15,6 +15,7 @@ class PresentationPersonSnapshotAnswerSearchSortByKey(str, Enum):
     CREATED_AT_DESC = "created_at_desc"
 
 class PresentationPersonSnapshotAnswerSearchRequestBody(PresentationUtilRequestBody):
+    person_snapshot_ids: list[uuid.UUID] | None = None
     person_ids: list[uuid.UUID] | None = None
     is_junk: bool | None = None
     sort_by_list: list[PresentationPersonSnapshotAnswerSearchSortByKey] | None = None
@@ -49,6 +50,7 @@ class PresentationPersonSnapshotAnswerSearch(PresentationUtilBase):
         query = None
         if request is not None:
             query = DtoPersonSnapshotAnswerQuery(
+                person_snapshot_ids=request.person_snapshot_ids,
                 person_ids=request.person_ids,
                 is_junk=request.is_junk,
                 sort_by_list=[

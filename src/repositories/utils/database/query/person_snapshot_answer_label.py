@@ -10,6 +10,7 @@ class RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabelSortByKey(Enum):
 
 @dataclass
 class RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabel:
+    person_snapshot_ids: list[uuid.UUID] | None = None
     person_ids: list[uuid.UUID] | None = None
     is_junk: bool | None = None
     sort_by_list: list[RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabelSortByKey] | None = None
@@ -23,6 +24,8 @@ class RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabel:
         :param Query[MigrationModelPersonSnapshotsAnswerLabels] session_query: クエリ
         :return Query[MigrationModelPersonSnapshotsAnswerLabels]: ビルドされたクエリ
         """
+        if self.person_snapshot_ids is not None:
+            session_query = session_query.filter(MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id.in_(self.person_snapshot_ids))
         if self.person_ids is not None:
             session_query = session_query.filter(MigrationModelPersonSnapshotsAnswerLabels.person_id.in_(self.person_ids))
         if self.is_junk is not None:
