@@ -72,7 +72,8 @@ class RepositoryPersonSnapshot:
 
     def find_details_by_ranking(self, person_snapshot: DomainPersonSnapshotFeature, limit: int = 1) -> DomainPersonSnapshotDetailSequence:
         """
-        同じ日に検出された人物検出結果を特徴量が最も近い順に取得します
+        別カメラの同じ日に検出されたゴミデータではない人物検出結果を特徴量が最も近い順に取得します
+        ※同じ検出結果は除外する
         :param DomainPersonSnapshotFeature person_snapshot: 人物検出結果
         :param int limit: 取得する人物検出結果の数
         :return DomainPersonSnapshotDetailSequence: 特徴量が最も近い順に取得した人物検出結果リスト
@@ -80,6 +81,8 @@ class RepositoryPersonSnapshot:
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
             query = query.filter(MigrationModelPersonSnapshot.id != person_snapshot.id.id)
+            query = query.filter(MigrationModelPersonSnapshot.camera_id != person_snapshot.location.camera_id)
+            query = query.filter(MigrationModelPersonSnapshot.is_junk.is_(False))
             query = query.filter(MigrationModelPersonSnapshot.timestamp < person_snapshot.timestamp.yesterday().timestamp)
             query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
             query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature.value.cpu().numpy().tolist()))
