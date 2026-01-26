@@ -150,20 +150,13 @@ class RepositoryPersonSnapshot:
         """
         with self.database as session:
             for person_snapshot_person_id in person_snapshot_person_ids.items:
-                model = session.query(MigrationModelPersonSnapshotsAnswerLabels).filter(
-                    MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == person_snapshot_person_id.id.id
-                ).first()
                 person_id = person_snapshot_person_id.person_id.id.id if person_snapshot_person_id.person_id.id is not None else None
                 is_junk = person_snapshot_person_id.person_id.is_junk
-                if model is None:
-                    session.add(MigrationModelPersonSnapshotsAnswerLabels(
-                        person_snapshot_id=person_snapshot_person_id.id.id,
-                        person_id=person_id,
-                        is_junk=is_junk,
-                    ))
-                else:
-                    model.person_id = person_id
-                    model.is_junk = is_junk
+                session.merge(MigrationModelPersonSnapshotsAnswerLabels(
+                    person_snapshot_id=person_snapshot_person_id.id.id,
+                    person_id=person_id,
+                    is_junk=is_junk,
+                ))
 
 
     def save_feature(self, person_snapshot: DomainPersonSnapshotFeature) -> None:

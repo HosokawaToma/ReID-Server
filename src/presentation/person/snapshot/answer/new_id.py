@@ -5,6 +5,7 @@ from presentation.utils.request import PresentationUtilRequestBody
 from presentation.utils.response import PresentationUtilJSONResponse
 from logger import Logger
 from applications.person.snapshot.answer.new_id import ApplicationPersonSnapshotAnswerNewId
+from dto.id import DtoId
 import uuid
 
 
@@ -41,8 +42,8 @@ class PresentationPersonSnapshotAnswerNewId(PresentationUtilBase):
         request: PresentationPersonSnapshotAnswerNewIdRequestBody,
         application: ApplicationPersonSnapshotAnswerNewId = get_application(ApplicationPersonSnapshotAnswerNewId),
     ):
-        application.update(
-            person_snapshot_ids=request.person_snapshot_ids,
+        application.new_id(
+            person_snapshot_ids=[DtoId(id=person_snapshot_id) for person_snapshot_id in request.person_snapshot_ids],
             person_id=request.person_id,
             is_junk=request.is_junk,
         )
