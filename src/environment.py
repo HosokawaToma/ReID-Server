@@ -35,6 +35,7 @@ class Environment:
     coturn_ttl: int = field(init=False)
     coturn_username: str = field(init=False)
     coturn_credential: str = field(init=False)
+    search_limit: int = field(init=False)
 
     def __post_init__(self):
         self.app_host = self._get_string("APP_HOST")

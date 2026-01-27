@@ -1,4 +1,5 @@
 from repositories.utils.database import RepositoryUtilDatabase
+from repositories.utils.base import RepositoryUtilBase
 from error import NotFoundError
 from environment import Environment
 from repositories.utils.database.query.person_snapshot import RepositoryUtilDatabaseQueryPersonSnapshot
@@ -18,13 +19,14 @@ from domain.person.snapshot.person_id import DomainPersonSnapshotPersonId
 from domain.person.snapshot.person_id_sequence import DomainPersonSnapshotPersonIdSequence
 import torch
 
-class RepositoryPersonSnapshot:
-    def __init__(self, database: RepositoryUtilDatabase):
+class RepositoryPersonSnapshot(RepositoryUtilBase):
+    def __init__(self, database: RepositoryUtilDatabase, search_limit: int):
+        super().__init__(search_limit=search_limit)
         self.database = database
 
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryPersonSnapshot":
-        return cls(database=RepositoryUtilDatabase.create(environment))
+        return cls(database=RepositoryUtilDatabase.create(environment), search_limit=environment.search_limit)
 
     def find_ids(self, query: RepositoryUtilDatabaseQueryPersonSnapshot | None = None) -> DomainIdSequence:
         with self.database as session:
@@ -53,11 +55,19 @@ class RepositoryPersonSnapshot:
             return DomainIdSequence(items=[DomainId(id=model.id) for model in models])
 
 
-    def find_details(self, query: RepositoryUtilDatabaseQueryPersonSnapshot | None = None) -> DomainPersonSnapshotDetailSequence:
+    def search_details(self, query: RepositoryUtilDatabaseQueryPersonSnapshot | None = None, page: int = 0) -> DomainPersonSnapshotDetailSequence:
+        """
+        人物検出結果を検索する
+        :param RepositoryUtilDatabaseQueryPersonSnapshot query: クエリ
+        :param int page: ページ番号
+        :return DomainPersonSnapshotDetailSequence: 人物検出結果リスト
+        :raises NotFoundError: 人物検出結果が見つからない場合
+        """
         with self.database as session:
             session_query = session.query(MigrationModelPersonSnapshot)
             if query is not None:
                 session_query = query.build(session_query)
+            session_query = self._apply_paging(session_query, page)
             models = session_query.all()
             return DomainPersonSnapshotDetailSequence(items=[
                 DomainPersonSnapshotDetail(
@@ -70,13 +80,13 @@ class RepositoryPersonSnapshot:
                     ),
                 ) for model in models])
 
-    def find_details_by_ranking(self, person_snapshot: DomainPersonSnapshotFeature, limit: int = 1) -> DomainPersonSnapshotDetailSequence:
+    def search_details_by_ranking(self, person_snapshot: DomainPersonSnapshotFeature, page: int = 0) -> DomainPersonSnapshotDetailSequence:
         """
-        別カメラの同じ日に検出されたゴミデータではない人物検出結果を特徴量が最も近い順に取得します
+        別カメラの同じ日に検出されたゴミデータではない人物検出結果を特徴量が最も近い順に検索する
         ※同じ検出結果は除外する
         :param DomainPersonSnapshotFeature person_snapshot: 人物検出結果
-        :param int limit: 取得する人物検出結果の数
-        :return DomainPersonSnapshotDetailSequence: 特徴量が最も近い順に取得した人物検出結果リスト
+        :param int page: ページ番号
+        :return DomainPersonSnapshotDetailSequence: 特徴量が最も近い順に検索した人物検出結果リスト
         """
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
@@ -86,7 +96,8 @@ class RepositoryPersonSnapshot:
             query = query.filter(MigrationModelPersonSnapshot.timestamp < person_snapshot.timestamp.tomorrow().timestamp)
             query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
             query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature._feature.cpu().numpy().tolist()))
-            models = query.limit(limit).all()
+            query = self._apply_paging(query, page)
+            models = query.all()
             return DomainPersonSnapshotDetailSequence(items=[
                 DomainPersonSnapshotDetail(
                     id=DomainId(id=model.id),
