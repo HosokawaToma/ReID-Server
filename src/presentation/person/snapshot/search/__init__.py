@@ -5,6 +5,7 @@ from presentation.utils.base import PresentationUtilBase
 from presentation.utils.request import PresentationUtilRequestBody
 from presentation.utils.response import PresentationUtilJSONResponse
 from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
+from presentation.utils.type import PresentationUtilPathInt
 from presentation.utils.factory import get_application
 from logger import Logger
 from datetime import datetime
@@ -27,7 +28,7 @@ class PresentationPersonSnapshotSearchRequestBody(PresentationUtilRequestBody):
     sort_by_list: list[PresentationPersonSnapshotSearchSortByKey] | None = None
 
 class PresentationPersonSnapshotSearch(PresentationUtilBase):
-    router_path = "/person/snapshot/search"
+    router_path = "/person/snapshot/search/{page}"
     methods = ["POST"]
     tags = ["Person Snapshot"]
     summary = "Search person snapshots"
@@ -53,6 +54,7 @@ class PresentationPersonSnapshotSearch(PresentationUtilBase):
     async def handle(
         self,
         admin_client_id: PresentationUtilAdminClientAuthenticated,
+        page: PresentationUtilPathInt = 0,
         request: PresentationPersonSnapshotSearchRequestBody | None = None,
         application: ApplicationPersonSnapshotSearch = get_application(ApplicationPersonSnapshotSearch),
     ):
@@ -73,6 +75,7 @@ class PresentationPersonSnapshotSearch(PresentationUtilBase):
             )
         items = application.search(
             query=query,
+            page=page,
         )
         return PresentationUtilJSONResponse(
             status=200,

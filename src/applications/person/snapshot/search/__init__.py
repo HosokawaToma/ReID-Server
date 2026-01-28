@@ -25,6 +25,7 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
     def search(
         self,
         query: DtoPersonSnapshotQuery | None = None,
+        page: int = 0,
     ) -> list[DtoPersonSnapshotDetail]:
         """
         人物検出を検索する
@@ -47,7 +48,7 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
                     for sort_by in query.sort_by_list
                 ] if query.sort_by_list is not None else None,
             )
-        detail_sequence = self.repository_person_snapshot.find_details(query=database_query)
+        detail_sequence = self.repository_person_snapshot.search_details(query=database_query, page=page)
         return [DtoPersonSnapshotDetail(
             id=detail.id.id,
             camera_id=detail.location.camera_id,
