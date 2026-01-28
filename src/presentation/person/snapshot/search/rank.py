@@ -1,19 +1,14 @@
 from presentation.utils.base import PresentationUtilBase
-from presentation.utils.request import PresentationUtilRequestBody
 from dto.id import DtoId
 from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
 from presentation.utils.factory import get_application
 from presentation.utils.response import PresentationUtilJSONResponse
+from presentation.utils.type import PresentationUtilPathInt, PresentationUtilPathUUID
 from logger import Logger
 from applications.person.snapshot.search.rank import ApplicationPersonSnapshotSearchRank
-import uuid
-
-class PresentationPersonSnapshotSearchRankRequestBody(PresentationUtilRequestBody):
-    person_snapshot_id: uuid.UUID
-    limit: int | None = None
 
 class PresentationPersonSnapshotSearchRank(PresentationUtilBase):
-    router_path = "/person/snapshot/search/rank"
+    router_path = "/person/snapshot/search/rank/{person_snapshot_id}/{page}"
     methods = ["POST"]
     tags = ["Person Snapshot"]
     summary = "Search person snapshot rank"
@@ -36,12 +31,13 @@ class PresentationPersonSnapshotSearchRank(PresentationUtilBase):
     async def handle(
         self,
         admin_client_id: PresentationUtilAdminClientAuthenticated,
-        request: PresentationPersonSnapshotSearchRankRequestBody,
+        person_snapshot_id: PresentationUtilPathUUID,
+        page: PresentationUtilPathInt = 0,
         application: ApplicationPersonSnapshotSearchRank = get_application(ApplicationPersonSnapshotSearchRank),
     ):
         items = application.search(
-            person_snapshot_id=DtoId(id=request.person_snapshot_id),
-            limit=request.limit if request.limit is not None else 1,
+            person_snapshot_id=DtoId(id=person_snapshot_id),
+            page=page,
         )
         return PresentationUtilJSONResponse(status=200, content={
             "person_snapshots": [
