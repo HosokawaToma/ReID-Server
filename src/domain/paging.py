@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from domain.utils.base import DomainUtilsBase
-from domain.pagination import DomainPagination
 
 @dataclass(frozen=True)
 class DomainPaging(DomainUtilsBase):
