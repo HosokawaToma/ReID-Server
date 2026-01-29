@@ -54,7 +54,7 @@ class PresentationPersonSnapshotSearch(PresentationUtilBase):
     async def handle(
         self,
         admin_client_id: PresentationUtilAdminClientAuthenticated,
-        page: PresentationUtilPathInt = 0,
+        page: PresentationUtilPathInt,
         request: PresentationPersonSnapshotSearchRequestBody | None = None,
         application: ApplicationPersonSnapshotSearch = get_application(ApplicationPersonSnapshotSearch),
     ):
@@ -77,6 +77,7 @@ class PresentationPersonSnapshotSearch(PresentationUtilBase):
             query=query,
             page=page,
         )
+        paging = application.search_paging(query=query)
         return PresentationUtilJSONResponse(
             status=200,
             content={
@@ -90,5 +91,8 @@ class PresentationPersonSnapshotSearch(PresentationUtilBase):
                         "person_id": str(item.person_id),
                     } for item in items
                 ],
+                "pagination": {
+                "total_items": paging.total_items,
+                "total_pages": paging.total_pages,
             },
-        )
+        })

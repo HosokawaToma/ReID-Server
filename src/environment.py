@@ -66,6 +66,7 @@ class Environment:
         self.coturn_ttl = self._get_int("COTURN_TTL")
         self.coturn_username = self._get_string("COTURN_USERNAME")
         self.coturn_credential = self._get_string("COTURN_CREDENTIAL")
+        self.search_limit = self._get_int("SEARCH_LIMIT")
 
     def _get_string(self, key: str) -> str:
         value = os.getenv(key)

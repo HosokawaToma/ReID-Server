@@ -32,13 +32,14 @@ class PresentationPersonSnapshotSearchRank(PresentationUtilBase):
         self,
         admin_client_id: PresentationUtilAdminClientAuthenticated,
         person_snapshot_id: PresentationUtilPathUUID,
-        page: PresentationUtilPathInt = 0,
+        page: PresentationUtilPathInt,
         application: ApplicationPersonSnapshotSearchRank = get_application(ApplicationPersonSnapshotSearchRank),
     ):
         items = application.search(
             person_snapshot_id=DtoId(id=person_snapshot_id),
             page=page,
         )
+        paging = application.search_paging(person_snapshot_id=DtoId(id=person_snapshot_id))
         return PresentationUtilJSONResponse(status=200, content={
             "person_snapshots": [
                 {
@@ -49,5 +50,9 @@ class PresentationPersonSnapshotSearchRank(PresentationUtilBase):
                     "person_id": str(item.person_id) if item.person_id is not None else None,
                     "is_junk": item.is_junk,
                 } for item in items
-            ]
+            ],
+            "pagination": {
+                "total_items": paging.total_items,
+                "total_pages": paging.total_pages,
+            },
         })
