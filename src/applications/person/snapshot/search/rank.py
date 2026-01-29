@@ -4,34 +4,35 @@ from environment import Environment
 from dto.person.snapshot.detail import DtoPersonSnapshotDetail
 from domain.id import DomainId
 from dto.id import DtoId
-from error import ValidationError
-from typing import ClassVar
-
+from dto.pagination import DtoPagination
+from domain.pagination import DomainPagination
+from domain.paging import DomainPaging
 
 class ApplicationPersonSnapshotSearchRank(ApplicationBase):
-    MIN_LIMIT: ClassVar[int] = 1
-    MAX_LIMIT: ClassVar[int] = 1000
-    def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot):
+    def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot, search_limit: int):
         self.repository_person_snapshot = repository_person_snapshot
+        self.search_limit = search_limit
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationPersonSnapshotSearchRank":
         return cls(
             repository_person_snapshot=RepositoryPersonSnapshot.create(environment=environment),
+            search_limit=environment.search_limit,
         )
 
-    def search(self, person_snapshot_id: DtoId, limit: int | None = None) -> list[DtoPersonSnapshotDetail]:
+    def search(self, person_snapshot_id: DtoId, page: int) -> list[DtoPersonSnapshotDetail]:
         """
         人物検出結果のランキングを検索する
         :param DtoId person_snapshot_id: 人物検出結果のID
-        :param int limit: 取得する人物検出結果の数
+        :param int page: ページ番号
         :return list[DtoPersonSnapshotDetail]: 人物検出結果のランキングリスト
         :raises ApplicationPersonSnapshotSearchRankError: 人物検出結果のランキング検索に失敗した場合に発生するエラー
         """
-        if limit is not None:
-            self._validate_limit(limit)
         person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(DomainId(id=person_snapshot_id.id))
-        person_snapshot_details = self.repository_person_snapshot.find_details_by_ranking(person_snapshot_feature, limit if limit is not None else self.MIN_LIMIT)
+        person_snapshot_details = self.repository_person_snapshot.search_details_by_ranking(
+            person_snapshot=person_snapshot_feature,
+            paging=DomainPaging(page=page, search_limit=self.search_limit),
+        )
         return [DtoPersonSnapshotDetail(
             id=person_snapshot_detail.id.id,
             camera_id=person_snapshot_detail.location.camera_id,
@@ -41,8 +42,14 @@ class ApplicationPersonSnapshotSearchRank(ApplicationBase):
             person_id=person_snapshot_detail.person_id.id.id if person_snapshot_detail.person_id.id is not None else None,
         ) for person_snapshot_detail in person_snapshot_details]
 
-    def _validate_limit(self, limit: int) -> None:
-        if limit < self.MIN_LIMIT:
-            raise ValidationError("limitは1以上である必要があります")
-        if limit > self.MAX_LIMIT:
-            raise ValidationError("limitは1000以下である必要があります")
+    def search_paging(self, person_snapshot_id: DtoId) -> DtoPagination:
+        """
+        人物検出結果のランキングの数を取得する
+        :param DtoId person_snapshot_id: 人物検出結果のID
+        :return DtoPagination: 人物検出結果のランキングのページング
+        :raises ApplicationPersonSnapshotSearchRankError: 人物検出結果のランキングの数取得に失敗した場合に発生するエラー
+        """
+        person_snapshot = self.repository_person_snapshot.find_detail_by_id(DomainId(id=person_snapshot_id.id))
+        total_items = self.repository_person_snapshot.count_by_ranking(person_snapshot=person_snapshot)
+        pagination = DomainPagination.create(total_items=total_items, search_limit=self.search_limit)
+        return DtoPagination(total_items=pagination.total_items, total_pages=pagination.total_pages)

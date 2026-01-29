@@ -35,6 +35,7 @@ class Environment:
     coturn_ttl: int = field(init=False)
     coturn_username: str = field(init=False)
     coturn_credential: str = field(init=False)
+    search_limit: int = field(init=False)
 
     def __post_init__(self):
         self.app_host = self._get_string("APP_HOST")
@@ -65,6 +66,7 @@ class Environment:
         self.coturn_ttl = self._get_int("COTURN_TTL")
         self.coturn_username = self._get_string("COTURN_USERNAME")
         self.coturn_credential = self._get_string("COTURN_CREDENTIAL")
+        self.search_limit = self._get_int("SEARCH_LIMIT")
 
     def _get_string(self, key: str) -> str:
         value = os.getenv(key)

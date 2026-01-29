@@ -5,14 +5,19 @@ from environment import Environment
 from applications import ApplicationBase
 from dto.person.snapshot.detail import DtoPersonSnapshotDetail
 from dto.person.snapshot.query import DtoPersonSnapshotQuery
+from dto.pagination import DtoPagination
+from domain.pagination import DomainPagination
+from domain.paging import DomainPaging
 
 
 class ApplicationPersonSnapshotSearch(ApplicationBase):
     def __init__(
         self,
         repository_person_snapshot: RepositoryPersonSnapshot,
+        search_limit: int,
     ):
         self.repository_person_snapshot = repository_person_snapshot
+        self.search_limit = search_limit
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationPersonSnapshotSearch":
@@ -20,10 +25,12 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
             repository_person_snapshot=RepositoryPersonSnapshot.create(
                 environment=environment,
             ),
+            search_limit=environment.search_limit,
         )
 
     def search(
         self,
+        page: int,
         query: DtoPersonSnapshotQuery | None = None,
     ) -> list[DtoPersonSnapshotDetail]:
         """
@@ -47,7 +54,10 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
                     for sort_by in query.sort_by_list
                 ] if query.sort_by_list is not None else None,
             )
-        detail_sequence = self.repository_person_snapshot.find_details(query=database_query)
+        detail_sequence = self.repository_person_snapshot.search_details(
+            paging=DomainPaging(page=page, search_limit=self.search_limit),
+            query=database_query,
+        )
         return [DtoPersonSnapshotDetail(
             id=detail.id.id,
             camera_id=detail.location.camera_id,
@@ -56,3 +66,31 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
             is_junk=detail.person_id.is_junk,
             person_id=detail.person_id.id.id if detail.person_id.id is not None else None,
         ) for detail in detail_sequence]
+
+    def search_paging(
+        self,
+        query: DtoPersonSnapshotQuery | None = None,
+    ) -> DtoPagination:
+        """
+        人物検出結果の数を取得する
+        :param DtoPersonSnapshotQuery query: 人物検出検索条件
+        :return DtoPagination: 人物検出結果のページング
+        :raises ApplicationPersonSnapshotSearchError: 人物検出結果の数取得に失敗した場合に発生するエラー
+        """
+        database_query = None
+        if query is not None:
+            database_query = RepositoryUtilDatabaseQueryPersonSnapshot(
+                ids=query.ids,
+                camera_ids=query.camera_ids,
+                view_ids=query.view_ids,
+                is_junk=query.is_junk,
+                timestamp_after=query.timestamp_after,
+                timestamp_before=query.timestamp_before,
+                person_ids=query.person_ids,
+            )
+        total_items = self.repository_person_snapshot.count(query=database_query)
+        pagination = DomainPagination.create(total_items=total_items, search_limit=self.search_limit)
+        return DtoPagination(
+            total_items=pagination.total_items,
+            total_pages=pagination.total_pages,
+        )
