@@ -21,12 +21,12 @@ from domain.paging import DomainPaging
 import torch
 
 class RepositoryPersonSnapshot(RepositoryUtilBase):
-    def __init__(self, database: RepositoryUtilDatabase, search_limit: int):
+    def __init__(self, database: RepositoryUtilDatabase):
         self.database = database
 
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryPersonSnapshot":
-        return cls(database=RepositoryUtilDatabase.create(environment), search_limit=environment.search_limit)
+        return cls(database=RepositoryUtilDatabase.create(environment))
 
     def find_ids(self, query: RepositoryUtilDatabaseQueryPersonSnapshot | None = None) -> DomainIdSequence:
         with self.database as session:
