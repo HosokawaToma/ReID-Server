@@ -91,8 +91,9 @@ class PresentationPersonSnapshotSearch(PresentationUtilBase):
                         "person_id": str(item.person_id),
                     } for item in items
                 ],
-                "pagination": {
-                "total_items": paging.total_items,
-                "total_pages": paging.total_pages,
-            },
-        })
+                    "pagination": {
+                    "total_items": paging.total_items,
+                    "total_pages": paging.total_pages,
+                },
+            }
+        )
