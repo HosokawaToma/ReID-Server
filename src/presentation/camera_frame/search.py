@@ -10,6 +10,7 @@ from presentation.utils.response import PresentationUtilJSONResponse
 from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
 import uuid
 from enum import Enum
+from presentation.utils.type import PresentationUtilPathInt
 
 class PresentationCameraFrameSearchSortByKey(str, Enum):
     TIMESTAMP_ASC = "timestamp_asc"
@@ -25,7 +26,7 @@ class PresentationCameraFrameSearchRequestBody(PresentationUtilRequestBody):
     sort_by_list: list[PresentationCameraFrameSearchSortByKey] | None = None
 
 class PresentationCameraFrameSearch(PresentationUtilBase):
-    router_path = "/frame/search"
+    router_path = "/frame/search/{page}"
     methods = ["POST"]
     tags = ["Camera Frame"]
     summary = "Search camera frames"
@@ -48,6 +49,7 @@ class PresentationCameraFrameSearch(PresentationUtilBase):
     async def handle(
         self,
         admin_client_id: PresentationUtilAdminClientAuthenticated,
+        page: PresentationUtilPathInt,
         body: PresentationCameraFrameSearchRequestBody | None = None,
         application: ApplicationCameraFrameSearch = get_application(ApplicationCameraFrameSearch),
     ) -> PresentationUtilJSONResponse:
@@ -64,7 +66,8 @@ class PresentationCameraFrameSearch(PresentationUtilBase):
                     for sort_by in body.sort_by_list
                 ] if body.sort_by_list is not None else None,
             )
-        camera_frames = application.search(query=query)
+        camera_frames = application.search(page=page, query=query)
+        paging = application.search_paging(query=query)
         return PresentationUtilJSONResponse(status=200, content={
             "camera_frames": [
                 {
@@ -73,5 +76,9 @@ class PresentationCameraFrameSearch(PresentationUtilBase):
                     "view_id": camera_frame.view_id,
                     "timestamp": camera_frame.timestamp.isoformat(),
                 } for camera_frame in camera_frames
-            ]
+            ],
+            "pagination": {
+                "total_items": paging.total_items,
+                "total_pages": paging.total_pages,
+            },
         })
