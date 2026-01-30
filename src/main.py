@@ -15,6 +15,7 @@ from presentation.camera_frame.search import PresentationCameraFrameSearch
 from presentation.camera_frame.image.search import PresentationCameraFrameImageSearch
 from presentation.person.snapshot.answer.search import PresentationPersonSnapshotAnswerSearch
 from presentation.person.snapshot.answer.assign import PresentationPersonSnapshotAnswerAssign
+from presentation.person.snapshot.answer.delete import PresentationPersonSnapshotAnswerDelete
 from presentation.person.snapshot.search.rank import PresentationPersonSnapshotSearchRank
 from presentation.person.snapshot.search.nearest import PresentationPersonSnapshotSearchNearest
 
@@ -34,6 +35,7 @@ class ServerApp:
         person_snapshot_image_search: PresentationPersonSnapshotImageSearch,
         person_snapshot_answer_search: PresentationPersonSnapshotAnswerSearch,
         person_snapshot_answer_assign: PresentationPersonSnapshotAnswerAssign,
+        person_snapshot_answer_delete: PresentationPersonSnapshotAnswerDelete,
         person_snapshot_search_rank: PresentationPersonSnapshotSearchRank,
         person_snapshot_search_nearest: PresentationPersonSnapshotSearchNearest,
         camera_frame_search: PresentationCameraFrameSearch,
@@ -52,6 +54,7 @@ class ServerApp:
         self.person_snapshot_image_search = person_snapshot_image_search
         self.person_snapshot_answer_search = person_snapshot_answer_search
         self.person_snapshot_answer_assign = person_snapshot_answer_assign
+        self.person_snapshot_answer_delete = person_snapshot_answer_delete
         self.person_snapshot_search_rank = person_snapshot_search_rank
         self.person_snapshot_search_nearest = person_snapshot_search_nearest
         self.camera_frame_search = camera_frame_search
@@ -79,6 +82,7 @@ class ServerApp:
             person_snapshot_image_search=PresentationPersonSnapshotImageSearch.create(),
             person_snapshot_answer_search=PresentationPersonSnapshotAnswerSearch.create(),
             person_snapshot_answer_assign=PresentationPersonSnapshotAnswerAssign.create(),
+            person_snapshot_answer_delete=PresentationPersonSnapshotAnswerDelete.create(),
             person_snapshot_search_rank=PresentationPersonSnapshotSearchRank.create(),
             person_snapshot_search_nearest=PresentationPersonSnapshotSearchNearest.create(),
             camera_frame_search=PresentationCameraFrameSearch.create(),
@@ -103,6 +107,7 @@ class ServerApp:
         self.person_snapshot_image_search.setup(self.fastapi_app)
         self.person_snapshot_answer_search.setup(self.fastapi_app)
         self.person_snapshot_answer_assign.setup(self.fastapi_app)
+        self.person_snapshot_answer_delete.setup(self.fastapi_app)
         self.person_snapshot_search_rank.setup(self.fastapi_app)
         self.person_snapshot_search_nearest.setup(self.fastapi_app)
         self.camera_frame_search.setup(self.fastapi_app)
