@@ -7,8 +7,10 @@ from domain.timestamp import DomainTimestamp
 from domain.location import DomainLocation
 from domain.camera_frame.sequence import DomainCameraFrameSequence
 from environment import Environment
+from domain.paging import DomainPaging
+from repositories.utils.base import RepositoryUtilBase
 
-class RepositoryCameraFrame:
+class RepositoryCameraFrame(RepositoryUtilBase):
     def __init__(self, database: RepositoryUtilDatabase):
         self.database = database
 
@@ -25,10 +27,25 @@ class RepositoryCameraFrame:
             timestamp=DomainTimestamp(timestamp=model.timestamp),
         )
 
-    def find(self, query: RepositoryUtilDatabaseQueryCameraFrame | None = None) -> DomainCameraFrameSequence:
+    def search(
+        self,
+        paging: DomainPaging,
+        query: RepositoryUtilDatabaseQueryCameraFrame | None = None,
+    ) -> DomainCameraFrameSequence:
         with self.database as session:
             session_query = session.query(MigrationModelCameraFrame)
             if query is not None:
                 session_query = query.build(session_query)
+            session_query = self._apply_paging(session_query, paging)
             models = session_query.all()
             return DomainCameraFrameSequence(items=[self._model_to_domain(model) for model in models])
+
+    def search_count(
+        self,
+        query: RepositoryUtilDatabaseQueryCameraFrame | None = None,
+    ) -> int:
+        with self.database as session:
+            session_query = session.query(MigrationModelCameraFrame)
+            if query is not None:
+                session_query = query.build(session_query)
+            return session_query.count()
