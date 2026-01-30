@@ -256,6 +256,18 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 ),
             ) for model in models])
 
+    def add_answer_label(self, person_snapshot_person_id: DomainPersonSnapshotPersonId) -> None:
+        """
+        人物検出結果の正解ラベルを追加する
+        :param DomainPersonSnapshotPersonId person_snapshot_person_id: 人物検出結果の正解ラベル
+        """
+        with self.database as session:
+            session.add(MigrationModelPersonSnapshotsAnswerLabels(
+                person_snapshot_id=person_snapshot_person_id.id.id,
+                person_id=person_snapshot_person_id.person_id.id.id if person_snapshot_person_id.person_id.id is not None else None,
+                is_junk=person_snapshot_person_id.person_id.is_junk,
+            ))
+
     def save_answer_labels(self, person_snapshot_person_ids: DomainPersonSnapshotPersonIdSequence) -> None:
         """
         人物検出結果の正解ラベルを保存する

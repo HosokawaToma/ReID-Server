@@ -38,6 +38,12 @@ class ApplicationPersonSnapshotAnswerAssign(ApplicationBase):
                 id=DomainId(id=source_person_snapshot_id.id),
                 person_id=DomainPersonId(id=None),
             )
+            self.repository_person_snapshot.add_answer_label(
+                DomainPersonSnapshotPersonId(
+                    id=DomainId(id=source_person_snapshot_id.id),
+                    person_id=DomainPersonId.new_id(),
+                ),
+            )
         self.repository_person_snapshot.save_answer_labels(
             DomainPersonSnapshotPersonIdSequence(
                 items=[
