@@ -172,7 +172,7 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
             query = query.filter(MigrationModelPersonSnapshot.id != person_snapshot.id.id)
-            query = query.filter(MigrationModelPersonSnapshot.timestamp <= person_snapshot.timestamp.tomorrow().timestamp)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp < person_snapshot.timestamp.tomorrow().timestamp)
             query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
             query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature._feature.cpu().numpy().tolist()))
             query = self._apply_paging(query, paging)
