@@ -37,7 +37,7 @@ class PresentationPersonSnapshotAnswerAssign(PresentationUtilBase):
         request: PresentationPersonSnapshotAnswerAssignRequest,
         application: ApplicationPersonSnapshotAnswerAssign = get_application(ApplicationPersonSnapshotAnswerAssign),
     ):
-        application.assign(
+        application.assign_person_id(
             source_person_snapshot_id=DtoId(id=request.source_person_snapshot_id),
             target_person_snapshot_ids=[
                 DtoId(id=target_person_snapshot_id)
