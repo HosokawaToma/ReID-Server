@@ -82,10 +82,10 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
             return query.count()
 
-    def count_by_nearest(self, person_snapshot: DomainPersonSnapshotFeature) -> int:
+    def count_by_nearest(self, person_snapshot: DomainPersonSnapshotDetail) -> int:
         """
         同じ日付で特徴量が最も近い順に人物検出結果の数を取得する
-        :param DomainPersonSnapshotFeature person_snapshot: 人物検出結果の特徴量
+        :param DomainPersonSnapshotDetail person_snapshot: 人物検出結果
         :return int: 人物検出結果の数
         :raises NotFoundError: 人物検出結果の特徴量が見つからない場合
         """

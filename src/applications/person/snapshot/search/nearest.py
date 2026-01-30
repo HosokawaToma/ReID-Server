@@ -47,7 +47,7 @@ class ApplicationPersonSnapshotSearchNearest(ApplicationBase):
         :param DtoId person_snapshot_id: 人物検出結果のID
         :return DtoPagination: 人物検出結果のページング
         """
-        person_snapshot = self.repository_person_snapshot.find_feature_by_id(DomainId(id=person_snapshot_id.id))
+        person_snapshot = self.repository_person_snapshot.find_detail_by_id(DomainId(id=person_snapshot_id.id))
         total_items = self.repository_person_snapshot.count_by_nearest(person_snapshot=person_snapshot)
         pagination = DomainPagination.create(total_items=total_items, search_limit=self.search_limit)
         return DtoPagination(total_items=pagination.total_items, total_pages=pagination.total_pages)
