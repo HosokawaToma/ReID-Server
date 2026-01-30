@@ -82,6 +82,19 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
             return query.count()
 
+    def count_by_nearest(self, person_snapshot: DomainPersonSnapshotDetail) -> int:
+        """
+        同じ日付で特徴量が最も近い順に人物検出結果の数を取得する
+        :param DomainPersonSnapshotDetail person_snapshot: 人物検出結果
+        :return int: 人物検出結果の数
+        :raises NotFoundError: 人物検出結果の特徴量が見つからない場合
+        """
+        with self.database as session:
+            query = session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id != person_snapshot.id.id)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp < person_snapshot.timestamp.tomorrow().timestamp)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
+            return query.count()
+
     def find_detail_by_id(self, person_snapshot_id: DomainId) -> DomainPersonSnapshotDetail:
         """
         人物検出結果の詳細を取得する
@@ -160,6 +173,29 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                         id=DomainId(id=model.person_id) if model.person_id is not None else None,
                         is_junk=model.is_junk,
                     ),
+                ) for model in models])
+
+    def search_details_by_nearest(self, person_snapshot: DomainPersonSnapshotFeature, paging: DomainPaging) -> DomainPersonSnapshotDetailSequence:
+        """
+        同じ日付で特徴量が最も近い順に人物検出結果を検索する
+        :param DomainPersonSnapshotFeature person_snapshot: 人物検出結果
+        :param DomainPaging paging: ページング
+        :return DomainPersonSnapshotDetailSequence: 特徴量が最も近い順に検索した人物検出結果リスト
+        """
+        with self.database as session:
+            query = session.query(MigrationModelPersonSnapshot)
+            query = query.filter(MigrationModelPersonSnapshot.id != person_snapshot.id.id)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp < person_snapshot.timestamp.tomorrow().timestamp)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
+            query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature._feature.cpu().numpy().tolist()))
+            query = self._apply_paging(query, paging)
+            models = query.all()
+            return DomainPersonSnapshotDetailSequence(items=[
+                DomainPersonSnapshotDetail(
+                    id=DomainId(id=model.id),
+                    location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                    timestamp=DomainTimestamp(timestamp=model.timestamp),
+                    person_id=DomainPersonId(id=DomainId(id=model.person_id) if model.person_id is not None else None, is_junk=model.is_junk),
                 ) for model in models])
 
     def find_feature_by_id(self, person_snapshot_id: DomainId) -> DomainPersonSnapshotFeature:
