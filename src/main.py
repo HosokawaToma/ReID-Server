@@ -13,10 +13,8 @@ from presentation.person.flow.weight.search import PresentationPersonFlowWeightS
 from presentation.person.snapshot.image.search import PresentationPersonSnapshotImageSearch
 from presentation.camera_frame.search import PresentationCameraFrameSearch
 from presentation.camera_frame.image.search import PresentationCameraFrameImageSearch
-from presentation.person.snapshot.answer.search.kinds import PresentationPersonSnapshotAnswerSearchKinds
 from presentation.person.snapshot.answer.search import PresentationPersonSnapshotAnswerSearch
-from presentation.person.snapshot.answer.new_id import PresentationPersonSnapshotAnswerNewId
-from presentation.person.snapshot.answer.copy import PresentationPersonSnapshotAnswerCopy
+from presentation.person.snapshot.answer.assign import PresentationPersonSnapshotAnswerAssign
 from presentation.person.snapshot.search.rank import PresentationPersonSnapshotSearchRank
 
 class ServerApp:
@@ -33,10 +31,8 @@ class ServerApp:
         person_flow_search: PresentationPersonFlowSearch,
         person_flow_weight_search: PresentationPersonFlowWeightSearch,
         person_snapshot_image_search: PresentationPersonSnapshotImageSearch,
-        person_snapshot_answer_search_kinds: PresentationPersonSnapshotAnswerSearchKinds,
         person_snapshot_answer_search: PresentationPersonSnapshotAnswerSearch,
-        person_snapshot_answer_new_id: PresentationPersonSnapshotAnswerNewId,
-        person_snapshot_answer_copy: PresentationPersonSnapshotAnswerCopy,
+        person_snapshot_answer_assign: PresentationPersonSnapshotAnswerAssign,
         person_snapshot_search_rank: PresentationPersonSnapshotSearchRank,
         camera_frame_search: PresentationCameraFrameSearch,
         camera_frame_image_search: PresentationCameraFrameImageSearch,
@@ -52,10 +48,8 @@ class ServerApp:
         self.person_flow_search = person_flow_search
         self.person_flow_weight_search = person_flow_weight_search
         self.person_snapshot_image_search = person_snapshot_image_search
-        self.person_snapshot_answer_search_kinds = person_snapshot_answer_search_kinds
         self.person_snapshot_answer_search = person_snapshot_answer_search
-        self.person_snapshot_answer_new_id = person_snapshot_answer_new_id
-        self.person_snapshot_answer_copy = person_snapshot_answer_copy
+        self.person_snapshot_answer_assign = person_snapshot_answer_assign
         self.person_snapshot_search_rank = person_snapshot_search_rank
         self.camera_frame_search = camera_frame_search
         self.camera_frame_image_search = camera_frame_image_search
@@ -80,10 +74,8 @@ class ServerApp:
             person_flow_search=PresentationPersonFlowSearch.create(),
             person_flow_weight_search=PresentationPersonFlowWeightSearch.create(),
             person_snapshot_image_search=PresentationPersonSnapshotImageSearch.create(),
-            person_snapshot_answer_search_kinds=PresentationPersonSnapshotAnswerSearchKinds.create(),
             person_snapshot_answer_search=PresentationPersonSnapshotAnswerSearch.create(),
-            person_snapshot_answer_new_id=PresentationPersonSnapshotAnswerNewId.create(),
-            person_snapshot_answer_copy=PresentationPersonSnapshotAnswerCopy.create(),
+            person_snapshot_answer_assign=PresentationPersonSnapshotAnswerAssign.create(),
             person_snapshot_search_rank=PresentationPersonSnapshotSearchRank.create(),
             camera_frame_search=PresentationCameraFrameSearch.create(),
             camera_frame_image_search=PresentationCameraFrameImageSearch.create(),
@@ -105,10 +97,8 @@ class ServerApp:
         self.person_flow_search.setup(self.fastapi_app)
         self.person_flow_weight_search.setup(self.fastapi_app)
         self.person_snapshot_image_search.setup(self.fastapi_app)
-        self.person_snapshot_answer_search_kinds.setup(self.fastapi_app)
         self.person_snapshot_answer_search.setup(self.fastapi_app)
-        self.person_snapshot_answer_new_id.setup(self.fastapi_app)
-        self.person_snapshot_answer_copy.setup(self.fastapi_app)
+        self.person_snapshot_answer_assign.setup(self.fastapi_app)
         self.person_snapshot_search_rank.setup(self.fastapi_app)
         self.camera_frame_search.setup(self.fastapi_app)
         self.camera_frame_image_search.setup(self.fastapi_app)

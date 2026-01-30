@@ -217,6 +217,25 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 ),
             )
 
+    def find_answer_label_by_id(self, person_snapshot_id: DomainId) -> DomainPersonSnapshotPersonId:
+        """
+        人物検出結果の正解ラベルを取得する
+        :param DomainId person_snapshot_id: 人物検出結果のID
+        :return DomainPersonSnapshotPersonId: 人物検出結果の正解ラベル
+        :raises NotFoundError: 人物検出結果の正解ラベルが見つからない場合
+        """
+        with self.database as session:
+            model = session.query(MigrationModelPersonSnapshotsAnswerLabels).filter(MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == person_snapshot_id.id).first()
+            if model is None:
+                raise NotFoundError("人物検出結果の正解ラベルが見つかりません")
+            return DomainPersonSnapshotPersonId(
+                id=DomainId(id=model.person_snapshot_id),
+                person_id=DomainPersonId(
+                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                    is_junk=model.is_junk,
+                ),
+            )
+
     def find_answer_labels(self, query: RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabel | None = None) -> DomainPersonSnapshotPersonIdSequence:
         """
         人物検出結果の正解ラベルを検索する
@@ -237,60 +256,29 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 ),
             ) for model in models])
 
-    def find_answer_label_kinds(self) -> DomainPersonSnapshotPersonIdSequence:
+    def add_answer_label(self, person_snapshot_person_id: DomainPersonSnapshotPersonId) -> None:
         """
-        人物検出結果の正解ラベルの種類を検索する
-        :return DomainPersonSnapshotPersonIdSequence: 人物検出結果の正解ラベルの種類リスト
-        :raises NotFoundError: 人物検出結果の正解ラベルの種類が見つからない場合
-        """
-        with self.database as session:
-            session_query = session.query(MigrationModelPersonSnapshotsAnswerLabels)
-            session_query = session_query.filter(MigrationModelPersonSnapshotsAnswerLabels.is_junk.is_(False))
-            session_query = session_query.distinct(MigrationModelPersonSnapshotsAnswerLabels.person_id)
-            models = session_query.all()
-            return DomainPersonSnapshotPersonIdSequence(items=[
-                DomainPersonSnapshotPersonId(
-                    id=DomainId(id=model.person_snapshot_id),
-                    person_id=DomainPersonId(
-                        id=DomainId(id=model.person_id) if model.person_id is not None else None,
-                        is_junk=model.is_junk,
-                    ),
-                ) for model in models])
-
-    def update_answer_label(self, person_snapshot_person_id: DomainPersonSnapshotPersonId) -> None:
-        """
-        人物検出結果の正解ラベルを更新する
+        人物検出結果の正解ラベルを追加する
         :param DomainPersonSnapshotPersonId person_snapshot_person_id: 人物検出結果の正解ラベル
         """
         with self.database as session:
-            model = session.query(MigrationModelPersonSnapshotsAnswerLabels).filter(
-                MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == person_snapshot_person_id.id.id
-            ).first()
-            person_id = person_snapshot_person_id.person_id.id.id if person_snapshot_person_id.person_id.id is not None else None
-            is_junk = person_snapshot_person_id.person_id.is_junk
-            if model is None:
-                session.add(MigrationModelPersonSnapshotsAnswerLabels(
-                    person_snapshot_id=person_snapshot_person_id.id.id,
-                    person_id=person_id,
-                    is_junk=is_junk,
-                ))
-            else:
-                model.person_id = person_id
-                model.is_junk = is_junk
+            session.add(MigrationModelPersonSnapshotsAnswerLabels(
+                person_snapshot_id=person_snapshot_person_id.id.id,
+                person_id=person_snapshot_person_id.person_id.id.id if person_snapshot_person_id.person_id.id is not None else None,
+                is_junk=person_snapshot_person_id.person_id.is_junk,
+            ))
 
-    def update_answer_labels_batch(self, person_snapshot_person_ids: DomainPersonSnapshotPersonIdSequence) -> None:
+    def save_answer_labels(self, person_snapshot_person_ids: DomainPersonSnapshotPersonIdSequence) -> None:
         """
-        人物検出結果の正解ラベルを一括更新する
+        人物検出結果の正解ラベルを保存する
         :param DomainPersonSnapshotPersonIdSequence person_snapshot_person_ids: 人物検出結果の正解ラベルリスト
         """
         with self.database as session:
-            for person_snapshot_person_id in person_snapshot_person_ids.items:
-                person_id = person_snapshot_person_id.person_id.id.id if person_snapshot_person_id.person_id.id is not None else None
-                is_junk = person_snapshot_person_id.person_id.is_junk
+            for item in person_snapshot_person_ids.items:
                 session.merge(MigrationModelPersonSnapshotsAnswerLabels(
-                    person_snapshot_id=person_snapshot_person_id.id.id,
-                    person_id=person_id,
-                    is_junk=is_junk,
+                    person_snapshot_id=item.id.id,
+                    person_id=item.person_id.id.id if item.person_id.id is not None else None,
+                    is_junk=item.person_id.is_junk,
                 ))
 
     def save_feature(self, person_snapshot: DomainPersonSnapshotFeature) -> None:
