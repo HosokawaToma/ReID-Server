@@ -27,9 +27,9 @@ class ApplicationPersonSnapshotSearchNearest(ApplicationBase):
         :param int page: ページ番号
         :return list[DtoPersonSnapshotDetail]: 特徴量が最も近い順に検索した人物検出結果リスト
         """
-        person_snapshot = self.repository_person_snapshot.find_feature_by_id(DomainId(id=person_snapshot_id.id))
+        person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(DomainId(id=person_snapshot_id.id))
         person_snapshot_details = self.repository_person_snapshot.search_details_by_nearest(
-            person_snapshot=person_snapshot,
+            person_snapshot=person_snapshot_feature,
             paging=DomainPaging(page=page, search_limit=self.search_limit),
         )
         return [DtoPersonSnapshotDetail(
