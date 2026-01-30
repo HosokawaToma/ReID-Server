@@ -347,4 +347,12 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                     is_junk=item.person_id.is_junk,
                 ))
 
-
+    def delete_answer_label_by_id(self, person_snapshot_id: DomainId) -> None:
+        """
+        人物検出結果の正解ラベルを削除する
+        :param DomainId person_snapshot_id: 人物検出結果のID
+        """
+        with self.database as session:
+            query = session.query(MigrationModelPersonSnapshotsAnswerLabels)
+            query = query.filter(MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == person_snapshot_id.id)
+            query.delete()
