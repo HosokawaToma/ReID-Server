@@ -16,6 +16,7 @@ from presentation.camera_frame.image.search import PresentationCameraFrameImageS
 from presentation.person.snapshot.answer.search import PresentationPersonSnapshotAnswerSearch
 from presentation.person.snapshot.answer.assign import PresentationPersonSnapshotAnswerAssign
 from presentation.person.snapshot.search.rank import PresentationPersonSnapshotSearchRank
+from presentation.person.snapshot.search.nearest import PresentationPersonSnapshotSearchNearest
 
 class ServerApp:
     def __init__(
@@ -34,6 +35,7 @@ class ServerApp:
         person_snapshot_answer_search: PresentationPersonSnapshotAnswerSearch,
         person_snapshot_answer_assign: PresentationPersonSnapshotAnswerAssign,
         person_snapshot_search_rank: PresentationPersonSnapshotSearchRank,
+        person_snapshot_search_nearest: PresentationPersonSnapshotSearchNearest,
         camera_frame_search: PresentationCameraFrameSearch,
         camera_frame_image_search: PresentationCameraFrameImageSearch,
     ):
@@ -51,6 +53,7 @@ class ServerApp:
         self.person_snapshot_answer_search = person_snapshot_answer_search
         self.person_snapshot_answer_assign = person_snapshot_answer_assign
         self.person_snapshot_search_rank = person_snapshot_search_rank
+        self.person_snapshot_search_nearest = person_snapshot_search_nearest
         self.camera_frame_search = camera_frame_search
         self.camera_frame_image_search = camera_frame_image_search
 
@@ -77,6 +80,7 @@ class ServerApp:
             person_snapshot_answer_search=PresentationPersonSnapshotAnswerSearch.create(),
             person_snapshot_answer_assign=PresentationPersonSnapshotAnswerAssign.create(),
             person_snapshot_search_rank=PresentationPersonSnapshotSearchRank.create(),
+            person_snapshot_search_nearest=PresentationPersonSnapshotSearchNearest.create(),
             camera_frame_search=PresentationCameraFrameSearch.create(),
             camera_frame_image_search=PresentationCameraFrameImageSearch.create(),
         )
@@ -100,6 +104,7 @@ class ServerApp:
         self.person_snapshot_answer_search.setup(self.fastapi_app)
         self.person_snapshot_answer_assign.setup(self.fastapi_app)
         self.person_snapshot_search_rank.setup(self.fastapi_app)
+        self.person_snapshot_search_nearest.setup(self.fastapi_app)
         self.camera_frame_search.setup(self.fastapi_app)
         self.camera_frame_image_search.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.app_host, port=self.app_port)
