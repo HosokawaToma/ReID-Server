@@ -43,7 +43,7 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
                 timestamp=self.timestamp,
                 image=self.image,
                 feature=self.feature,
-                person_id=self.person_id.junk(),
+                person_id=DomainPersonId.junk(),
             )
         poses = pose_estimator.extract(self.image)
         if not poses.is_one_person():
@@ -53,7 +53,7 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
                 timestamp=self.timestamp,
                 image=self.image,
                 feature=self.feature,
-                person_id=self.person_id.junk(),
+                person_id=DomainPersonId.junk(),
             )
         pose = poses.one_person()
         if not pose.is_full_length():
@@ -63,7 +63,7 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
                 timestamp=self.timestamp,
                 image=self.image,
                 feature=self.feature,
-                person_id=self.person_id.junk(),
+                person_id=DomainPersonId.junk(),
             )
         return DomainPersonSnapshotImage(
             id=self.id,
@@ -71,7 +71,7 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
             timestamp=self.timestamp,
             image=self.image,
             feature=self.feature,
-            person_id=self.person_id.new_id(),
+            person_id=DomainPersonId.new_id(),
         )
 
     def extract_feature(self, reid_model: DomainReIDModel) -> DomainPersonSnapshotFeature:
@@ -85,5 +85,5 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
             location=self.location,
             timestamp=self.timestamp,
             feature=reid_model.extract(image=self.image, location=self.location),
-            person_id=self.person_id,
+            person_id=DomainPersonId.new_id(),
         )

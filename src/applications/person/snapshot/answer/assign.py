@@ -18,7 +18,7 @@ class ApplicationPersonSnapshotAnswerAssign(ApplicationBase):
             repository_person_snapshot=RepositoryPersonSnapshot.create(environment=environment),
         )
 
-    def assign(
+    def assign_person_id(
         self,
         source_person_snapshot_id: DtoId,
         target_person_snapshot_ids: list[DtoId],

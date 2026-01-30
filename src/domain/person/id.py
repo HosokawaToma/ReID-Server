@@ -10,21 +10,23 @@ class DomainPersonId(DomainUtilsBase):
     id: DomainId | None = field(default=None)
     is_junk: bool = field(default=True)
 
-    def new_id(self) -> "DomainPersonId":
+    @classmethod
+    def new_id(cls) -> "DomainPersonId":
         """
         新しい人物IDを生成する
         人物IDが割り当てられている場合はゴミデータではない
         :return DomainPersonId: 新しい人物ID
         """
-        return DomainPersonId(id=DomainId(), is_junk=False)
+        return cls(id=DomainId(), is_junk=False)
 
-    def junk(self) -> "DomainPersonId":
+    @classmethod
+    def junk(cls) -> "DomainPersonId":
         """
         ゴミデータとして設定する
         ゴミデータには人物IDが割り当てられていない
         :return DomainPersonId: ゴミデータとして設定した人物ID
         """
-        return DomainPersonId(id=None, is_junk=True)
+        return cls(id=None, is_junk=True)
 
     def copy(self) -> "DomainPersonId":
         """
