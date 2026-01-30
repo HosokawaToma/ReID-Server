@@ -9,7 +9,7 @@ from presentation.utils.type import PresentationUtilPathUUID
 
 class PresentationPersonSnapshotAnswerDelete(PresentationUtilBase):
     router_path = "/person/snapshot/answer/delete/{person_snapshot_id}"
-    methods = ["DELETE"]
+    methods = ["POST"]
     tags = ["Person Snapshot"]
     summary = "Delete person snapshot answer"
     description = "Delete person snapshot answer"
