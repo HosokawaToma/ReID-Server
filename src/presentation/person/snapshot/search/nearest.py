@@ -36,6 +36,7 @@ class PresentationPersonSnapshotSearchNearest(PresentationUtilBase):
         application: ApplicationPersonSnapshotSearchNearest = get_application(ApplicationPersonSnapshotSearchNearest),
     ):
         items = application.search(person_snapshot_id=DtoId(id=person_snapshot_id), page=page)
+        pagination = application.search_paging(person_snapshot_id=DtoId(id=person_snapshot_id))
         return PresentationUtilJSONResponse(status=200, content={
             "person_snapshots": [
                 {
@@ -44,7 +45,11 @@ class PresentationPersonSnapshotSearchNearest(PresentationUtilBase):
                     "view_id": item.view_id,
                     "timestamp": item.timestamp.isoformat(),
                     "is_junk": item.is_junk,
-                    "person_id": str(item.person_id),
+                    "person_id": str(item.person_id) if item.person_id is not None else None,
                 } for item in items
             ],
+            "pagination": {
+                "total_items": pagination.total_items,
+                "total_pages": pagination.total_pages,
+            },
         })
