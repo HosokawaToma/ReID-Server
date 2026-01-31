@@ -3,6 +3,7 @@ from repositories.reid import RepositoryReID
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from environment import Environment
 from background.applications.utils import BackgroundApplicationUtilsBase
+from dto.id import DtoId
 
 class BackgroundApplicationPersonSnapshotFeatureExtract(BackgroundApplicationUtilsBase):
     def __init__(
@@ -23,7 +24,8 @@ class BackgroundApplicationPersonSnapshotFeatureExtract(BackgroundApplicationUti
             repository_person_snapshot=RepositoryPersonSnapshot.create(environment),
         )
 
-    def extract(self) -> None:
+    def extract(self) -> DtoId:
         person_snapshot_image = self.repository_person_snapshot_feature_extract_queue.pop()
         feature = person_snapshot_image.re_extract_feature(reid_model=self.repository_reid.find())
         self.repository_person_snapshot.save_feature(feature)
+        return DtoId(id=feature.id.id)

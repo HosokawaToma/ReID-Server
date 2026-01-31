@@ -24,9 +24,9 @@ class BackgroundPersonSnapshotFeatureExtract(BackgroundPresentationUtilsBase):
         return "person_snapshot_feature_extract"
 
     def handle(self, process_id: str) -> None:
-        self.application.extract()
+        id = self.application.extract()
         self.logger.background_info(
             process_id=process_id,
             name=self.name,
-            message=f"person snapshot feature extracted",
+            message=f"person snapshot feature extracted: {id.id}",
         )
