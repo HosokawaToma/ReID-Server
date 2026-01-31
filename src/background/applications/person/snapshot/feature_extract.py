@@ -25,5 +25,5 @@ class BackgroundApplicationPersonSnapshotFeatureExtract(BackgroundApplicationUti
 
     def extract(self) -> None:
         person_snapshot_image = self.repository_person_snapshot_feature_extract_queue.pop()
-        feature = person_snapshot_image.extract_feature(reid_model=self.repository_reid.find())
+        feature = person_snapshot_image.re_extract_feature(reid_model=self.repository_reid.find())
         self.repository_person_snapshot.save_feature(feature)
