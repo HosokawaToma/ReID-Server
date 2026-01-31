@@ -8,6 +8,7 @@ from enum import Enum
 class RepositoryUtilRedisKey(str, Enum):
     PERSON_SNAPSHOT_CREATE = "person_snapshot:create"
     PERSON_SNAPSHOT_REID = "person_snapshot:reid"
+    PERSON_SNAPSHOT_FEATURE_EXTRACT = "person_snapshot:feature_extract"
 
 
 class RepositoryUtilRedis:

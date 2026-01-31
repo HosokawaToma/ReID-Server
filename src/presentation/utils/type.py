@@ -11,6 +11,8 @@ PresentationUtilFromImage = Annotated[DtoImage, Depends(
 
 PresentationUtilFromDatetime = Annotated[datetime, Form(...)]
 
+PresentationUtilPathTimestamp = Annotated[datetime, Path(...)]
+
 PresentationUtilPathUUID = Annotated[uuid.UUID, Path(...)]
 
 PresentationUtilFromInt = Annotated[int, Form(...)]
