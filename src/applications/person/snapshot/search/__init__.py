@@ -11,7 +11,6 @@ from dto.id import DtoId
 from domain.pagination import DomainPagination
 from domain.paging import DomainPaging
 from domain.timestamp import DomainTimestamp
-from domain.paging import DomainPaging
 from domain.id import DomainId
 
 class ApplicationPersonSnapshotSearch(ApplicationBase):
