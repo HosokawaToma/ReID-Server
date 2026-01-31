@@ -18,6 +18,7 @@ from presentation.person.snapshot.answer.assign import PresentationPersonSnapsho
 from presentation.person.snapshot.answer.delete import PresentationPersonSnapshotAnswerDelete
 from presentation.person.snapshot.search.rank import PresentationPersonSnapshotSearchRank
 from presentation.person.snapshot.search.nearest import PresentationPersonSnapshotSearchNearest
+from presentation.person.snapshot.refresh.feature_extract import PresentationPersonSnapshotRefreshFeatureExtract
 
 class ServerApp:
     def __init__(
@@ -40,6 +41,7 @@ class ServerApp:
         person_snapshot_search_nearest: PresentationPersonSnapshotSearchNearest,
         camera_frame_search: PresentationCameraFrameSearch,
         camera_frame_image_search: PresentationCameraFrameImageSearch,
+        person_snapshot_refresh_feature_extract: PresentationPersonSnapshotRefreshFeatureExtract,
     ):
         self.app_host = app_host
         self.app_port = app_port
@@ -59,6 +61,7 @@ class ServerApp:
         self.person_snapshot_search_nearest = person_snapshot_search_nearest
         self.camera_frame_search = camera_frame_search
         self.camera_frame_image_search = camera_frame_image_search
+        self.person_snapshot_refresh_feature_extract = person_snapshot_refresh_feature_extract
 
     @classmethod
     def create(
@@ -87,6 +90,7 @@ class ServerApp:
             person_snapshot_search_nearest=PresentationPersonSnapshotSearchNearest.create(),
             camera_frame_search=PresentationCameraFrameSearch.create(),
             camera_frame_image_search=PresentationCameraFrameImageSearch.create(),
+            person_snapshot_refresh_feature_extract=PresentationPersonSnapshotRefreshFeatureExtract.create(),
         )
 
     def run(self):
@@ -112,6 +116,7 @@ class ServerApp:
         self.person_snapshot_search_nearest.setup(self.fastapi_app)
         self.camera_frame_search.setup(self.fastapi_app)
         self.camera_frame_image_search.setup(self.fastapi_app)
+        self.person_snapshot_refresh_feature_extract.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.app_host, port=self.app_port)
 
 if __name__ == "__main__":
