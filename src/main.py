@@ -18,6 +18,10 @@ from presentation.person.snapshot.answer.assign import PresentationPersonSnapsho
 from presentation.person.snapshot.answer.delete import PresentationPersonSnapshotAnswerDelete
 from presentation.person.snapshot.search.rank import PresentationPersonSnapshotSearchRank
 from presentation.person.snapshot.search.nearest import PresentationPersonSnapshotSearchNearest
+from presentation.person.snapshot.search.query.not_junk import PresentationPersonSnapshotSearchQueryNotJunk
+from presentation.person.snapshot.search.query.in_junk import PresentationPersonSnapshotSearchQueryInJunk
+from presentation.person.snapshot.search.gallery.not_junk import PresentationPersonSnapshotSearchGalleryNotJunk
+from presentation.person.snapshot.search.gallery.in_junk import PresentationPersonSnapshotSearchGalleryInJunk
 from presentation.person.snapshot.refresh.feature_extract import PresentationPersonSnapshotRefreshFeatureExtract
 
 class ServerApp:
@@ -42,6 +46,10 @@ class ServerApp:
         camera_frame_search: PresentationCameraFrameSearch,
         camera_frame_image_search: PresentationCameraFrameImageSearch,
         person_snapshot_refresh_feature_extract: PresentationPersonSnapshotRefreshFeatureExtract,
+        person_snapshot_search_query_not_junk: PresentationPersonSnapshotSearchQueryNotJunk,
+        person_snapshot_search_query_in_junk: PresentationPersonSnapshotSearchQueryInJunk,
+        person_snapshot_search_gallery_not_junk: PresentationPersonSnapshotSearchGalleryNotJunk,
+        person_snapshot_search_gallery_in_junk: PresentationPersonSnapshotSearchGalleryInJunk,
     ):
         self.app_host = app_host
         self.app_port = app_port
@@ -62,6 +70,10 @@ class ServerApp:
         self.camera_frame_search = camera_frame_search
         self.camera_frame_image_search = camera_frame_image_search
         self.person_snapshot_refresh_feature_extract = person_snapshot_refresh_feature_extract
+        self.person_snapshot_search_query_not_junk = person_snapshot_search_query_not_junk
+        self.person_snapshot_search_query_in_junk = person_snapshot_search_query_in_junk
+        self.person_snapshot_search_gallery_not_junk = person_snapshot_search_gallery_not_junk
+        self.person_snapshot_search_gallery_in_junk = person_snapshot_search_gallery_in_junk
 
     @classmethod
     def create(
@@ -91,6 +103,10 @@ class ServerApp:
             camera_frame_search=PresentationCameraFrameSearch.create(),
             camera_frame_image_search=PresentationCameraFrameImageSearch.create(),
             person_snapshot_refresh_feature_extract=PresentationPersonSnapshotRefreshFeatureExtract.create(),
+            person_snapshot_search_query_not_junk=PresentationPersonSnapshotSearchQueryNotJunk.create(),
+            person_snapshot_search_query_in_junk=PresentationPersonSnapshotSearchQueryInJunk.create(),
+            person_snapshot_search_gallery_not_junk=PresentationPersonSnapshotSearchGalleryNotJunk.create(),
+            person_snapshot_search_gallery_in_junk=PresentationPersonSnapshotSearchGalleryInJunk.create(),
         )
 
     def run(self):
@@ -117,6 +133,10 @@ class ServerApp:
         self.camera_frame_search.setup(self.fastapi_app)
         self.camera_frame_image_search.setup(self.fastapi_app)
         self.person_snapshot_refresh_feature_extract.setup(self.fastapi_app)
+        self.person_snapshot_search_query_not_junk.setup(self.fastapi_app)
+        self.person_snapshot_search_query_in_junk.setup(self.fastapi_app)
+        self.person_snapshot_search_gallery_not_junk.setup(self.fastapi_app)
+        self.person_snapshot_search_gallery_in_junk.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.app_host, port=self.app_port)
 
 if __name__ == "__main__":
