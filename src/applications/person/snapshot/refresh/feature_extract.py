@@ -22,6 +22,11 @@ class ApplicationPersonSnapshotRefreshFeatureExtract(ApplicationBase):
         )
 
     def refresh(self, query: DtoPersonSnapshotQuery | None = None) -> None:
+        """
+        人物検出結果の特徴量を再抽出する
+        :param DtoPersonSnapshotQuery query: 人物検出結果の特徴量を再抽出する条件
+        :raises InternalServerError: 人物検出結果の特徴量を再抽出に失敗した場合に発生するエラー
+        """
         database_query = None
         if query is not None:
             database_query = RepositoryUtilDatabaseQueryPersonSnapshot(
