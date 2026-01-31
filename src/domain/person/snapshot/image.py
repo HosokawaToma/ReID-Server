@@ -87,3 +87,17 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
             feature=reid_model.extract(image=self.image, location=self.location),
             person_id=DomainPersonId.new_id(),
         )
+
+    def re_extract_feature(self, reid_model: DomainReIDModel) -> DomainPersonSnapshotFeature:
+        """
+        人物検出結果の画像から特徴量を再抽出する
+        :param DomainReIDModel reid_model: ReIDモデル
+        :return DomainPersonSnapshotFeature: 特徴量を再抽出した人物検出結果の特徴量
+        """
+        return DomainPersonSnapshotFeature(
+            id=self.id,
+            location=self.location,
+            timestamp=self.timestamp,
+            feature=reid_model.extract(image=self.image, location=self.location),
+            person_id=self.person_id.copy(),
+        )

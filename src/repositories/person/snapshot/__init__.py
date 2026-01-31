@@ -18,6 +18,7 @@ from domain.person.snapshot.feature import DomainPersonSnapshotFeature
 from domain.person.snapshot.person_id import DomainPersonSnapshotPersonId
 from domain.person.snapshot.person_id_sequence import DomainPersonSnapshotPersonIdSequence
 from domain.paging import DomainPaging
+from sqlalchemy import func
 import torch
 
 class RepositoryPersonSnapshot(RepositoryUtilBase):
@@ -197,6 +198,158 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                     timestamp=DomainTimestamp(timestamp=model.timestamp),
                     person_id=DomainPersonId(id=DomainId(id=model.person_id) if model.person_id is not None else None, is_junk=model.is_junk),
                 ) for model in models])
+
+    def search_query_in_junk(self, timestamp: DomainTimestamp, paging: DomainPaging) -> DomainIdSequence:
+        """
+        特定日のクエリデータを取得する
+        ※同じ人物IDは1件しか取得しない
+        :param DomainTimestamp timestamp: 日時
+        :param DomainPaging paging: ページング
+        :return DomainIdSequence: クエリデータIDリスト
+        :raises NotFoundError: クエリデータが見つからない場合
+        """
+        with self.database as session:
+            query = session.query(
+                MigrationModelPersonSnapshot,
+                MigrationModelPersonSnapshotsAnswerLabels
+            ).join(
+                MigrationModelPersonSnapshotsAnswerLabels,
+                MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
+            ).filter(
+                MigrationModelPersonSnapshot.timestamp == timestamp.timestamp
+            ).distinct(
+                MigrationModelPersonSnapshotsAnswerLabels.person_id
+            ).order_by(
+                MigrationModelPersonSnapshotsAnswerLabels.person_id,
+                func.random()
+            )
+            query = self._apply_paging(query, paging)
+            models = query.all()
+            items: list[DomainId] = []
+            for snapshot, _ in models:
+                snapshot: MigrationModelPersonSnapshot
+                items.append(DomainId(id=snapshot.id))
+            return DomainIdSequence(items=items)
+
+    def count_query_in_junk(self, timestamp: DomainTimestamp) -> int:
+        """
+        特定日のクエリデータの数を取得する
+        :param DomainTimestamp timestamp: 日時
+        :return int: クエリデータの数
+        :raises NotFoundError: クエリデータが見つからない場合
+        """
+        with self.database as session:
+            return session.query(MigrationModelPersonSnapshot, MigrationModelPersonSnapshotsAnswerLabels).join(
+                MigrationModelPersonSnapshotsAnswerLabels,
+                MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
+            ).filter(
+                MigrationModelPersonSnapshot.timestamp == timestamp.timestamp
+            ).distinct(
+                MigrationModelPersonSnapshotsAnswerLabels.person_id
+            ).count()
+
+    def search_query_not_junk(self, timestamp: DomainTimestamp, paging: DomainPaging) -> DomainIdSequence:
+        """
+        特定日のクエリデータを取得する
+        ※ゴミデータは除外する
+        :param DomainTimestamp timestamp: 日時
+        :param DomainPaging paging: ページング
+        :return DomainIdSequence: クエリデータIDリスト
+        :raises NotFoundError: クエリデータが見つからない場合
+        """
+        with self.database as session:
+            query = session.query(
+                MigrationModelPersonSnapshot, MigrationModelPersonSnapshotsAnswerLabels
+            ).join(
+                MigrationModelPersonSnapshotsAnswerLabels,
+                MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
+            ).filter(
+                MigrationModelPersonSnapshot.timestamp == timestamp.timestamp
+            ).filter(
+                MigrationModelPersonSnapshot.is_junk.is_(False)
+            ).distinct(
+                MigrationModelPersonSnapshotsAnswerLabels.person_id
+            ).order_by(
+                MigrationModelPersonSnapshotsAnswerLabels.person_id,
+                func.random()
+            )
+            query = self._apply_paging(query, paging)
+            models = query.all()
+            items: list[DomainId] = []
+            for snapshot, _ in models:
+                snapshot: MigrationModelPersonSnapshot
+                items.append(DomainId(id=snapshot.id))
+            return DomainIdSequence(items=items)
+
+    def count_query_not_junk(self, timestamp: DomainTimestamp) -> int:
+        """
+        特定日のクエリデータの数を取得する
+        :param DomainTimestamp timestamp: 日時
+        :return int: クエリデータの数
+        :raises NotFoundError: クエリデータが見つからない場合
+        """
+        with self.database as session:
+            return session.query(
+                MigrationModelPersonSnapshot, MigrationModelPersonSnapshotsAnswerLabels
+                ).join(
+                    MigrationModelPersonSnapshotsAnswerLabels,
+                    MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
+                ).filter(
+                    MigrationModelPersonSnapshot.timestamp == timestamp.timestamp
+                ).filter(
+                    MigrationModelPersonSnapshot.is_junk.is_(False)
+                ).count()
+
+    def search_gallery_in_junk(self, person_snapshot_feature: DomainPersonSnapshotFeature) -> DomainIdSequence:
+        """
+        ギャラリーデータを特徴量が最も近い順に取得する
+        ギャラリーデータとは同じ日付で別カメラで同じ人物IDのデータを除外したもの
+        :param DomainPersonSnapshotFeature person_snapshot_feature: 人物検出結果の特徴量
+        :return DomainIdSequence: ギャラリーIDリスト
+        """
+        with self.database as session:
+            models = session.query(
+                MigrationModelPersonSnapshot
+            ).filter(
+                MigrationModelPersonSnapshot.id != person_snapshot_feature.id.id
+            ).filter(
+                MigrationModelPersonSnapshot.camera_id != person_snapshot_feature.location.camera_id
+            ).filter(
+                MigrationModelPersonSnapshot.timestamp < person_snapshot_feature.timestamp.tomorrow().timestamp
+            ).filter(
+                MigrationModelPersonSnapshot.timestamp >= person_snapshot_feature.timestamp.today().timestamp
+            ).order_by(
+                MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot_feature.feature._feature.cpu().numpy().tolist())
+            ).limit(50).all()
+            return DomainIdSequence(
+                items=[DomainId(id=model.id) for model in models]
+            )
+
+    def search_gallery_not_junk(self, person_snapshot_feature: DomainPersonSnapshotFeature) -> DomainIdSequence:
+        """
+        ギャラリーデータを特徴量が最も近い順に取得する
+        ※ゴミデータは除外する
+        ギャラリーデータとは同じ日付で別カメラで同じIDのデータを除外したもの
+        :param DomainPersonSnapshotFeature person_snapshot_feature: 人物検出結果の特徴量
+        :return DomainIdSequence: ギャラリーIDリスト
+        """
+        with self.database as session:
+            models = session.query(
+                MigrationModelPersonSnapshot
+            ).filter(
+                MigrationModelPersonSnapshot.id != person_snapshot_feature.id.id
+            ).filter(
+                MigrationModelPersonSnapshot.camera_id != person_snapshot_feature.location.camera_id
+            ).filter(
+                MigrationModelPersonSnapshot.timestamp < person_snapshot_feature.timestamp.tomorrow().timestamp
+            ).filter(
+                MigrationModelPersonSnapshot.timestamp >= person_snapshot_feature.timestamp.today().timestamp
+            ).filter(
+                MigrationModelPersonSnapshot.is_junk.is_(False)
+            ).order_by(
+                MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot_feature.feature._feature.cpu().numpy().tolist())
+            ).limit(50).all()
+            return DomainIdSequence(items=[DomainId(id=model.id) for model in models])
 
     def find_feature_by_id(self, person_snapshot_id: DomainId) -> DomainPersonSnapshotFeature:
         """
