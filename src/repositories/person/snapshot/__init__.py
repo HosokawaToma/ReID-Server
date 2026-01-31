@@ -329,7 +329,7 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         """
         ギャラリーデータを特徴量が最も近い順に取得する
         ※ゴミデータは除外する
-        ギャラリーデータとは同じ日付で別カメラで同じ人物IDのデータを除外したもの
+        ギャラリーデータとは同じ日付で別カメラで同じIDのデータを除外したもの
         :param DomainPersonSnapshotFeature person_snapshot_feature: 人物検出結果の特徴量
         :return DomainIdSequence: ギャラリーIDリスト
         """
