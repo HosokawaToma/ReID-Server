@@ -450,7 +450,6 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         ※ゴミデータは除外する
         :param DomainDate date: 日付
         :return DomainIdSequence: クエリデータIDリスト
-        :raises NotFoundError: クエリデータが見つからない場合
         """
         with self.database as session:
             query = session.query(
@@ -479,9 +478,8 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         """
         ギャラリーデータを取得する
         ※ゴミデータは除外する
-        :param DomainId person_snapshot_id: 人物検出結果のID
+        :param DomainPersonSnapshotFeature person_snapshot_feature: 人物検出結果の特徴量
         :return DomainIdSequence: ギャラリーIDリスト
-        :raises NotFoundError: ギャラリーデータが見つからない場合
         """
         with self.database as session:
             models = session.query(
@@ -498,12 +496,32 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             ).limit(50).all()
             return DomainIdSequence(items=[DomainId(id=model.id) for model in models])
 
+    def find_gallery_contains_junk(self, person_snapshot_feature: DomainPersonSnapshotFeature) -> DomainIdSequence:
+        """
+        ギャラリーデータを取得する
+        ※ゴミデータを含む
+        :param DomainPersonSnapshotFeature person_snapshot_feature: 人物検出結果の特徴量
+        :return DomainIdSequence: ギャラリーIDリスト
+        """
+        with self.database as session:
+            models = session.query(
+                MigrationModelPersonSnapshot
+            ).filter(
+                MigrationModelPersonSnapshot.id != person_snapshot_feature.id.id,
+                MigrationModelPersonSnapshot.camera_id != person_snapshot_feature.location.camera_id,
+                MigrationModelPersonSnapshot.timestamp < person_snapshot_feature.timestamp.tomorrow().timestamp,
+                MigrationModelPersonSnapshot.timestamp >= person_snapshot_feature.timestamp.today().timestamp,
+            ).order_by(
+                MigrationModelPersonSnapshot.feature.op("<=>")(
+                    person_snapshot_feature.feature._feature.cpu().numpy().tolist())
+            ).limit(50).all()
+            return DomainIdSequence(items=[DomainId(id=model.id) for model in models])
+
     def find_answer_labels_by_ids(self, person_snapshot_ids: DomainIdSequence) -> DomainPersonSnapshotPersonIdSequence:
         """
         人物検出結果の正解ラベルを取得する
         :param DomainIdSequence person_snapshot_ids: 人物検出結果のIDリスト
         :return DomainPersonSnapshotPersonIdSequence: 人物検出結果の正解ラベルリスト
-        :raises NotFoundError: 人物検出結果の正解ラベルが見つからない場合
         """
         with self.database as session:
             models = session.query(

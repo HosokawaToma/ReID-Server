@@ -7,15 +7,15 @@ from presentation.utils.factory import get_application
 from presentation.utils.response import PresentationUtilJSONResponse
 from applications.reid.cmc_curve import ApplicationReidCmcCurve
 
-class PresentationReidCmcCurve(PresentationUtilBase):
-    router_path = "/reid/cmc-curve/{date}"
+class PresentationReidCmcCurveQueryIsNotJunkAndGalleryNotContainsJunk(PresentationUtilBase):
+    router_path = "/reid/cmc-curve/query-is-not-junk-and-gallery-not-contains-junk/{date}"
     methods = ["GET"]
     tags = ["reid"]
-    summary = "CMC曲線を表示する"
-    description = "CMC曲線を表示する"
+    summary = "クエリデータがゴミデータではなくギャラリーデータにゴミデータが含まれない状況で評価する1~50位までのAPを計算しCMC曲線を作成する"
+    description = "クエリデータがゴミデータではなくギャラリーデータにゴミデータが含まれない状況で評価する1~50位までのAPを計算しCMC曲線を作成する"
     responses = {
         200: {
-            "description": "CMC曲線を表示する",
+            "description": "クエリデータがゴミデータではなくギャラリーデータにゴミデータが含まれない状況で評価する1~50位までのAPを計算しCMC曲線を作成する",
         }
     }
 
@@ -23,9 +23,9 @@ class PresentationReidCmcCurve(PresentationUtilBase):
         super().__init__(logger=logger)
 
     @classmethod
-    def create(cls) -> "PresentationReidCmcCurve":
+    def create(cls) -> "PresentationReidCmcCurveQueryIsNotJunkAndGalleryNotContainsJunk":
         return cls(
-            logger=Logger("presentation_reid_cmc_curve"),
+            logger=Logger("presentation_reid_cmc_curve_query_is_not_junk_and_gallery_not_contains_junk"),
         )
 
     async def handle(
