@@ -8,16 +8,18 @@ from domain.reid.cmc_sequence import DomainReidCmcSequence
 from dto.reid.cmc_curve import DtoReidCmcCurve
 from dto.id import DtoId
 
+
 class ApplicationReidCmcCurve(ApplicationBase):
     def __init__(self,
-        repository_person_snapshot: RepositoryPersonSnapshot,
-    ):
+                 repository_person_snapshot: RepositoryPersonSnapshot,
+                 ):
         self.repository_person_snapshot = repository_person_snapshot
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationReidCmcCurve":
         return cls(
-            repository_person_snapshot=RepositoryPersonSnapshot.create(environment),
+            repository_person_snapshot=RepositoryPersonSnapshot.create(
+                environment),
         )
 
     def calculate_cmc_curve(self, date: DtoDate) -> tuple[DtoReidCmcCurve, DtoReidCmcCurve, list[DtoId]]:
@@ -36,7 +38,7 @@ class ApplicationReidCmcCurve(ApplicationBase):
                 person_snapshot_id=person_snapshot_id,
             )
             if not self.repository_person_snapshot.exists_gallery_not_contains_junk(
-                person_snapshot_detail_answer=person_snapshot_detail_answer):
+                    person_snapshot_detail_answer=person_snapshot_detail_answer):
                 continue
             person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(
                 person_snapshot_id=person_snapshot_id,
@@ -58,8 +60,8 @@ class ApplicationReidCmcCurve(ApplicationBase):
             person_snapshot_detail_answer = self.repository_person_snapshot.find_detail_answer_by_id(
                 person_snapshot_id=person_snapshot_id,
             )
-            if self.repository_person_snapshot.exists_gallery_contains_junk(
-                person_snapshot_detail_answer=person_snapshot_detail_answer):
+            if not self.repository_person_snapshot.exists_gallery_contains_junk(
+                    person_snapshot_detail_answer=person_snapshot_detail_answer):
                 continue
             person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(
                 person_snapshot_id=person_snapshot_id,
