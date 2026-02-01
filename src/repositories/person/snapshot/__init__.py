@@ -443,15 +443,17 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             ).exists()
             return session.query(query).scalar()
 
-    def find_query_is_not_junk(self, date: DomainDate) -> DomainIdSequence:
+    def find_query_is_not_junk(self, date: DomainDate, attempt: int) -> DomainIdSequence:
         """
         特定日のクエリデータを取得する
+        試行回数分のクエリデータを取得する
         ※ゴミデータは除外する
         :param DomainDate date: 日付
+        :param int attempt: 試行回数
         :return DomainIdSequence: クエリデータIDリスト
         """
         with self.database as session:
-            query = session.query(
+            subquery = session.query(
                 MigrationModelPersonSnapshot, MigrationModelPersonSnapshotsAnswerLabels
             ).join(
                 MigrationModelPersonSnapshotsAnswerLabels,
@@ -460,12 +462,8 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(date).today().timestamp,
                 MigrationModelPersonSnapshot.timestamp < DomainTimestamp.from_date(date).tomorrow().timestamp,
                 MigrationModelPersonSnapshot.is_junk.is_(False)
-            ).distinct(
-                MigrationModelPersonSnapshotsAnswerLabels.person_id
-            ).order_by(
-                MigrationModelPersonSnapshotsAnswerLabels.person_id,
-                func.random()
-            )
+            ).subquery()
+            query = session.query(subquery).filter(subquery.c.rn <= attempt)
             models = query.all()
             items: list[DomainId] = []
             for snapshot, _ in models:
