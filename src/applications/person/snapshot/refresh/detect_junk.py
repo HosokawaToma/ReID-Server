@@ -34,6 +34,9 @@ class ApplicationPersonSnapshotRefreshDetectJunk(ApplicationBase):
                 person_ids=query.person_ids,
                 camera_ids=query.camera_ids,
                 view_ids=query.view_ids,
+                is_junk=query.is_junk,
+                timestamp_after=query.timestamp_after,
+                timestamp_before=query.timestamp_before,
             )
         ids = self.repository_person_snapshot.find_ids(query=database_query)
         self.repository_person_snapshot_detect_junk_queue.push_ids(ids)
