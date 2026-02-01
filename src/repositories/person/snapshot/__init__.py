@@ -454,8 +454,7 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         """
         with self.database as session:
             subquery = session.query(
-                MigrationModelPersonSnapshot,
-                MigrationModelPersonSnapshotsAnswerLabels,
+                MigrationModelPersonSnapshot.id.label("snapshot_id"),
                 func.row_number().over(
                     partition_by=MigrationModelPersonSnapshotsAnswerLabels.person_id,
                     order_by=func.random()
@@ -469,9 +468,10 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 MigrationModelPersonSnapshot.is_junk.is_(False)
             ).subquery()
             query = session.query(
-                subquery.c.MigrationModelPersonSnapshot,
-                subquery.c.MigrationModelPersonSnapshotsAnswerLabels
-            ).filter(subquery.c.rn <= attempt)
+                subquery.c.snapshot_id
+            ).filter(
+                subquery.c.rn <= attempt
+            )
             models = query.all()
             items: list[DomainId] = []
             for row in models:
