@@ -2,6 +2,7 @@ from environment import Environment
 from background.presentations.person.snapshot.create import BackgroundPersonSnapshotCreate
 from background.presentations.person.snapshot.reid import BackgroundPersonSnapshotReid
 from background.presentations.person.snapshot.feature_extract import BackgroundPersonSnapshotFeatureExtract
+from background.presentations.person.snapshot.detect_junk import BackgroundPersonSnapshotDetectJunk
 import asyncio
 import signal
 
@@ -11,10 +12,12 @@ class BackgroundMain:
         person_snapshot_create: BackgroundPersonSnapshotCreate,
         person_snapshot_reid: BackgroundPersonSnapshotReid,
         person_snapshot_feature_extract: BackgroundPersonSnapshotFeatureExtract,
+        person_snapshot_detect_junk: BackgroundPersonSnapshotDetectJunk,
     ):
         self.person_snapshot_create = person_snapshot_create
         self.person_snapshot_reid = person_snapshot_reid
         self.person_snapshot_feature_extract = person_snapshot_feature_extract
+        self.person_snapshot_detect_junk = person_snapshot_detect_junk
 
     @classmethod
     def create(cls, environment: Environment) -> "BackgroundMain":
@@ -22,6 +25,7 @@ class BackgroundMain:
             person_snapshot_create=BackgroundPersonSnapshotCreate.create(environment=environment),
             person_snapshot_reid=BackgroundPersonSnapshotReid.create(environment=environment),
             person_snapshot_feature_extract=BackgroundPersonSnapshotFeatureExtract.create(environment=environment),
+            person_snapshot_detect_junk=BackgroundPersonSnapshotDetectJunk.create(environment=environment),
         )
 
     async def run(self):
@@ -39,11 +43,13 @@ class BackgroundMain:
         await self.person_snapshot_create.start()
         await self.person_snapshot_reid.start()
         await self.person_snapshot_feature_extract.start()
+        await self.person_snapshot_detect_junk.start()
 
     async def stop(self):
         await self.person_snapshot_create.stop()
         await self.person_snapshot_reid.stop()
         await self.person_snapshot_feature_extract.stop()
+        await self.person_snapshot_detect_junk.stop()
 
 if __name__ == "__main__":
     background_main = BackgroundMain.create(environment=Environment())

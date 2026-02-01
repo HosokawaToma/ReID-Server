@@ -74,6 +74,65 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
             person_id=DomainPersonId.new_id(),
         )
 
+    def re_detect_junk(self, instance_segmenter: DomainYoloInstanceSegmenter, pose_estimator: DomainYoloPoseEstimator) -> "DomainPersonSnapshotImage":
+        """
+        人物検出結果の画像からゴミデータの判定を再実行する
+        notゴミデータ → ゴミデータ の場合はゴミデータとして設定する
+        ゴミデータ → notゴミデータ の場合は新しい人物IDを割り当てる
+        ゴミデータ → ゴミデータ の場合はゴミデータとして設定する
+        notゴミデータ → notゴミデータ の場合は元の人物IDを保持する
+        :param DomainYoloInstanceSegmenter instance_segmenter: 個体推定器
+        :param DomainYoloPoseEstimator pose_estimator: 姿勢推定器
+        :return DomainPersonSnapshotImage: ゴミデータを再判定した人物検出結果の画像
+        """
+        instances = instance_segmenter.extract(self.image)
+        if not instances.is_one_person():
+            return DomainPersonSnapshotImage(
+                id=self.id,
+                location=self.location,
+                timestamp=self.timestamp,
+                image=self.image,
+                feature=self.feature,
+                person_id=DomainPersonId.junk(),
+            )
+        poses = pose_estimator.extract(self.image)
+        if not poses.is_one_person():
+            return DomainPersonSnapshotImage(
+                id=self.id,
+                location=self.location,
+                timestamp=self.timestamp,
+                image=self.image,
+                feature=self.feature,
+                person_id=DomainPersonId.junk(),
+            )
+        pose = poses.one_person()
+        if not pose.is_full_length():
+            return DomainPersonSnapshotImage(
+                id=self.id,
+                location=self.location,
+                timestamp=self.timestamp,
+                image=self.image,
+                feature=self.feature,
+                person_id=DomainPersonId.junk(),
+            )
+        if self.person_id.is_junk:
+            return DomainPersonSnapshotImage(
+                id=self.id,
+                location=self.location,
+                timestamp=self.timestamp,
+                image=self.image,
+                feature=self.feature,
+                person_id=DomainPersonId.new_id(),
+            )
+        return DomainPersonSnapshotImage(
+            id=self.id,
+            location=self.location,
+            timestamp=self.timestamp,
+            image=self.image,
+            feature=self.feature,
+            person_id=self.person_id.copy(),
+        )
+
     def extract_feature(self, reid_model: DomainReIDModel) -> DomainPersonSnapshotFeature:
         """
         人物検出結果の画像から特徴量を抽出する
