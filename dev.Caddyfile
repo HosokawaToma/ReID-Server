@@ -12,9 +12,9 @@
   handle_path /api/v1/* {
     reverse_proxy app:{$APP_PORT} {
       transport http {
-        read_timeout 60s
-        write_timeout 60s
-        dial_timeout 60s
+        read_timeout 180s
+        write_timeout 180s
+        dial_timeout 180s
       }
     }
   }
