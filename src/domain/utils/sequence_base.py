@@ -33,3 +33,6 @@ class DomainUtilsSequenceBase(ABC, Generic[T]):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}([{', '.join(repr(item) for item in self.items)}])"
+
+    def __add__(self, other: "DomainUtilsSequenceBase[T]") -> "DomainUtilsSequenceBase[T]":
+        return DomainUtilsSequenceBase(items=self.items + other.items)
