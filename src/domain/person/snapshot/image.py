@@ -77,8 +77,10 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
     def re_detect_junk(self, instance_segmenter: DomainYoloInstanceSegmenter, pose_estimator: DomainYoloPoseEstimator) -> "DomainPersonSnapshotImage":
         """
         人物検出結果の画像からゴミデータの判定を再実行する
-        ゴミデータ → notゴミデータ に変化した場合は新しい人物IDを割り当てる
-        notゴミデータ → notゴミデータ に変化した場合は元の人物IDを保持する
+        notゴミデータ → ゴミデータ の場合はゴミデータとして設定する
+        ゴミデータ → notゴミデータ の場合は新しい人物IDを割り当てる
+        ゴミデータ → ゴミデータ の場合はゴミデータとして設定する
+        notゴミデータ → notゴミデータ の場合は元の人物IDを保持する
         :param DomainYoloInstanceSegmenter instance_segmenter: 個体推定器
         :param DomainYoloPoseEstimator pose_estimator: 姿勢推定器
         :return DomainPersonSnapshotImage: ゴミデータを再判定した人物検出結果の画像
