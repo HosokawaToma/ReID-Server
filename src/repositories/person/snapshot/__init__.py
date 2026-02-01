@@ -509,7 +509,7 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             models = session.query(
                 MigrationModelPersonSnapshotsAnswerLabels
             ).filter(
-                MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id.in_(person_snapshot_ids.items)
+                MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id.in_([person_snapshot_id.id for person_snapshot_id in person_snapshot_ids.items])
             ).all()
             return DomainPersonSnapshotPersonIdSequence(items=[DomainPersonSnapshotPersonId(
                 id=DomainId(id=model.person_snapshot_id),
