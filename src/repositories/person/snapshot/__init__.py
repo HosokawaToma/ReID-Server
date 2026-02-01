@@ -677,6 +677,18 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 feature=person_snapshot.feature._feature.cpu().numpy().tolist(),
             ))
 
+    def save_person_id(self, person_snapshot_person_id: DomainPersonSnapshotPersonId) -> None:
+        """
+        人物検出結果の人物IDを保存する
+        :param DomainPersonSnapshotPersonId person_snapshot_person_id: 人物検出結果の人物ID
+        """
+        with self.database as session:
+            session.merge(MigrationModelPersonSnapshot(
+                id=person_snapshot_person_id.id.id,
+                person_id=person_snapshot_person_id.person_id.id.id if person_snapshot_person_id.person_id.id is not None else None,
+                is_junk=person_snapshot_person_id.person_id.is_junk,
+            ))
+
     def update_answer_labels(self, person_snapshot_person_ids: DomainPersonSnapshotPersonIdSequence) -> None:
         """
         人物検出結果の正解ラベルを更新する
