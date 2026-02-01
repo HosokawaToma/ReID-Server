@@ -13,6 +13,8 @@ PresentationUtilFromDatetime = Annotated[datetime, Form(...)]
 
 PresentationUtilPathTimestamp = Annotated[datetime, Path(...)]
 
+PresentationUtilPathDate = Annotated[datetime, Path(...)]
+
 PresentationUtilPathUUID = Annotated[uuid.UUID, Path(...)]
 
 PresentationUtilFromInt = Annotated[int, Form(...)]

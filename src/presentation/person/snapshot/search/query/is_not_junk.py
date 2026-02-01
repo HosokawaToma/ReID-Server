@@ -3,21 +3,20 @@ from logger import Logger
 from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
 from presentation.utils.factory import get_application
 from presentation.utils.response import PresentationUtilJSONResponse
-from presentation.utils.type import PresentationUtilPathTimestamp, PresentationUtilPathInt
+from presentation.utils.type import PresentationUtilPathDate, PresentationUtilPathInt
 from applications.person.snapshot.search import ApplicationPersonSnapshotSearch
-from dto.timestamp import DtoTimestamp
+from dto.date import DtoDate
 
 
-
-class PresentationPersonSnapshotSearchQueryInJunk(PresentationUtilBase):
-    router_path = "/person/snapshot/search/query/in_junk/{timestamp}/{page}"
+class PresentationPersonSnapshotSearchQueryIsNotJunk(PresentationUtilBase):
+    router_path = "/person/snapshot/search/query/is_not_junk/{date}/{page}"
     methods = ["POST"]
     tags = ["Person Snapshot"]
-    summary = "Search person snapshots query in junk"
-    description = "Search person snapshots query in junk"
+    summary = "Search person snapshots query is not junk"
+    description = "Search person snapshots query is not junk"
     responses = {
         200: {
-            "description": "Person snapshots query in junk found",
+            "description": "Person snapshots query is not junk found",
         },
     }
 
@@ -25,20 +24,26 @@ class PresentationPersonSnapshotSearchQueryInJunk(PresentationUtilBase):
         super().__init__(logger=logger)
 
     @classmethod
-    def create(cls) -> "PresentationPersonSnapshotSearchQueryInJunk":
+    def create(cls) -> "PresentationPersonSnapshotSearchQueryIsNotJunk":
         return cls(
-            logger=Logger("presentation_person_snapshot_search_query_in_junk"),
+            logger=Logger("presentation_person_snapshot_search_query_is_not_junk"),
         )
 
     async def handle(
         self,
         admin_client_id: PresentationUtilAdminClientAuthenticated,
-        timestamp: PresentationUtilPathTimestamp,
+        date: PresentationUtilPathDate,
         page: PresentationUtilPathInt,
-        application: ApplicationPersonSnapshotSearch = get_application(ApplicationPersonSnapshotSearch),
+        application: ApplicationPersonSnapshotSearch = get_application(
+            ApplicationPersonSnapshotSearch),
     ):
-        ids = application.search_query_in_junk(timestamp=DtoTimestamp(timestamp=timestamp), page=page)
-        pagination = application.search_query_in_junk_paging(timestamp=DtoTimestamp(timestamp=timestamp))
+        ids = application.search_query_is_not_junk(
+            date=DtoDate(year=date.year, month=date.month, day=date.day),
+            page=page,
+        )
+        pagination = application.search_query_is_not_junk_paging(
+            date=DtoDate(year=date.year, month=date.month, day=date.day),
+        )
         return PresentationUtilJSONResponse(status=200, content={
             "person_snapshot_query_ids": [
                 str(id.id) for id in ids
