@@ -1,6 +1,6 @@
 from repositories.utils.database import RepositoryUtilDatabase
 from repositories.utils.base import RepositoryUtilBase
-from error import NotFoundError
+from error import NotFoundError, ValidationError
 from environment import Environment
 from repositories.utils.database.query.person_snapshot import RepositoryUtilDatabaseQueryPersonSnapshot
 from repositories.utils.database.query.person_snapshot_answer_label import RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabel
@@ -113,6 +113,35 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
                 timestamp=DomainTimestamp(timestamp=model.timestamp),
                 person_id=DomainPersonId(id=DomainId(id=model.person_id) if model.person_id is not None else None),
+            )
+
+    def find_detail_answer_by_id(self, person_snapshot_id: DomainId) -> DomainPersonSnapshotDetail:
+        """
+        person_idが正解データの人物検出結果の詳細を取得する
+        :param DomainId person_snapshot_id: 人物検出結果のID
+        :return DomainPersonSnapshotDetail: person_idが正解データの人物検出結果の詳細
+        :raises NotFoundError: person_idが正解データの人物検出結果の詳細が見つからない場合
+        """
+        with self.database as session:
+            model = session.query(
+                MigrationModelPersonSnapshot, MigrationModelPersonSnapshotsAnswerLabels
+            ).join(
+                MigrationModelPersonSnapshotsAnswerLabels,
+                MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
+            ).filter(MigrationModelPersonSnapshot.id == person_snapshot_id.id).first()
+            if model is None:
+                raise NotFoundError("人物検出結果が見つかりません")
+            person_snapshot, answer_label = model
+            person_snapshot: MigrationModelPersonSnapshot
+            answer_label: MigrationModelPersonSnapshotsAnswerLabels
+            return DomainPersonSnapshotDetail(
+                id=DomainId(id=person_snapshot.id),
+                location=DomainLocation(camera_id=person_snapshot.camera_id, view_id=person_snapshot.view_id),
+                timestamp=DomainTimestamp(timestamp=person_snapshot.timestamp),
+                person_id=DomainPersonId(
+                    id=DomainId(id=answer_label.person_id) if answer_label.person_id is not None else None,
+                    is_junk=answer_label.is_junk,
+                ),
             )
 
     def search_details(
@@ -341,6 +370,30 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 items=[DomainId(id=model.id) for model in models]
             )
 
+    def exists_gallery_contains_junk(self, person_snapshot_detail_answer: DomainPersonSnapshotDetail) -> bool:
+        """
+        ギャラリーデータに正解データが含まれているかを検証する
+        :param DomainPersonSnapshotDetailAnswer person_snapshot_detail_answer: person_idが正解データの人物検出結果
+        :return bool: ギャラリーデータに正解データが含まれているか
+        """
+        if person_snapshot_detail_answer.person_id.id is None:
+            raise ValidationError("検索元の人物検出結果に正解データが存在しません")
+        with self.database as session:
+            query = session.query(
+                MigrationModelPersonSnapshot,
+                MigrationModelPersonSnapshotsAnswerLabels
+            ).join(
+                MigrationModelPersonSnapshotsAnswerLabels,
+                MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
+            ).filter(
+                MigrationModelPersonSnapshot.id != person_snapshot_detail_answer.id.id,
+                MigrationModelPersonSnapshot.camera_id != person_snapshot_detail_answer.location.camera_id,
+                MigrationModelPersonSnapshot.timestamp < person_snapshot_detail_answer.timestamp.tomorrow().timestamp,
+                MigrationModelPersonSnapshot.timestamp >= person_snapshot_detail_answer.timestamp.today().timestamp,
+                MigrationModelPersonSnapshotsAnswerLabels.person_id == person_snapshot_detail_answer.person_id.id.id,
+            ).exists()
+            return session.query(query).scalar()
+
     def search_gallery_not_contains_junk(self, person_snapshot_feature: DomainPersonSnapshotFeature) -> DomainIdSequence:
         """
         ギャラリーデータを特徴量が最も近い順に取得する
@@ -366,6 +419,30 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot_feature.feature._feature.cpu().numpy().tolist())
             ).limit(50).all()
             return DomainIdSequence(items=[DomainId(id=model.id) for model in models])
+
+    def exists_gallery_not_contains_junk(self, person_snapshot_detail_answer: DomainPersonSnapshotDetail) -> bool:
+        """
+        ギャラリーデータに正解データが含まれていないかを検証する
+        :param DomainPersonSnapshotDetailAnswer person_snapshot_detail_answer: person_idが正解データの人物検出結果
+        :return bool: ギャラリーデータに正解データが含まれていないか
+        """
+        if person_snapshot_detail_answer.person_id.id is None:
+            raise ValidationError("検索元の人物検出結果に正解データが存在しません")
+        with self.database as session:
+            query = session.query(
+                MigrationModelPersonSnapshot, MigrationModelPersonSnapshotsAnswerLabels
+            ).join(
+                MigrationModelPersonSnapshotsAnswerLabels,
+                MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
+            ).filter(
+                MigrationModelPersonSnapshot.id != person_snapshot_detail_answer.id.id,
+                MigrationModelPersonSnapshot.camera_id != person_snapshot_detail_answer.location.camera_id,
+                MigrationModelPersonSnapshot.is_junk.is_(False),
+                MigrationModelPersonSnapshot.timestamp < person_snapshot_detail_answer.timestamp.tomorrow().timestamp,
+                MigrationModelPersonSnapshot.timestamp >= person_snapshot_detail_answer.timestamp.today().timestamp,
+                MigrationModelPersonSnapshotsAnswerLabels.person_id == person_snapshot_detail_answer.person_id.id.id,
+            ).exists()
+            return session.query(query).scalar()
 
     def find_feature_by_id(self, person_snapshot_id: DomainId) -> DomainPersonSnapshotFeature:
         """

@@ -12,6 +12,7 @@ from domain.paging import DomainPaging
 from domain.id import DomainId
 from dto.date import DtoDate
 from domain.date import DomainDate
+from error import ValidationError
 
 class ApplicationPersonSnapshotSearch(ApplicationBase):
     def __init__(
@@ -165,6 +166,7 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
         :return list[DtoId]: ギャラリーIDリスト
         :raises ApplicationPersonSnapshotSearchError: 人物検出検索に失敗した場合に発生するエラー
         """
+        self._validate_search_gallery_contains_junk(person_snapshot_id=person_snapshot_id)
         person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(
             person_snapshot_id=DomainId(id=person_snapshot_id.id),
         )
@@ -175,6 +177,20 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
             DtoId(id=id.id) for id in id_sequence
         ]
 
+    def _validate_search_gallery_contains_junk(self, person_snapshot_id: DtoId) -> None:
+        """
+        ギャラリーデータに正解データが含まれているかを検証する
+        :param DtoId person_snapshot_id: 人物検出結果のID
+        :raises ValidationError: ギャラリーデータに正解データが含まれていない場合に発生するエラー
+        """
+        person_snapshot_detail_answer = self.repository_person_snapshot.find_detail_answer_by_id(
+            person_snapshot_id=DomainId(id=person_snapshot_id.id),
+        )
+        if self.repository_person_snapshot.exists_gallery_contains_junk(
+            person_snapshot_detail_answer=person_snapshot_detail_answer,
+        ):
+            raise ValidationError("ギャラリーデータに正解データが含まれていません")
+
     def search_gallery_not_contains_junk(self, person_snapshot_id: DtoId) -> list[DtoId]:
         """
         ギャラリーデータを特徴量が最も近い順に取得する
@@ -183,6 +199,7 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
         :return list[DtoId]: ギャラリーIDリスト
         :raises ApplicationPersonSnapshotSearchError: 人物検出検索に失敗した場合に発生するエラー
         """
+        self._validate_search_gallery_not_contains_junk(person_snapshot_id=person_snapshot_id)
         person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(
             person_snapshot_id=DomainId(id=person_snapshot_id.id),
         )
@@ -192,3 +209,17 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
         return [
             DtoId(id=id.id) for id in id_sequence
         ]
+
+    def _validate_search_gallery_not_contains_junk(self, person_snapshot_id: DtoId) -> None:
+        """
+        ギャラリーデータに正解データが含まれているかを検証する
+        :param DtoId person_snapshot_id: 人物検出結果のID
+        :raises ValidationError: ギャラリーデータに正解データが含まれていない場合に発生するエラー
+        """
+        person_snapshot_detail_answer = self.repository_person_snapshot.find_detail_answer_by_id(
+            person_snapshot_id=DomainId(id=person_snapshot_id.id),
+        )
+        if self.repository_person_snapshot.exists_gallery_not_contains_junk(
+            person_snapshot_detail_answer=person_snapshot_detail_answer,
+        ):
+            raise ValidationError("ギャラリーデータに正解データが含まれていません")

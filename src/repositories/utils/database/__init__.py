@@ -52,7 +52,7 @@ class RepositoryUtilDatabase:
             if self._session:
                 self._session.close()
                 self._session = None
-            raise InternalServerError("セッションを開くことに失敗しました") from error
+            raise InternalServerError("セッションを開くことに失敗しました: " + str(error)) from error
 
     def __exit__(
             self,
@@ -82,7 +82,7 @@ class RepositoryUtilDatabase:
             self._session.commit()
         except SQLAlchemyError as error:
             self._session.rollback()
-            raise InternalServerError("セッションをコミットすることに失敗しました") from error
+            raise InternalServerError("セッションをコミットすることに失敗しました: " + str(error)) from error
         finally:
             self._session.close()
             self._session = None
