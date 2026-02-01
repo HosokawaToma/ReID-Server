@@ -4,7 +4,6 @@ from presentation.utils.factory import get_application
 from presentation.utils.response import PresentationUtilJSONResponse
 from presentation.utils.request import PresentationUtilRequestBody
 from applications.person.snapshot.refresh.detect_junk import ApplicationPersonSnapshotRefreshDetectJunk
-from environment import Environment
 from logger import Logger
 from dto.person.snapshot.query import DtoPersonSnapshotQuery
 from datetime import datetime
