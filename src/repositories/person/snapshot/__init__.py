@@ -454,7 +454,12 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         """
         with self.database as session:
             subquery = session.query(
-                MigrationModelPersonSnapshot, MigrationModelPersonSnapshotsAnswerLabels
+                MigrationModelPersonSnapshot,
+                MigrationModelPersonSnapshotsAnswerLabels,
+                func.row_number().over(
+                    partition_by=MigrationModelPersonSnapshotsAnswerLabels.person_id,
+                    order_by=func.random()
+                ).label("rn")
             ).join(
                 MigrationModelPersonSnapshotsAnswerLabels,
                 MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
