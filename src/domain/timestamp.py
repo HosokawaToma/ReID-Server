@@ -4,6 +4,7 @@ from datetime import timedelta
 from typing import overload
 from domain.utils.base import DomainUtilsBase
 from domain.time import DomainTime
+from domain.date import DomainDate
 from error import Error
 
 class DomainTimestampAddError(Error):
@@ -23,6 +24,12 @@ class DomainTimestamp(DomainUtilsBase):
     def from_float(cls, timestamp: float) -> "DomainTimestamp":
         return DomainTimestamp(
             timestamp=datetime.fromtimestamp(timestamp),
+        )
+
+    @classmethod
+    def from_date(cls, date: DomainDate) -> "DomainTimestamp":
+        return DomainTimestamp(
+            timestamp=datetime.combine(datetime(date.year, date.month, date.day), datetime.min.time()),
         )
 
     def today(self) -> "DomainTimestamp":
@@ -66,9 +73,11 @@ class DomainTimestamp(DomainUtilsBase):
             raise ValueError("other must be DomainTime or DomainTimestamp")
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, DomainTimestamp):
+        if not isinstance(other, (DomainTimestamp, DomainDate)):
             return False
-        return self.timestamp == other.timestamp
+        if isinstance(other, DomainTimestamp):
+            return self.timestamp == other.timestamp
+        return self.timestamp.date() == DomainTimestamp.from_date(other).timestamp.date()
 
     def __lt__(self, other: "DomainTimestamp") -> bool:
         return self.timestamp < other.timestamp

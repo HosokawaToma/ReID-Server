@@ -7,15 +7,15 @@ from presentation.utils.type import PresentationUtilPathUUID
 from applications.person.snapshot.search import ApplicationPersonSnapshotSearch
 from dto.id import DtoId
 
-class PresentationPersonSnapshotSearchGalleryInJunk(PresentationUtilBase):
-    router_path = "/person/snapshot/search/gallery/in_junk/{person_snapshot_id}"
+class PresentationPersonSnapshotSearchGalleryContainsJunk(PresentationUtilBase):
+    router_path = "/person/snapshot/search/gallery/contains_junk/{person_snapshot_id}"
     methods = ["POST"]
     tags = ["Person Snapshot"]
-    summary = "Search person snapshots gallery in junk"
-    description = "Search person snapshots gallery in junk"
+    summary = "Search person snapshots gallery contains junk"
+    description = "Search person snapshots gallery contains junk"
     responses = {
         200: {
-            "description": "Person snapshots gallery in junk found",
+            "description": "Person snapshots gallery contains junk found",
         },
     }
 
@@ -23,9 +23,9 @@ class PresentationPersonSnapshotSearchGalleryInJunk(PresentationUtilBase):
         super().__init__(logger=logger)
 
     @classmethod
-    def create(cls) -> "PresentationPersonSnapshotSearchGalleryInJunk":
+    def create(cls) -> "PresentationPersonSnapshotSearchGalleryContainsJunk":
         return cls(
-            logger=Logger("presentation_person_snapshot_search_gallery_in_junk"),
+            logger=Logger("presentation_person_snapshot_search_gallery_contains_junk"),
         )
 
     async def handle(
@@ -34,7 +34,7 @@ class PresentationPersonSnapshotSearchGalleryInJunk(PresentationUtilBase):
         person_snapshot_id: PresentationUtilPathUUID,
         application: ApplicationPersonSnapshotSearch = get_application(ApplicationPersonSnapshotSearch),
     ):
-        ids = application.search_gallery_in_junk(person_snapshot_id=DtoId(id=person_snapshot_id))
+        ids = application.search_gallery_contains_junk(person_snapshot_id=DtoId(id=person_snapshot_id))
         return PresentationUtilJSONResponse(status=200, content={
             "person_snapshot_gallery_ids": [str(id.id) for id in ids],
         })

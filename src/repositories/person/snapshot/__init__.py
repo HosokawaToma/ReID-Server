@@ -18,6 +18,7 @@ from domain.person.snapshot.feature import DomainPersonSnapshotFeature
 from domain.person.snapshot.person_id import DomainPersonSnapshotPersonId
 from domain.person.snapshot.person_id_sequence import DomainPersonSnapshotPersonIdSequence
 from domain.paging import DomainPaging
+from domain.date import DomainDate
 from sqlalchemy import func
 import torch
 
@@ -199,11 +200,11 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                     person_id=DomainPersonId(id=DomainId(id=model.person_id) if model.person_id is not None else None, is_junk=model.is_junk),
                 ) for model in models])
 
-    def search_query_in_junk(self, timestamp: DomainTimestamp, paging: DomainPaging) -> DomainIdSequence:
+    def search_query_is_junk(self, date: DomainDate, paging: DomainPaging) -> DomainIdSequence:
         """
         特定日のクエリデータを取得する
         ※同じ人物IDは1件しか取得しない
-        :param DomainTimestamp timestamp: 日時
+        :param DomainDate date: 日付
         :param DomainPaging paging: ページング
         :return DomainIdSequence: クエリデータIDリスト
         :raises NotFoundError: クエリデータが見つからない場合
@@ -216,7 +217,11 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 MigrationModelPersonSnapshotsAnswerLabels,
                 MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
             ).filter(
-                MigrationModelPersonSnapshot.timestamp == timestamp.timestamp
+                MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(date).today().timestamp
+            ).filter(
+                MigrationModelPersonSnapshot.timestamp <= DomainTimestamp.from_date(date).tomorrow().timestamp
+            ).filter(
+                MigrationModelPersonSnapshot.is_junk.is_(True)
             ).distinct(
                 MigrationModelPersonSnapshotsAnswerLabels.person_id
             ).order_by(
@@ -231,10 +236,10 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 items.append(DomainId(id=snapshot.id))
             return DomainIdSequence(items=items)
 
-    def count_query_in_junk(self, timestamp: DomainTimestamp) -> int:
+    def count_query_is_junk(self, date: DomainDate) -> int:
         """
         特定日のクエリデータの数を取得する
-        :param DomainTimestamp timestamp: 日時
+        :param DomainDate date: 日付
         :return int: クエリデータの数
         :raises NotFoundError: クエリデータが見つからない場合
         """
@@ -243,16 +248,20 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 MigrationModelPersonSnapshotsAnswerLabels,
                 MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
             ).filter(
-                MigrationModelPersonSnapshot.timestamp == timestamp.timestamp
+                MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(date).today().timestamp
+            ).filter(
+                MigrationModelPersonSnapshot.timestamp <= DomainTimestamp.from_date(date).tomorrow().timestamp
+            ).filter(
+                MigrationModelPersonSnapshot.is_junk.is_(True)
             ).distinct(
                 MigrationModelPersonSnapshotsAnswerLabels.person_id
             ).count()
 
-    def search_query_not_junk(self, timestamp: DomainTimestamp, paging: DomainPaging) -> DomainIdSequence:
+    def search_query_is_not_junk(self, date: DomainDate, paging: DomainPaging) -> DomainIdSequence:
         """
         特定日のクエリデータを取得する
         ※ゴミデータは除外する
-        :param DomainTimestamp timestamp: 日時
+        :param DomainDate date: 日付
         :param DomainPaging paging: ページング
         :return DomainIdSequence: クエリデータIDリスト
         :raises NotFoundError: クエリデータが見つからない場合
@@ -264,7 +273,9 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 MigrationModelPersonSnapshotsAnswerLabels,
                 MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
             ).filter(
-                MigrationModelPersonSnapshot.timestamp == timestamp.timestamp
+                MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(date).today().timestamp
+            ).filter(
+                MigrationModelPersonSnapshot.timestamp <= DomainTimestamp.from_date(date).tomorrow().timestamp
             ).filter(
                 MigrationModelPersonSnapshot.is_junk.is_(False)
             ).distinct(
@@ -281,10 +292,10 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 items.append(DomainId(id=snapshot.id))
             return DomainIdSequence(items=items)
 
-    def count_query_not_junk(self, timestamp: DomainTimestamp) -> int:
+    def count_query_is_not_junk(self, date: DomainDate) -> int:
         """
         特定日のクエリデータの数を取得する
-        :param DomainTimestamp timestamp: 日時
+        :param DomainDate date: 日付
         :return int: クエリデータの数
         :raises NotFoundError: クエリデータが見つからない場合
         """
@@ -295,15 +306,20 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                     MigrationModelPersonSnapshotsAnswerLabels,
                     MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
                 ).filter(
-                    MigrationModelPersonSnapshot.timestamp == timestamp.timestamp
+                    MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(date).today().timestamp
+                ).filter(
+                    MigrationModelPersonSnapshot.timestamp <= DomainTimestamp.from_date(date).tomorrow().timestamp
                 ).filter(
                     MigrationModelPersonSnapshot.is_junk.is_(False)
+                ).distinct(
+                    MigrationModelPersonSnapshotsAnswerLabels.person_id
                 ).count()
 
-    def search_gallery_in_junk(self, person_snapshot_feature: DomainPersonSnapshotFeature) -> DomainIdSequence:
+    def search_gallery_contains_junk(self, person_snapshot_feature: DomainPersonSnapshotFeature) -> DomainIdSequence:
         """
         ギャラリーデータを特徴量が最も近い順に取得する
-        ギャラリーデータとは同じ日付で別カメラで同じ人物IDのデータを除外したもの
+        ※ゴミデータを含む
+        ギャラリーデータとは同じ日付で別カメラで同じIDの人物検出結果を除外したもの
         :param DomainPersonSnapshotFeature person_snapshot_feature: 人物検出結果の特徴量
         :return DomainIdSequence: ギャラリーIDリスト
         """
@@ -325,11 +341,11 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 items=[DomainId(id=model.id) for model in models]
             )
 
-    def search_gallery_not_junk(self, person_snapshot_feature: DomainPersonSnapshotFeature) -> DomainIdSequence:
+    def search_gallery_not_contains_junk(self, person_snapshot_feature: DomainPersonSnapshotFeature) -> DomainIdSequence:
         """
         ギャラリーデータを特徴量が最も近い順に取得する
         ※ゴミデータは除外する
-        ギャラリーデータとは同じ日付で別カメラで同じIDのデータを除外したもの
+        ギャラリーデータとは同じ日付で別カメラで同じIDの人物検出結果を除外したもの
         :param DomainPersonSnapshotFeature person_snapshot_feature: 人物検出結果の特徴量
         :return DomainIdSequence: ギャラリーIDリスト
         """
