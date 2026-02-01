@@ -26,21 +26,23 @@ class DomainYoloKeyPoints(DomainUtilsBase):
     left_ankle: DomainYoloKeyPoint
     right_ankle: DomainYoloKeyPoint
 
-    CONFIDENCE_THRESHOLD: ClassVar[float] = 0.65
+    UPPER_BODY_CONFIDENCE_THRESHOLD: ClassVar[float] = 0.65
+    LOWER_BODY_CONFIDENCE_THRESHOLD: ClassVar[float] = 0.65
 
-    def is_full_length(self) -> bool:
-        key_points = [
-            self.nose,
-            self.left_eye,
-            self.right_eye,
-            self.left_ear,
-            self.right_ear,
+    @property
+    def upper_body_key_points(self) -> list[DomainYoloKeyPoint]:
+        return [
             self.left_shoulder,
             self.right_shoulder,
             self.left_elbow,
             self.right_elbow,
             self.left_wrist,
             self.right_wrist,
+        ]
+
+    @property
+    def lower_body_key_points(self) -> list[DomainYoloKeyPoint]:
+        return [
             self.left_hip,
             self.right_hip,
             self.left_knee,
@@ -48,4 +50,12 @@ class DomainYoloKeyPoints(DomainUtilsBase):
             self.left_ankle,
             self.right_ankle,
         ]
-        return sum([key_point.confidence for key_point in key_points]) / len(key_points) > self.CONFIDENCE_THRESHOLD
+
+    def is_full_length(self) -> bool:
+        upper_body_key_points = self.upper_body_key_points
+        if sum([key_point.confidence for key_point in upper_body_key_points]) / len(upper_body_key_points) < self.UPPER_BODY_CONFIDENCE_THRESHOLD:
+            return False
+        lower_body_key_points = self.lower_body_key_points
+        if sum([key_point.confidence for key_point in lower_body_key_points]) / len(lower_body_key_points) < self.LOWER_BODY_CONFIDENCE_THRESHOLD:
+            return False
+        return True
