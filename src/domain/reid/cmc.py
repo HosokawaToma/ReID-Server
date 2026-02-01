@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from domain.utils.base import DomainUtilsBase
 from domain.person.snapshot.person_id_sequence import DomainPersonSnapshotPersonIdSequence
 from domain.id_sequence import DomainIdSequence
-from error import ValidationError
 from domain.person.id import DomainPersonId
 
 @dataclass(frozen=True)
@@ -29,9 +28,9 @@ class DomainReidCmc(DomainUtilsBase):
         """
         cmc = [0] * 50
         if query_person_id.id is None:
-            raise ValidationError("クエリデータに正解データが存在しません")
+            return cls(cmc=cmc)
         if gallery_person_ids.items == []:
-            raise ValidationError("ギャラリーデータに正解データが存在しません")
+            return cls(cmc=cmc)
         if gallery_answer_labels.items == []:
             return cls(cmc=cmc)
         for answer_label in gallery_answer_labels:
