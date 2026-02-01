@@ -20,15 +20,17 @@ class ApplicationReidCmcCurve(ApplicationBase):
             repository_person_snapshot=RepositoryPersonSnapshot.create(environment),
         )
 
-    def query_is_not_junk_and_gallery_not_contains_junk(self, date: DtoDate) -> tuple[DtoReidCmcCurve, list[DtoId]]:
+    def calculate_cmc_curve(self, date: DtoDate) -> tuple[DtoReidCmcCurve, DtoReidCmcCurve, list[DtoId]]:
         """
-        クエリデータがゴミデータではなくギャラリーデータにゴミデータが含まれない状況で評価する
         1~50位までのAPを計算しCMC曲線を作成する
-        :return tuple[DtoReidCmcCurve, list[DtoId]]: CMC曲線, クエリデータの正解データIDリスト
+        ギャラリーデータにゴミデータを含めるケースと含めないケースでそれぞれ計算する
+        :param DtoDate date: 日付
+        :return tuple[DtoReidCmcCurve, DtoReidCmcCurve, list[DtoId], list[DtoId]]: ギャラリーデータにゴミデータを含めないCMC曲線, ギャラリーデータにゴミデータを含めるCMC曲線, クエリデータの正解データIDリスト
         """
         query = self.repository_person_snapshot.find_query_is_not_junk(
             date=DomainDate(year=date.year, month=date.month, day=date.day))
-        cmc_sequence = DomainReidCmcSequence(items=[])
+        cmc_sequence_is_not_junk = DomainReidCmcSequence(items=[])
+        cmc_sequence_is_junk = DomainReidCmcSequence(items=[])
         for person_snapshot_id in query:
             person_snapshot_detail_answer = self.repository_person_snapshot.find_detail_answer_by_id(
                 person_snapshot_id=person_snapshot_id,
@@ -50,19 +52,8 @@ class ApplicationReidCmcCurve(ApplicationBase):
                 gallery_person_ids=gallery,
                 gallery_answer_labels=answer_labels,
             )
-            cmc_sequence.add(cmc)
-        cmc_curve = cmc_sequence.to_cmc_curve()
-        return DtoReidCmcCurve(cmc_curve=cmc_curve.cmc_curve), [DtoId(id=person_snapshot_id.id) for person_snapshot_id in query]
+            cmc_sequence_is_not_junk.add(cmc)
 
-    def query_is_not_junk_and_gallery_contains_junk(self, date: DtoDate) -> tuple[DtoReidCmcCurve, list[DtoId]]:
-        """
-        クエリデータがゴミデータではなくギャラリーデータにゴミデータが含まれる状況で評価する
-        1~50位までのAPを計算しCMC曲線を作成する
-        :return tuple[DtoReidCmcCurve, list[DtoId]]: CMC曲線, クエリデータの正解データIDリスト
-        """
-        query = self.repository_person_snapshot.find_query_is_not_junk(
-            date=DomainDate(year=date.year, month=date.month, day=date.day))
-        cmc_sequence = DomainReidCmcSequence(items=[])
         for person_snapshot_id in query:
             person_snapshot_detail_answer = self.repository_person_snapshot.find_detail_answer_by_id(
                 person_snapshot_id=person_snapshot_id,
@@ -84,6 +75,7 @@ class ApplicationReidCmcCurve(ApplicationBase):
                 gallery_person_ids=gallery,
                 gallery_answer_labels=answer_labels,
             )
-            cmc_sequence.add(cmc)
-        cmc_curve = cmc_sequence.to_cmc_curve()
-        return DtoReidCmcCurve(cmc_curve=cmc_curve.cmc_curve), [DtoId(id=person_snapshot_id.id) for person_snapshot_id in query]
+            cmc_sequence_is_junk.add(cmc)
+        cmc_curve_is_not_junk = cmc_sequence_is_not_junk.to_cmc_curve()
+        cmc_curve_is_junk = cmc_sequence_is_junk.to_cmc_curve()
+        return DtoReidCmcCurve(cmc_curve=cmc_curve_is_not_junk.cmc_curve), DtoReidCmcCurve(cmc_curve=cmc_curve_is_junk.cmc_curve), [DtoId(id=person_snapshot_id.id) for person_snapshot_id in query]

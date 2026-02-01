@@ -23,8 +23,7 @@ from presentation.person.snapshot.search.query.is_junk import PresentationPerson
 from presentation.person.snapshot.search.gallery.contains_junk import PresentationPersonSnapshotSearchGalleryContainsJunk
 from presentation.person.snapshot.search.gallery.not_contains_junk import PresentationPersonSnapshotSearchGalleryNotContainsJunk
 from presentation.person.snapshot.refresh.feature_extract import PresentationPersonSnapshotRefreshFeatureExtract
-from presentation.reid.cmc_curve.query_is_not_junk_and_gallery_not_contains_junk import PresentationReidCmcCurveQueryIsNotJunkAndGalleryNotContainsJunk
-from presentation.reid.cmc_curve.query_is_not_junk_and_gallery_contains_junk import PresentationReidCmcCurveQueryIsNotJunkAndGalleryContainsJunk
+from presentation.reid.cmc_curve import PresentationReidCmcCurve
 
 class ServerApp:
     def __init__(
@@ -52,8 +51,7 @@ class ServerApp:
         person_snapshot_search_query_is_junk: PresentationPersonSnapshotSearchQueryIsJunk,
         person_snapshot_search_gallery_contains_junk: PresentationPersonSnapshotSearchGalleryContainsJunk,
         person_snapshot_search_gallery_not_contains_junk: PresentationPersonSnapshotSearchGalleryNotContainsJunk,
-        reid_cmc_curve_query_is_not_junk_and_gallery_not_contains_junk: PresentationReidCmcCurveQueryIsNotJunkAndGalleryNotContainsJunk,
-        reid_cmc_curve_query_is_not_junk_and_gallery_contains_junk: PresentationReidCmcCurveQueryIsNotJunkAndGalleryContainsJunk,
+        reid_cmc_curve: PresentationReidCmcCurve,
     ):
         self.app_host = app_host
         self.app_port = app_port
@@ -78,8 +76,7 @@ class ServerApp:
         self.person_snapshot_search_query_is_junk = person_snapshot_search_query_is_junk
         self.person_snapshot_search_gallery_contains_junk = person_snapshot_search_gallery_contains_junk
         self.person_snapshot_search_gallery_not_contains_junk = person_snapshot_search_gallery_not_contains_junk
-        self.reid_cmc_curve_query_is_not_junk_and_gallery_not_contains_junk = reid_cmc_curve_query_is_not_junk_and_gallery_not_contains_junk
-        self.reid_cmc_curve_query_is_not_junk_and_gallery_contains_junk = reid_cmc_curve_query_is_not_junk_and_gallery_contains_junk
+        self.reid_cmc_curve = reid_cmc_curve
 
     @classmethod
     def create(
@@ -113,8 +110,7 @@ class ServerApp:
             person_snapshot_search_query_is_junk=PresentationPersonSnapshotSearchQueryIsJunk.create(),
             person_snapshot_search_gallery_contains_junk=PresentationPersonSnapshotSearchGalleryContainsJunk.create(),
             person_snapshot_search_gallery_not_contains_junk=PresentationPersonSnapshotSearchGalleryNotContainsJunk.create(),
-            reid_cmc_curve_query_is_not_junk_and_gallery_not_contains_junk=PresentationReidCmcCurveQueryIsNotJunkAndGalleryNotContainsJunk.create(),
-            reid_cmc_curve_query_is_not_junk_and_gallery_contains_junk=PresentationReidCmcCurveQueryIsNotJunkAndGalleryContainsJunk.create(),
+            reid_cmc_curve=PresentationReidCmcCurve.create(),
         )
 
     def run(self):
@@ -145,8 +141,7 @@ class ServerApp:
         self.person_snapshot_search_query_is_junk.setup(self.fastapi_app)
         self.person_snapshot_search_gallery_contains_junk.setup(self.fastapi_app)
         self.person_snapshot_search_gallery_not_contains_junk.setup(self.fastapi_app)
-        self.reid_cmc_curve_query_is_not_junk_and_gallery_not_contains_junk.setup(self.fastapi_app)
-        self.reid_cmc_curve_query_is_not_junk_and_gallery_contains_junk.setup(self.fastapi_app)
+        self.reid_cmc_curve.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.app_host, port=self.app_port)
 
 if __name__ == "__main__":
