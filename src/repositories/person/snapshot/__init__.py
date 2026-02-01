@@ -474,9 +474,8 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             ).filter(subquery.c.rn <= attempt)
             models = query.all()
             items: list[DomainId] = []
-            for snapshot, _ in models:
-                snapshot: MigrationModelPersonSnapshot
-                items.append(DomainId(id=snapshot.id))
+            for row in models:
+                items.append(DomainId(id=row.snapshot_id))
             return DomainIdSequence(items=items)
 
     def find_gallery_not_contains_junk(self, person_snapshot_feature: DomainPersonSnapshotFeature) -> DomainIdSequence:
