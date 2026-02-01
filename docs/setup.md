@@ -22,10 +22,3 @@ docker compose up -d --build
 ```bash
 docker compose run --rm app python -m alembic upgrade head
 ```
-
-株式会社スマイル
-050-5785-7974
-
-株式会社スマサポ
-担当：あべ
-0120-195-276
