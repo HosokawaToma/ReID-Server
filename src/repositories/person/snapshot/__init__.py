@@ -248,7 +248,7 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             ).filter(
                 MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(date).today().timestamp
             ).filter(
-                MigrationModelPersonSnapshot.timestamp <= DomainTimestamp.from_date(date).tomorrow().timestamp
+                MigrationModelPersonSnapshot.timestamp < DomainTimestamp.from_date(date).tomorrow().timestamp
             ).filter(
                 MigrationModelPersonSnapshot.is_junk.is_(True)
             ).distinct(
@@ -279,7 +279,7 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             ).filter(
                 MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(date).today().timestamp
             ).filter(
-                MigrationModelPersonSnapshot.timestamp <= DomainTimestamp.from_date(date).tomorrow().timestamp
+                MigrationModelPersonSnapshot.timestamp < DomainTimestamp.from_date(date).tomorrow().timestamp
             ).filter(
                 MigrationModelPersonSnapshot.is_junk.is_(True)
             ).distinct(
@@ -304,7 +304,7 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             ).filter(
                 MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(date).today().timestamp
             ).filter(
-                MigrationModelPersonSnapshot.timestamp <= DomainTimestamp.from_date(date).tomorrow().timestamp
+                MigrationModelPersonSnapshot.timestamp < DomainTimestamp.from_date(date).tomorrow().timestamp
             ).filter(
                 MigrationModelPersonSnapshot.is_junk.is_(False)
             ).distinct(
