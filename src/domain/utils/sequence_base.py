@@ -16,6 +16,12 @@ class DomainUtilsSequenceBaseError(Error):
 class DomainUtilsSequenceBase(ABC, Generic[T]):
     items: list[T]
 
+    def add(self, item: T) -> None:
+        self.items.append(item)
+
+    def index(self, item: T) -> int:
+        return self.items.index(item)
+
     def __len__(self) -> int:
         return len(self.items)
 
@@ -27,3 +33,6 @@ class DomainUtilsSequenceBase(ABC, Generic[T]):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}([{', '.join(repr(item) for item in self.items)}])"
+
+    def __add__(self, other: "DomainUtilsSequenceBase[T]") -> "DomainUtilsSequenceBase[T]":
+        return DomainUtilsSequenceBase(items=self.items + other.items)
