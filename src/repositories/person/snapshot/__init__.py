@@ -468,7 +468,10 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 MigrationModelPersonSnapshot.timestamp < DomainTimestamp.from_date(date).tomorrow().timestamp,
                 MigrationModelPersonSnapshot.is_junk.is_(False)
             ).subquery()
-            query = session.query(subquery).filter(subquery.c.rn <= attempt)
+            query = session.query(
+                subquery.c.MigrationModelPersonSnapshot,
+                subquery.c.MigrationModelPersonSnapshotsAnswerLabels
+            ).filter(subquery.c.rn <= attempt)
             models = query.all()
             items: list[DomainId] = []
             for snapshot, _ in models:
