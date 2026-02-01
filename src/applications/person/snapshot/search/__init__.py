@@ -186,7 +186,7 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
         person_snapshot_detail_answer = self.repository_person_snapshot.find_detail_answer_by_id(
             person_snapshot_id=DomainId(id=person_snapshot_id.id),
         )
-        if self.repository_person_snapshot.exists_gallery_contains_junk(
+        if not self.repository_person_snapshot.exists_gallery_contains_junk(
             person_snapshot_detail_answer=person_snapshot_detail_answer,
         ):
             raise ValidationError("ギャラリーデータに正解データが含まれていません")
@@ -219,7 +219,7 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
         person_snapshot_detail_answer = self.repository_person_snapshot.find_detail_answer_by_id(
             person_snapshot_id=DomainId(id=person_snapshot_id.id),
         )
-        if self.repository_person_snapshot.exists_gallery_not_contains_junk(
+        if not self.repository_person_snapshot.exists_gallery_not_contains_junk(
             person_snapshot_detail_answer=person_snapshot_detail_answer,
         ):
             raise ValidationError("ギャラリーデータに正解データが含まれていません")
