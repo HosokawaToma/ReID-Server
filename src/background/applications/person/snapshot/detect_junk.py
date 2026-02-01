@@ -30,6 +30,10 @@ class BackgroundApplicationPersonSnapshotDetectJunk(BackgroundApplicationUtilsBa
         )
 
     def detect_junk(self) -> DtoId:
+        """
+        人物検出結果のゴミデータを再判定する
+        :return DtoId: 人物検出結果のゴミデータを再判定した人物ID
+        """
         person_snapshot = self.repository_person_snapshot_detect_junk_queue.pop()
         person_snapshot = person_snapshot.re_detect_junk(
             instance_segmenter=self.repository_yolo_instance_segmenter.find(),
