@@ -7,6 +7,7 @@ from presentation.admin.auth.login import PresentationAdminAuthLogin
 from presentation.admin.auth.token_refresh import PresentationAdminAuthTokenRefresh
 from presentation.person.snapshot.create import PresentationPersonSnapshotCreate
 from presentation.person.snapshot.refresh import PresentationPersonSnapshotRefresh
+from presentation.person.snapshot.refresh.detect_junk import PresentationPersonSnapshotRefreshDetectJunk
 from presentation.person.snapshot.search import PresentationPersonSnapshotSearch
 from presentation.person.flow.search import PresentationPersonFlowSearch
 from presentation.person.flow.weight.search import PresentationPersonFlowWeightSearch
@@ -35,6 +36,7 @@ class ServerApp:
         admin_auth_token_refresh: PresentationAdminAuthTokenRefresh,
         person_snapshot_create: PresentationPersonSnapshotCreate,
         person_snapshot_refresh: PresentationPersonSnapshotRefresh,
+        person_snapshot_refresh_detect_junk: PresentationPersonSnapshotRefreshDetectJunk,
         person_snapshot_search: PresentationPersonSnapshotSearch,
         person_flow_search: PresentationPersonFlowSearch,
         person_flow_weight_search: PresentationPersonFlowWeightSearch,
@@ -60,6 +62,7 @@ class ServerApp:
         self.admin_auth_token_refresh = admin_auth_token_refresh
         self.person_snapshot_create = person_snapshot_create
         self.person_snapshot_refresh = person_snapshot_refresh
+        self.person_snapshot_refresh_detect_junk = person_snapshot_refresh_detect_junk
         self.person_snapshot_search = person_snapshot_search
         self.person_flow_search = person_flow_search
         self.person_flow_weight_search = person_flow_weight_search
@@ -94,6 +97,7 @@ class ServerApp:
             admin_auth_token_refresh=PresentationAdminAuthTokenRefresh.create(),
             person_snapshot_create=PresentationPersonSnapshotCreate.create(),
             person_snapshot_refresh=PresentationPersonSnapshotRefresh.create(),
+            person_snapshot_refresh_detect_junk=PresentationPersonSnapshotRefreshDetectJunk.create(),
             person_snapshot_search=PresentationPersonSnapshotSearch.create(),
             person_flow_search=PresentationPersonFlowSearch.create(),
             person_flow_weight_search=PresentationPersonFlowWeightSearch.create(),
@@ -125,6 +129,7 @@ class ServerApp:
         self.admin_auth_token_refresh.setup(self.fastapi_app)
         self.person_snapshot_create.setup(self.fastapi_app)
         self.person_snapshot_refresh.setup(self.fastapi_app)
+        self.person_snapshot_refresh_detect_junk.setup(self.fastapi_app)
         self.person_snapshot_search.setup(self.fastapi_app)
         self.person_flow_search.setup(self.fastapi_app)
         self.person_flow_weight_search.setup(self.fastapi_app)
