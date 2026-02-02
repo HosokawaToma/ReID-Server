@@ -574,8 +574,6 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         with self.database as session:
             subquery = session.query(
                 MigrationModelPersonSnapshot.id,
-                MigrationModelPersonSnapshot.person_id,
-                MigrationModelPersonSnapshot.is_junk,
                 func.row_number().over(
                     order_by=MigrationModelPersonSnapshot.feature.op("<=>")(person_feature._feature.cpu().numpy().tolist())
                 ).label("original_index")
@@ -583,10 +581,8 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             models = session.query(
                 subquery.c.id,
                 subquery.c.original_index,
-                subquery.c.person_id,
-                subquery.c.is_junk
             ).filter(
-                subquery.c.person_id.in_([person_snapshot_id.id for person_snapshot_id in person_snapshot_ids.items])
+                subquery.c.id.in_([person_snapshot_id.id for person_snapshot_id in person_snapshot_ids.items])
             ).all()
             return DomainReidRankSequence(items=[DomainReidRank(
                 id=DomainId(id=model.id),
