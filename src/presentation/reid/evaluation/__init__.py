@@ -3,18 +3,18 @@ from logger import Logger
 from presentation.utils.type import PresentationUtilPathDate, PresentationUtilPathInt
 from presentation.utils.factory import get_application
 from presentation.utils.response import PresentationUtilJSONResponse
-from applications.reid.cmc_curve import ApplicationReidCmcCurve
+from applications.reid.evaluation import ApplicationReidEvaluation
 from dto.date import DtoDate
 
-class PresentationReidCmcCurve(PresentationUtilBase):
-    router_path = "/reid/cmc-curve/{date}/{attempt}"
+class PresentationReidEvaluation(PresentationUtilBase):
+    router_path = "/reid/evaluation/{date}/{attempt}"
     methods = ["GET"]
     tags = ["reid"]
-    summary = "1~50位までのAPを計算しCMC曲線を作成する"
-    description = "1~50位までのAPを計算しCMC曲線を作成する"
+    summary = "再識別評価を行う"
+    description = "再識別評価を行う"
     responses = {
         200: {
-            "description": "1~50位までのAPを計算しCMC曲線を作成する",
+            "description": "再識別評価を行う",
         }
     }
 
@@ -22,18 +22,18 @@ class PresentationReidCmcCurve(PresentationUtilBase):
         super().__init__(logger=logger)
 
     @classmethod
-    def create(cls) -> "PresentationReidCmcCurve":
+    def create(cls) -> "PresentationReidEvaluation":
         return cls(
-            logger=Logger("presentation_reid_cmc_curve"),
+            logger=Logger("presentation_reid_evaluation"),
         )
 
     async def handle(
         self,
         date: PresentationUtilPathDate,
         attempt: PresentationUtilPathInt,
-        application: ApplicationReidCmcCurve = get_application(ApplicationReidCmcCurve),
+        application: ApplicationReidEvaluation = get_application(ApplicationReidEvaluation),
     ) -> PresentationUtilJSONResponse:
-        cmc_curve_is_not_junk, cmc_curve_is_junk, query_person_ids = application.calculate_cmc_curve(
+        cmc_curve_is_not_junk, cmc_curve_is_junk, query_person_ids = application.calculate(
             date=DtoDate(year=date.year, month=date.month, day=date.day),
             attempt=attempt,
         )

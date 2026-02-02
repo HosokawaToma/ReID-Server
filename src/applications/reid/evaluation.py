@@ -9,24 +9,25 @@ from dto.reid.cmc_curve import DtoReidCmcCurve
 from dto.id import DtoId
 from domain.reid.cmc_curve_sequence import DomainReidCmcCurveSequence
 from domain.id_sequence import DomainIdSequence
+from error import ValidationError
+from domain.id import DomainId
 
-
-class ApplicationReidCmcCurve(ApplicationBase):
+class ApplicationReidEvaluation(ApplicationBase):
     def __init__(self,
                  repository_person_snapshot: RepositoryPersonSnapshot,
                  ):
         self.repository_person_snapshot = repository_person_snapshot
 
     @classmethod
-    def create(cls, environment: Environment) -> "ApplicationReidCmcCurve":
+    def create(cls, environment: Environment) -> "ApplicationReidEvaluation":
         return cls(
             repository_person_snapshot=RepositoryPersonSnapshot.create(
                 environment),
         )
 
-    def calculate_cmc_curve(self, date: DtoDate, attempt: int) -> tuple[DtoReidCmcCurve, DtoReidCmcCurve, list[DtoId]]:
+    def calculate(self, date: DtoDate, attempt: int) -> tuple[DtoReidCmcCurve, DtoReidCmcCurve, list[DtoId]]:
         """
-        1~50位までのAPを計算しCMC曲線を作成する
+        1~50位までのCMC曲線とmAPを計算する
         ギャラリーデータにゴミデータを含めるケースと含めないケースでそれぞれ計算する
         :param DtoDate date: 日付
         :param int attempt: 試行回数
@@ -42,22 +43,23 @@ class ApplicationReidCmcCurve(ApplicationBase):
             person_snapshot_detail_answer = self.repository_person_snapshot.find_detail_answer_by_id(
                 person_snapshot_id=person_snapshot_id,
             )
+            if person_snapshot_detail_answer.person_id.id is None:
+                raise ValidationError("正解データが存在しません")
             if not self.repository_person_snapshot.exists_gallery_not_contains_junk(
                     person_snapshot_detail_answer=person_snapshot_detail_answer):
                 continue
+            gallery_answer_labels = self.repository_person_snapshot.find_not_contains_junk_gallery_answer_labels(
+                person_id=person_snapshot_detail_answer.person_id.id ,
+            )
             person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(
                 person_snapshot_id=person_snapshot_id,
             )
-            gallery = self.repository_person_snapshot.find_gallery_not_contains_junk(
-                person_snapshot_feature=person_snapshot_feature,
-            )
-            answer_labels = self.repository_person_snapshot.find_answer_labels_by_ids(
-                person_snapshot_ids=gallery,
+            gallery_ranking = self.repository_person_snapshot.find_not_contains_junk_ranking_by_ids(
+                person_snapshot_ids=DomainIdSequence(items=[id.id for id in gallery_answer_labels.items]),
+                person_feature=person_snapshot_feature.feature,
             )
             cmc = DomainReidCmc.calculate(
-                query_person_id=person_snapshot_detail_answer.person_id,
-                gallery_person_ids=gallery,
-                gallery_answer_labels=answer_labels,
+                gallery_ranking=gallery_ranking,
             )
             cmc_sequence_is_not_junk.add(cmc)
 
@@ -65,22 +67,24 @@ class ApplicationReidCmcCurve(ApplicationBase):
             person_snapshot_detail_answer = self.repository_person_snapshot.find_detail_answer_by_id(
                 person_snapshot_id=person_snapshot_id,
             )
+            if person_snapshot_detail_answer.person_id.id is None:
+                raise ValidationError("正解データが存在しません")
             if not self.repository_person_snapshot.exists_gallery_contains_junk(
                     person_snapshot_detail_answer=person_snapshot_detail_answer):
                 continue
             person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(
                 person_snapshot_id=person_snapshot_id,
             )
-            gallery = self.repository_person_snapshot.find_gallery_contains_junk(
-                person_snapshot_feature=person_snapshot_feature,
+            gallery_answer_labels = self.repository_person_snapshot.find_gallery_contains_junk_answer_labels(
+                person_id=person_snapshot_detail_answer.person_id.id,
+                person_feature=person_snapshot_feature.feature,
             )
-            answer_labels = self.repository_person_snapshot.find_answer_labels_by_ids(
-                person_snapshot_ids=gallery,
+            gallery_ranking = self.repository_person_snapshot.find_gallery_contains_junk_ranking_by_ids(
+                person_snapshot_ids=DomainIdSequence(items=[id.id for id in gallery_answer_labels.items]),
+                person_feature=person_snapshot_feature.feature,
             )
             cmc = DomainReidCmc.calculate(
-                query_person_id=person_snapshot_detail_answer.person_id,
-                gallery_person_ids=gallery,
-                gallery_answer_labels=answer_labels,
+                gallery_ranking=gallery_ranking,
             )
             cmc_sequence_is_junk.add(cmc)
         cmc_curve_is_not_junk = cmc_sequence_is_not_junk.to_cmc_curve()
