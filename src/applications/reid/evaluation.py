@@ -13,6 +13,7 @@ from domain.reid.ap_sequence import DomainReidApSequence
 from domain.reid.ap import DomainReidAp
 from dto.reid.map import DtoReidMap
 
+
 class ApplicationReidEvaluation(ApplicationBase):
     def __init__(self,
                  repository_person_snapshot: RepositoryPersonSnapshot,
@@ -55,9 +56,12 @@ class ApplicationReidEvaluation(ApplicationBase):
                 person_id=person_snapshot_answer.person_id.id,
             )
             gallery_ranking = self.repository_person_snapshot.find_not_contains_junk_ranking_by_ids(
-                person_snapshot_ids=DomainIdSequence(items=[id.id for id in gallery_answer_labels.items]),
+                person_snapshot_ids=DomainIdSequence(
+                    items=[id.id for id in gallery_answer_labels.items]),
                 person_snapshot_feature=person_snapshot_feature,
             )
+            if not gallery_ranking.items:
+                raise ValidationError("ギャラリーデータにゴミデータを含めないランキングが存在しません")
             cmc = DomainReidCmc.calculate(
                 gallery_ranking=gallery_ranking,
             )
@@ -80,9 +84,12 @@ class ApplicationReidEvaluation(ApplicationBase):
                 person_id=person_snapshot_answer.person_id.id,
             )
             gallery_ranking = self.repository_person_snapshot.find_contains_junk_ranking_by_ids(
-                person_snapshot_ids=DomainIdSequence(items=[id.id for id in gallery_answer_labels.items]),
+                person_snapshot_ids=DomainIdSequence(
+                    items=[id.id for id in gallery_answer_labels.items]),
                 person_snapshot_feature=person_snapshot_feature,
             )
+            if not gallery_ranking.items:
+                raise ValidationError("ギャラリーデータにゴミデータを含めるランキングが存在しません")
             cmc = DomainReidCmc.calculate(
                 gallery_ranking=gallery_ranking,
             )

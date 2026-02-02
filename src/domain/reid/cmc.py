@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from domain.utils.base import DomainUtilsBase
 from domain.reid.rank_sequence import DomainReidRankSequence
 
+
 @dataclass(frozen=True)
 class DomainReidCmc(DomainUtilsBase):
     """
@@ -22,5 +23,8 @@ class DomainReidCmc(DomainUtilsBase):
         """
         cmc = [0] * 50
         top_rank = gallery_ranking.top_rank()
-        cmc[top_rank:50] = [1] * (50 - top_rank)
+        # ランクは1始まりのため、k番目 → 配列のインデックス k-1
+        if top_rank <= 50:
+            start = top_rank - 1
+            cmc[start:50] = [1] * (50 - start)
         return cls(cmc=cmc)
