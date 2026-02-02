@@ -61,7 +61,7 @@ class ApplicationReidEvaluation(ApplicationBase):
                 person_snapshot_feature=person_snapshot_feature,
             )
             if not gallery_ranking.items:
-                raise ValidationError("ギャラリーデータにゴミデータを含めないランキングが存在しません")
+                continue
             cmc = DomainReidCmc.calculate(
                 gallery_ranking=gallery_ranking,
             )
@@ -89,7 +89,7 @@ class ApplicationReidEvaluation(ApplicationBase):
                 person_snapshot_feature=person_snapshot_feature,
             )
             if not gallery_ranking.items:
-                raise ValidationError("ギャラリーデータにゴミデータを含めるランキングが存在しません")
+                continue
             cmc = DomainReidCmc.calculate(
                 gallery_ranking=gallery_ranking,
             )
