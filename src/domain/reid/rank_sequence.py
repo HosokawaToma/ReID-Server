@@ -13,3 +13,10 @@ class DomainReidRankSequence(DomainUtilsSequenceBase[DomainReidRank]):
         :return int: 最小のランク
         """
         return min(rank.rank for rank in self.items)
+
+    def sort_by_rank(self) -> "DomainReidRankSequence":
+        """
+        ランクでソートする
+        :return DomainReidRankSequence: ランクでソートしたシーケンス
+        """
+        return DomainReidRankSequence(items=sorted(self.items, key=lambda x: x.rank))
