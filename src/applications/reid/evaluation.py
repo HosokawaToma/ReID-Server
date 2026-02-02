@@ -48,12 +48,12 @@ class ApplicationReidEvaluation(ApplicationBase):
             person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(
                 person_snapshot_id=person_snapshot_id,
             )
-            gallery_answer_labels = self.repository_person_snapshot.find_not_contains_junk_gallery_answer_labels(
+            gallery_answer_labels = self.repository_person_snapshot.find_not_contains_junk_answer_labels_by_person_id(
                 person_id=person_snapshot_answer.person_id.id,
             )
             gallery_ranking = self.repository_person_snapshot.find_not_contains_junk_ranking_by_ids(
                 person_snapshot_ids=DomainIdSequence(items=[id.id for id in gallery_answer_labels.items]),
-                person_feature=person_snapshot_feature.feature,
+                person_snapshot_feature=person_snapshot_feature,
             )
             cmc = DomainReidCmc.calculate(
                 gallery_ranking=gallery_ranking,
@@ -69,12 +69,12 @@ class ApplicationReidEvaluation(ApplicationBase):
             person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(
                 person_snapshot_id=person_snapshot_id,
             )
-            gallery_answer_labels = self.repository_person_snapshot.find_contains_junk_gallery_answer_labels(
+            gallery_answer_labels = self.repository_person_snapshot.find_contains_junk_answer_labels_by_person_id(
                 person_id=person_snapshot_answer.person_id.id,
             )
             gallery_ranking = self.repository_person_snapshot.find_contains_junk_ranking_by_ids(
                 person_snapshot_ids=DomainIdSequence(items=[id.id for id in gallery_answer_labels.items]),
-                person_feature=person_snapshot_feature.feature,
+                person_snapshot_feature=person_snapshot_feature,
             )
             cmc = DomainReidCmc.calculate(
                 gallery_ranking=gallery_ranking,
