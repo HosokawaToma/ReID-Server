@@ -579,6 +579,8 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
     def find_contains_junk_ranking_by_ids(self, person_snapshot_ids: DomainIdSequence, person_snapshot_feature: DomainPersonSnapshotFeature) -> DomainReidRankSequence:
         """
         ギャラリーデータにゴミデータを含むランキングを取得する
+        ※同じカメラIDの人物検出結果は除外する
+        ※ゴミデータを含む
         :param DomainIdSequence person_snapshot_ids: 人物検出結果のIDリスト
         :param DomainPersonSnapshotFeature person_snapshot_feature: 人物検出結果の特徴量
         :return DomainReidRankSequence: ギャラリーデータにゴミデータを含むランキングリスト
