@@ -20,6 +20,8 @@ class DomainReidAp(DomainUtilsBase):
         :return DomainReidAp: AP
         """
         ap = 0.0
+        if len(ranking_sequence) == 0:
+            return cls(ap=0.0)
         for i, ranking in enumerate(ranking_sequence):
             ap += (i + 1) / ranking.rank
-        return cls(ap=ap / len(ranking_sequence.items))
+        return cls(ap=ap / len(ranking_sequence))
