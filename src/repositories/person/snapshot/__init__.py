@@ -550,7 +550,7 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                     MigrationModelPersonSnapshotsAnswerLabels.person_id
                 ).filter(
                     MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == query_snapshot_id.id,
-                ).subquery()
+                ).scalar_subquery()
                 subquery = session.query(
                     MigrationModelPersonSnapshot.id,
                     MigrationModelPersonSnapshot.camera_id,
@@ -561,7 +561,7 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                     ).label("original_index")
                 ).filter(
                     MigrationModelPersonSnapshot.id != query_snapshot_id.id,
-                    func.date(MigrationModelPersonSnapshot.timestamp == snapshot_query.c.timestamp),
+                    func.date(MigrationModelPersonSnapshot.timestamp) == func.date(snapshot_query.c.timestamp),
                 ).subquery()
                 models = session.query(
                     subquery.c.id,
