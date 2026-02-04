@@ -10,14 +10,16 @@ class DomainReidAp(DomainUtilsBase):
     ap: float
 
     @classmethod
-    def calculate(cls, ranking_sequence: DomainReidRankSequence) -> "DomainReidAp":
+    def calculate(
+        cls,
+        ranking_sequence: DomainReidRankSequence,
+    ) -> "DomainReidAp":
         """
         APを計算する
-        :param DomainReidRankSequence ranking_sequence: ランキングシーケンス
+        :param DomainReidRankSequence ranking_sequence: ランキングシーケンス（クエリデータに対する類似度順に並んでいることが前提）
         :return DomainReidAp: AP
         """
         ap = 0.0
-        ranking_sequence = ranking_sequence.sort_by_rank()
         for i, ranking in enumerate(ranking_sequence):
             ap += (i + 1) / ranking.rank
         return cls(ap=ap / len(ranking_sequence.items))

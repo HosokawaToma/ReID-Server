@@ -20,3 +20,20 @@ class DomainReidRankSequence(DomainUtilsSequenceBase[DomainReidRank]):
         :return DomainReidRankSequence: ランクでソートしたシーケンス
         """
         return DomainReidRankSequence(items=sorted(self.items, key=lambda x: x.rank))
+
+    def out_camera_id(self, camera_id: int) -> "DomainReidRankSequence":
+        """
+        カメラIDを除外する
+        除外した結果変動するランクを修正する
+        :param int camera_id: カメラID
+        :return DomainReidRankSequence: カメラIDを除外したシーケンス
+        """
+        return DomainReidRankSequence(items=[rank for rank in self.items if rank.camera_id != camera_id])
+
+    def out_junk(self) -> "DomainReidRankSequence":
+        """
+        ゴミデータを除外する
+        除外した結果変動するランクを修正する
+        :return DomainReidRankSequence: ゴミデータを除外したシーケンス
+        """
+        return DomainReidRankSequence(items=[rank for rank in self.items if not rank.is_junk])

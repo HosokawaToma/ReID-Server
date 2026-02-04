@@ -18,12 +18,12 @@ class DomainReidCmc(DomainUtilsBase):
         """
         queryの人物がgalleryの中で何番目に出現するかを計算しCMC曲線を作成する
         k番目に出現した場合k番目以降を1とする
+        :param DomainPersonSnapshotDetail query_snapshot_detail: クエリデータ
         :param DomainReidRankSequence gallery_ranking: ギャラリーデータ（クエリデータに対する類似度順に並んでいることが前提）
         :return DomainReidCmc: CMC
         """
         cmc = [0] * 50
         top_rank = gallery_ranking.top_rank()
-        # ランクは1始まりのため、k番目 → 配列のインデックス k-1
         if top_rank <= 50:
             start = top_rank - 1
             cmc[start:50] = [1] * (50 - start)

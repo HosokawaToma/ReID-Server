@@ -12,3 +12,5 @@ class DomainReidRank(DomainUtilsBase):
     """
     id: DomainId
     rank: int
+    camera_id: int
+    is_junk: bool

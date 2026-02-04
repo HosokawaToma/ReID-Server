@@ -12,6 +12,7 @@ from error import ValidationError
 from domain.reid.ap_sequence import DomainReidApSequence
 from domain.reid.ap import DomainReidAp
 from dto.reid.map import DtoReidMap
+from itertools import chain
 
 
 class ApplicationReidEvaluation(ApplicationBase):
@@ -35,72 +36,44 @@ class ApplicationReidEvaluation(ApplicationBase):
         :param int attempt: 試行回数
         :return tuple[DtoReidCmcCurve, DtoReidCmcCurve, DtoReidMap, DtoReidMap, list[DtoId]]: ギャラリーデータにゴミデータを含めないCMC曲線, ギャラリーデータにゴミデータを含めるCMC曲線, ギャラリーデータにゴミデータを含めないmAP, ギャラリーデータにゴミデータを含めるmAP, クエリデータの正解データIDリスト
         """
-        query = self.repository_person_snapshot.find_query_is_not_junk(
+        query_snapshot_ids = self.repository_person_snapshot.find_query(
             date=DomainDate(year=date.year, month=date.month, day=date.day),
             attempt=attempt,
         )
-        cmc_sequence_is_not_junk = DomainReidCmcSequence(items=[])
-        cmc_sequence_is_junk = DomainReidCmcSequence(items=[])
-        ap_sequence_is_not_junk = DomainReidApSequence(items=[])
-        ap_sequence_is_junk = DomainReidApSequence(items=[])
-        for person_snapshot_id in query:
-            person_snapshot_answer = self.repository_person_snapshot.find_answer_label_by_id(
-                person_snapshot_id=person_snapshot_id,
-            )
-            if person_snapshot_answer.person_id.id is None:
-                raise ValidationError("正解データが存在しません")
-            person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(
-                person_snapshot_id=person_snapshot_id,
-            )
-            gallery_answer_labels = self.repository_person_snapshot.find_not_contains_junk_answer_labels_by_person_id(
-                person_id=person_snapshot_answer.person_id.id,
-            )
-            gallery_ranking = self.repository_person_snapshot.find_not_contains_junk_ranking_by_ids(
-                person_snapshot_ids=DomainIdSequence(
-                    items=[id.id for id in gallery_answer_labels.items]),
-                person_snapshot_feature=person_snapshot_feature,
-            )
-            if not gallery_ranking.items:
-                continue
+        query_snapshot_details = self.repository_person_snapshot.find_details_by_ids(
+            ids=query_snapshot_ids,
+        )
+        gallery_rankings = self.repository_person_snapshot.find_rankings(
+            query_snapshot_ids=query_snapshot_ids,
+        )
+        cmc_sequence_with_junk = DomainReidCmcSequence(items=[])
+        cmc_sequence_without_junk = DomainReidCmcSequence(items=[])
+        ap_sequence_with_junk = DomainReidApSequence(items=[])
+        ap_sequence_without_junk = DomainReidApSequence(items=[])
+        for query_snapshot_detail in query_snapshot_details:
+            gallery_ranking = gallery_rankings[query_snapshot_detail.id]
+            gallery_ranking = gallery_ranking.sort_by_rank()
+            gallery_ranking = gallery_ranking.out_camera_id(camera_id=query_snapshot_detail.location.camera_id)
+            gallery_ranking_without_junk = gallery_ranking.out_junk()
             cmc = DomainReidCmc.calculate(
                 gallery_ranking=gallery_ranking,
+            )
+            cmc_without_junk = DomainReidCmc.calculate(
+                gallery_ranking=gallery_ranking_without_junk,
             )
             ap = DomainReidAp.calculate(
                 ranking_sequence=gallery_ranking,
             )
-            cmc_sequence_is_not_junk.add(cmc)
-            ap_sequence_is_not_junk.add(ap)
+            ap_without_junk = DomainReidAp.calculate(
+                ranking_sequence=gallery_ranking_without_junk,
+            )
+            cmc_sequence_without_junk.add(cmc_without_junk)
+            ap_sequence_without_junk.add(ap_without_junk)
+            cmc_sequence_with_junk.add(cmc)
+            ap_sequence_with_junk.add(ap)
 
-        for person_snapshot_id in query:
-            person_snapshot_answer = self.repository_person_snapshot.find_answer_label_by_id(
-                person_snapshot_id=person_snapshot_id,
-            )
-            if person_snapshot_answer.person_id.id is None:
-                raise ValidationError("正解データが存在しません")
-            person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(
-                person_snapshot_id=person_snapshot_id,
-            )
-            gallery_answer_labels = self.repository_person_snapshot.find_contains_junk_answer_labels_by_person_id(
-                person_id=person_snapshot_answer.person_id.id,
-            )
-            gallery_ranking = self.repository_person_snapshot.find_contains_junk_ranking_by_ids(
-                person_snapshot_ids=DomainIdSequence(
-                    items=[id.id for id in gallery_answer_labels.items]),
-                person_snapshot_feature=person_snapshot_feature,
-            )
-            if not gallery_ranking.items:
-                continue
-            cmc = DomainReidCmc.calculate(
-                gallery_ranking=gallery_ranking,
-            )
-            ap = DomainReidAp.calculate(
-                ranking_sequence=gallery_ranking,
-            )
-            cmc_sequence_is_junk.add(cmc)
-            ap_sequence_is_junk.add(ap)
-
-        cmc_curve_is_not_junk = cmc_sequence_is_not_junk.to_cmc_curve()
-        cmc_curve_is_junk = cmc_sequence_is_junk.to_cmc_curve()
-        map_is_not_junk = ap_sequence_is_not_junk.average_ap()
-        map_is_junk = ap_sequence_is_junk.average_ap()
-        return DtoReidCmcCurve(cmc_curve=cmc_curve_is_not_junk.cmc_curve), DtoReidCmcCurve(cmc_curve=cmc_curve_is_junk.cmc_curve), DtoReidMap(map=map_is_not_junk.ap), DtoReidMap(map=map_is_junk.ap), [DtoId(id=id.id) for id in query]
+        cmc_curve_with_junk = cmc_sequence_with_junk.to_cmc_curve()
+        cmc_curve_without_junk = cmc_sequence_without_junk.to_cmc_curve()
+        map_with_junk = ap_sequence_with_junk.average_ap()
+        map_without_junk = ap_sequence_without_junk.average_ap()
+        return DtoReidCmcCurve(cmc_curve=cmc_curve_with_junk.cmc_curve), DtoReidCmcCurve(cmc_curve=cmc_curve_without_junk.cmc_curve), DtoReidMap(map=map_with_junk.ap), DtoReidMap(map=map_without_junk.ap), [DtoId(id=id.id) for id in query_snapshot_ids]

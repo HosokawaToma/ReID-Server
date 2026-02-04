@@ -15,6 +15,7 @@ from domain.timestamp import DomainTimestamp
 from domain.person.id import DomainPersonId
 from domain.person.feature import DomainPersonFeature
 from domain.person.snapshot.feature import DomainPersonSnapshotFeature
+from domain.person.snapshot.feature_sequence import DomainPersonSnapshotFeatureSequence
 from domain.person.snapshot.person_id import DomainPersonSnapshotPersonId
 from domain.person.snapshot.person_id_sequence import DomainPersonSnapshotPersonIdSequence
 from domain.paging import DomainPaging
@@ -445,7 +446,53 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             ).exists()
             return session.query(query).scalar()
 
-    def find_query_is_not_junk(self, date: DomainDate, attempt: int) -> DomainIdSequence:
+    def find_features_by_ids(self, ids: DomainIdSequence) -> DomainPersonSnapshotFeatureSequence:
+        """
+        人物検出結果の特徴量を取得する
+        :param DomainIdSequence ids: 人物検出結果のIDリスト
+        :return DomainPersonSnapshotFeatureSequence: 人物検出結果の特徴量リスト
+        """
+        with self.database as session:
+            models = session.query(
+                MigrationModelPersonSnapshot
+            ).filter(
+                MigrationModelPersonSnapshot.id.in_([id.id for id in ids.items])
+            ).all()
+            return DomainPersonSnapshotFeatureSequence(
+                items=[
+                    DomainPersonSnapshotFeature(
+                        id=DomainId(id=model.id),
+                        location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                        timestamp=DomainTimestamp(timestamp=model.timestamp),
+                        feature=DomainPersonFeature(
+                            feature=torch.tensor(model.feature),
+                        ),
+                        person_id=DomainPersonId(
+                            id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                            is_junk=model.is_junk,
+                        ),
+                    ) for model in models
+                ]
+            )
+
+    def find_answer_labels_by_ids(self, ids: DomainIdSequence) -> DomainPersonSnapshotPersonIdSequence:
+        with self.database as session:
+            models = session.query(
+                MigrationModelPersonSnapshotsAnswerLabels
+            ).filter(
+                MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id.in_([id.id for id in ids.items])
+            ).all()
+            return DomainPersonSnapshotPersonIdSequence(
+                items=[DomainPersonSnapshotPersonId(
+                    id=DomainId(id=model.person_snapshot_id),
+                    person_id=DomainPersonId(
+                        id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                        is_junk=model.is_junk,
+                    ),
+                ) for model in models]
+            )
+
+    def find_query(self, date: DomainDate, attempt: int) -> DomainIdSequence:
         """
         特定日のクエリデータを取得する
         試行回数分のクエリデータを取得する
@@ -480,177 +527,81 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 items.append(DomainId(id=row.snapshot_id))
             return DomainIdSequence(items=items)
 
-    def find_gallery_not_contains_junk(self, person_snapshot_feature: DomainPersonSnapshotFeature) -> DomainIdSequence:
+    def find_rankings(
+        self,
+        query_snapshot_ids: DomainIdSequence,
+    ) -> dict[DomainId, DomainReidRankSequence]:
         """
-        ギャラリーデータを取得する
+        ギャラリーの人物検出結果のランキングを取得する
         ※ゴミデータは除外する
-        :param DomainPersonSnapshotFeature person_snapshot_feature: 人物検出結果の特徴量
-        :return DomainIdSequence: ギャラリーIDリスト
+        :param DomainIdSequence query_snapshot_ids: クエリの人物検出結果のIDリスト
+        :return dict[DomainId, DomainReidRankSequence]: ギャラリーの人物検出結果のランキングリスト
         """
         with self.database as session:
-            models = session.query(
-                MigrationModelPersonSnapshot
-            ).filter(
-                MigrationModelPersonSnapshot.id != person_snapshot_feature.id.id,
-                MigrationModelPersonSnapshot.camera_id != person_snapshot_feature.location.camera_id,
-                MigrationModelPersonSnapshot.timestamp < person_snapshot_feature.timestamp.tomorrow().timestamp,
-                MigrationModelPersonSnapshot.timestamp >= person_snapshot_feature.timestamp.today().timestamp,
-                MigrationModelPersonSnapshot.is_junk.is_(False),
-            ).order_by(
-                MigrationModelPersonSnapshot.feature.op("<=>")(
-                    person_snapshot_feature.feature._feature.cpu().numpy().tolist())
-            ).limit(50).all()
-            return DomainIdSequence(items=[DomainId(id=model.id) for model in models])
+            result: dict[DomainId, DomainReidRankSequence] = {}
+            for query_snapshot_id in query_snapshot_ids:
+                snapshot_query = session.query(
+                    MigrationModelPersonSnapshot.feature,
+                    MigrationModelPersonSnapshot.timestamp
+                ).filter(
+                    MigrationModelPersonSnapshot.id == query_snapshot_id.id,
+                ).subquery()
+                answer_label_query = session.query(
+                    MigrationModelPersonSnapshotsAnswerLabels.person_id
+                ).filter(
+                    MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == query_snapshot_id.id,
+                ).subquery()
+                subquery = session.query(
+                    MigrationModelPersonSnapshot.id,
+                    MigrationModelPersonSnapshot.camera_id,
+                    MigrationModelPersonSnapshot.is_junk,
+                    MigrationModelPersonSnapshotsAnswerLabels.person_id,
+                    func.row_number().over(
+                        order_by=MigrationModelPersonSnapshot.feature.op("<=>")(snapshot_query.c.feature)
+                    ).label("original_index")
+                ).filter(
+                    MigrationModelPersonSnapshot.id != query_snapshot_id.id,
+                    func.date(MigrationModelPersonSnapshot.timestamp == snapshot_query.c.timestamp),
+                ).subquery()
+                models = session.query(
+                    subquery.c.id,
+                    subquery.c.original_index,
+                    subquery.c.is_junk,
+                    subquery.c.person_id,
+                ).filter(
+                    subquery.c.person_id == answer_label_query.c.person_id,
+                ).all()
+                result[query_snapshot_id] = DomainReidRankSequence(items=[
+                    DomainReidRank(
+                        id=DomainId(id=model.id),
+                        rank=model.original_index,
+                        camera_id=model.camera_id,
+                        is_junk=model.is_junk,
+                    ) for model in models
+                ])
+            return result
 
-    def find_gallery_contains_junk(self, person_snapshot_feature: DomainPersonSnapshotFeature) -> DomainIdSequence:
+    def find_details_by_ids(self, ids: DomainIdSequence) -> DomainPersonSnapshotDetailSequence:
         """
-        ギャラリーデータを取得する
-        ※ゴミデータを含む
-        :param DomainPersonSnapshotFeature person_snapshot_feature: 人物検出結果の特徴量
-        :return DomainIdSequence: ギャラリーIDリスト
-        """
-        with self.database as session:
-            models = session.query(
-                MigrationModelPersonSnapshot
-            ).filter(
-                MigrationModelPersonSnapshot.id != person_snapshot_feature.id.id,
-                MigrationModelPersonSnapshot.camera_id != person_snapshot_feature.location.camera_id,
-                MigrationModelPersonSnapshot.timestamp < person_snapshot_feature.timestamp.tomorrow().timestamp,
-                MigrationModelPersonSnapshot.timestamp >= person_snapshot_feature.timestamp.today().timestamp,
-            ).order_by(
-                MigrationModelPersonSnapshot.feature.op("<=>")(
-                    person_snapshot_feature.feature._feature.cpu().numpy().tolist())
-            ).limit(50).all()
-            return DomainIdSequence(items=[DomainId(id=model.id) for model in models])
-
-    def find_answer_labels_by_ids(self, person_snapshot_ids: DomainIdSequence) -> DomainPersonSnapshotPersonIdSequence:
-        """
-        人物検出結果の正解ラベルを取得する
-        :param DomainIdSequence person_snapshot_ids: 人物検出結果のIDリスト
-        :return DomainPersonSnapshotPersonIdSequence: 人物検出結果の正解ラベルリスト
+        人物検出結果の詳細を取得する
+        :param DomainIdSequence ids: 人物検出結果のIDリスト
+        :return DomainPersonSnapshotDetailSequence: 人物検出結果の詳細リスト
         """
         with self.database as session:
-            models = session.query(
-                MigrationModelPersonSnapshotsAnswerLabels
-            ).filter(
-                MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id.in_([person_snapshot_id.id for person_snapshot_id in person_snapshot_ids.items])
-            ).all()
-            return DomainPersonSnapshotPersonIdSequence(items=[DomainPersonSnapshotPersonId(
-                id=DomainId(id=model.person_snapshot_id),
-                person_id=DomainPersonId(
-                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
-                    is_junk=model.is_junk,
-                ),
-            ) for model in models])
-
-    def find_not_contains_junk_ranking_by_ids(self, person_snapshot_ids: DomainIdSequence, person_snapshot_feature: DomainPersonSnapshotFeature) -> DomainReidRankSequence:
-        """
-        人物検出結果のランキングを取得する
-        ※同じカメラIDの人物検出結果は除外する
-        ※ゴミデータは除外する
-        :param DomainIdSequence person_snapshot_ids: 人物検出結果のIDリスト
-        :param DomainPersonSnapshotFeature person_snapshot_feature: 人物検出結果の特徴量
-        :return DomainReidRankSequence: 人物検出結果のランキングリスト
-        """
-        with self.database as session:
-            subquery = session.query(
-                MigrationModelPersonSnapshot.id,
-                func.row_number().over(
-                    order_by=MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot_feature.feature._feature.cpu().numpy().tolist())
-                ).label("original_index")
-            ).filter(
-                MigrationModelPersonSnapshot.id != person_snapshot_feature.id.id,
-                MigrationModelPersonSnapshot.camera_id != person_snapshot_feature.location.camera_id,
-                MigrationModelPersonSnapshot.timestamp < person_snapshot_feature.timestamp.tomorrow().timestamp,
-                MigrationModelPersonSnapshot.timestamp >= person_snapshot_feature.timestamp.today().timestamp,
-                MigrationModelPersonSnapshot.is_junk.is_(False),
-            ).subquery()
-            models = session.query(
-                subquery.c.id,
-                subquery.c.original_index,
-            ).filter(
-                subquery.c.id.in_([person_snapshot_id.id for person_snapshot_id in person_snapshot_ids.items])
-            ).all()
-            return DomainReidRankSequence(items=[DomainReidRank(
-                id=DomainId(id=model.id),
-                rank=model.original_index,
-            ) for model in models])
-
-    def find_contains_junk_ranking_by_ids(self, person_snapshot_ids: DomainIdSequence, person_snapshot_feature: DomainPersonSnapshotFeature) -> DomainReidRankSequence:
-        """
-        ギャラリーデータにゴミデータを含むランキングを取得する
-        ※同じカメラIDの人物検出結果は除外する
-        ※ゴミデータを含む
-        :param DomainIdSequence person_snapshot_ids: 人物検出結果のIDリスト
-        :param DomainPersonSnapshotFeature person_snapshot_feature: 人物検出結果の特徴量
-        :return DomainReidRankSequence: ギャラリーデータにゴミデータを含むランキングリスト
-        """
-        with self.database as session:
-            subquery = session.query(
-                MigrationModelPersonSnapshot.id,
-                func.row_number().over(
-                    order_by=MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot_feature.feature._feature.cpu().numpy().tolist())
-                ).label("original_index")
-            ).filter(
-                MigrationModelPersonSnapshot.id != person_snapshot_feature.id.id,
-                MigrationModelPersonSnapshot.camera_id != person_snapshot_feature.location.camera_id,
-                MigrationModelPersonSnapshot.timestamp < person_snapshot_feature.timestamp.tomorrow().timestamp,
-                MigrationModelPersonSnapshot.timestamp >= person_snapshot_feature.timestamp.today().timestamp,
-            ).subquery()
-            models = session.query(
-                subquery.c.id,
-                subquery.c.original_index,
-            ).filter(
-                subquery.c.id.in_([person_snapshot_id.id for person_snapshot_id in person_snapshot_ids.items])
-            ).all()
-            return DomainReidRankSequence(items=[DomainReidRank(
-                id=DomainId(id=model.id),
-                rank=model.original_index,
-            ) for model in models])
-
-    def find_not_contains_junk_answer_labels_by_person_id(self, person_id: DomainId) -> DomainPersonSnapshotPersonIdSequence:
-        """
-        正解ラベルを取得する
-        ※ゴミデータは除外する
-        :param DomainId person_id: 人物ID
-        :return DomainPersonSnapshotPersonIdSequence: 正解ラベルリスト
-        """
-        with self.database as session:
-            models = session.query(
-                MigrationModelPersonSnapshotsAnswerLabels
-            ).filter(
-                MigrationModelPersonSnapshotsAnswerLabels.person_id == person_id.id,
-                MigrationModelPersonSnapshotsAnswerLabels.is_junk.is_(False)
-            ).all()
-            return DomainPersonSnapshotPersonIdSequence(items=[DomainPersonSnapshotPersonId(
-                id=DomainId(id=model.person_snapshot_id),
-                person_id=DomainPersonId(
-                    id=DomainId(
-                        id=model.person_id) if model.person_id is not None else None,
-                    is_junk=model.is_junk,
-                ),
-            ) for model in models])
-
-    def find_contains_junk_answer_labels_by_person_id(self, person_id: DomainId) -> DomainPersonSnapshotPersonIdSequence:
-        """
-        正解ラベルを取得する
-        ※ゴミデータを含む
-        :param DomainId person_id: 人物ID
-        :return DomainPersonSnapshotPersonIdSequence: 正解ラベルリスト
-        """
-        with self.database as session:
-            models = session.query(
-                MigrationModelPersonSnapshotsAnswerLabels
-            ).filter(
-                MigrationModelPersonSnapshotsAnswerLabels.person_id == person_id.id
-            ).all()
-            return DomainPersonSnapshotPersonIdSequence(items=[DomainPersonSnapshotPersonId(
-                id=DomainId(id=model.person_snapshot_id),
-                person_id=DomainPersonId(
-                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
-                    is_junk=model.is_junk,
-                ),
-            ) for model in models])
+            models = session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id.in_([id.id for id in ids.items])).all()
+            return DomainPersonSnapshotDetailSequence(
+                items=[
+                    DomainPersonSnapshotDetail(
+                        id=DomainId(id=model.id),
+                        location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                        timestamp=DomainTimestamp(timestamp=model.timestamp),
+                        person_id=DomainPersonId(
+                            id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                            is_junk=model.is_junk,
+                        ),
+                    ) for model in models
+                ]
+            )
 
     def find_feature_by_id(self, person_snapshot_id: DomainId) -> DomainPersonSnapshotFeature:
         """
