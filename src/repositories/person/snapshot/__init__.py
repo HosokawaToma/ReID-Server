@@ -569,7 +569,7 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                     subquery.c.is_junk,
                     subquery.c.person_id,
                 ).filter(
-                    subquery.c.person_id == answer_label_query.c.person_id,
+                    subquery.c.person_id == answer_label_query,
                 ).all()
                 result[query_snapshot_id] = DomainReidRankSequence(items=[
                     DomainReidRank(
