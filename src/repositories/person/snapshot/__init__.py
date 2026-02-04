@@ -616,6 +616,9 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                     func.row_number().over(
                         order_by=MigrationModelPersonSnapshot.feature.op("<=>")(snapshot_query.c.feature)
                     ).label("original_index")
+                ).join(
+                    MigrationModelPersonSnapshotsAnswerLabels,
+                    MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == MigrationModelPersonSnapshot.id
                 ).filter(
                     MigrationModelPersonSnapshot.id != query_snapshot_id.id,
                     MigrationModelPersonSnapshot.camera_id != snapshot_query.c.camera_id,
