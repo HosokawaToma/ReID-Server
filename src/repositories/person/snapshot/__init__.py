@@ -527,7 +527,7 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 items.append(DomainId(id=row.snapshot_id))
             return DomainIdSequence(items=items)
 
-    def find_rankings(
+    def find_rankings_without_junk(
         self,
         query_snapshot_ids: DomainIdSequence,
     ) -> dict[DomainId, DomainReidRankSequence]:
@@ -541,8 +541,10 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             result: dict[DomainId, DomainReidRankSequence] = {}
             for query_snapshot_id in query_snapshot_ids:
                 snapshot_query = session.query(
+                    MigrationModelPersonSnapshot.camera_id,
                     MigrationModelPersonSnapshot.feature,
-                    MigrationModelPersonSnapshot.timestamp
+                    MigrationModelPersonSnapshot.timestamp,
+                    MigrationModelPersonSnapshot.is_junk,
                 ).filter(
                     MigrationModelPersonSnapshot.id == query_snapshot_id.id,
                 ).subquery()
@@ -553,30 +555,82 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 ).scalar_subquery()
                 subquery = session.query(
                     MigrationModelPersonSnapshot.id,
-                    MigrationModelPersonSnapshot.camera_id,
-                    MigrationModelPersonSnapshot.is_junk,
                     MigrationModelPersonSnapshotsAnswerLabels.person_id,
                     func.row_number().over(
                         order_by=MigrationModelPersonSnapshot.feature.op("<=>")(snapshot_query.c.feature)
                     ).label("original_index")
                 ).filter(
                     MigrationModelPersonSnapshot.id != query_snapshot_id.id,
+                    MigrationModelPersonSnapshot.camera_id != snapshot_query.c.camera_id,
+                    MigrationModelPersonSnapshot.is_junk.is_(False),
                     func.date(MigrationModelPersonSnapshot.timestamp) == func.date(snapshot_query.c.timestamp),
                 ).subquery()
                 models = session.query(
                     subquery.c.id,
                     subquery.c.original_index,
-                    subquery.c.is_junk,
                     subquery.c.person_id,
                 ).filter(
                     subquery.c.person_id == answer_label_query,
+                ).order_by(
+                    subquery.c.original_index,
                 ).all()
                 result[query_snapshot_id] = DomainReidRankSequence(items=[
                     DomainReidRank(
                         id=DomainId(id=model.id),
                         rank=model.original_index,
-                        camera_id=model.camera_id,
-                        is_junk=model.is_junk,
+                    ) for model in models
+                ])
+            return result
+
+    def find_rankings_with_junk(
+        self,
+        query_snapshot_ids: DomainIdSequence,
+    ) -> dict[DomainId, DomainReidRankSequence]:
+        """
+        ギャラリーの人物検出結果のランキングを取得する
+        ※ゴミデータを含む
+        :param DomainIdSequence query_snapshot_ids: クエリの人物検出結果のIDリスト
+        :return dict[DomainId, DomainReidRankSequence]: ギャラリーの人物検出結果のランキングリスト
+        """
+        with self.database as session:
+            result: dict[DomainId, DomainReidRankSequence] = {}
+            for query_snapshot_id in query_snapshot_ids:
+                snapshot_query = session.query(
+                    MigrationModelPersonSnapshot.camera_id,
+                    MigrationModelPersonSnapshot.feature,
+                    MigrationModelPersonSnapshot.timestamp,
+                ).filter(
+                    MigrationModelPersonSnapshot.id == query_snapshot_id.id,
+                ).subquery()
+                answer_label_query = session.query(
+                    MigrationModelPersonSnapshotsAnswerLabels.person_id
+                ).filter(
+                    MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == query_snapshot_id.id,
+                ).scalar_subquery()
+                subquery = session.query(
+                    MigrationModelPersonSnapshot.id,
+                    MigrationModelPersonSnapshotsAnswerLabels.person_id,
+                    func.row_number().over(
+                        order_by=MigrationModelPersonSnapshot.feature.op("<=>")(snapshot_query.c.feature)
+                    ).label("original_index")
+                ).filter(
+                    MigrationModelPersonSnapshot.id != query_snapshot_id.id,
+                    MigrationModelPersonSnapshot.camera_id != snapshot_query.c.camera_id,
+                    func.date(MigrationModelPersonSnapshot.timestamp) == func.date(snapshot_query.c.timestamp),
+                ).subquery()
+                models = session.query(
+                    subquery.c.id,
+                    subquery.c.original_index,
+                    subquery.c.person_id,
+                ).filter(
+                    subquery.c.person_id == answer_label_query,
+                ).order_by(
+                    subquery.c.original_index,
+                ).all()
+                result[query_snapshot_id] = DomainReidRankSequence(items=[
+                    DomainReidRank(
+                        id=DomainId(id=model.id),
+                        rank=model.original_index,
                     ) for model in models
                 ])
             return result

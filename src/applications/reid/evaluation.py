@@ -43,7 +43,10 @@ class ApplicationReidEvaluation(ApplicationBase):
         query_snapshot_details = self.repository_person_snapshot.find_details_by_ids(
             ids=query_snapshot_ids,
         )
-        gallery_rankings = self.repository_person_snapshot.find_rankings(
+        gallery_rankings_without_junk = self.repository_person_snapshot.find_rankings_without_junk(
+            query_snapshot_ids=query_snapshot_ids,
+        )
+        gallery_rankings_with_junk = self.repository_person_snapshot.find_rankings_with_junk(
             query_snapshot_ids=query_snapshot_ids,
         )
         cmc_sequence_with_junk = DomainReidCmcSequence(items=[])
@@ -51,26 +54,24 @@ class ApplicationReidEvaluation(ApplicationBase):
         ap_sequence_with_junk = DomainReidApSequence(items=[])
         ap_sequence_without_junk = DomainReidApSequence(items=[])
         for query_snapshot_detail in query_snapshot_details:
-            gallery_ranking = gallery_rankings[query_snapshot_detail.id]
-            gallery_ranking = gallery_ranking.sort_by_rank()
-            gallery_ranking = gallery_ranking.out_camera_id(camera_id=query_snapshot_detail.location.camera_id)
-            gallery_ranking_without_junk = gallery_ranking.out_junk()
-            cmc = DomainReidCmc.calculate(
-                gallery_ranking=gallery_ranking,
+            gallery_ranking_with_junk = gallery_rankings_with_junk[query_snapshot_detail.id]
+            gallery_ranking_without_junk = gallery_rankings_without_junk[query_snapshot_detail.id]
+            cmc_with_junk = DomainReidCmc.calculate(
+                gallery_ranking=gallery_ranking_with_junk,
             )
             cmc_without_junk = DomainReidCmc.calculate(
                 gallery_ranking=gallery_ranking_without_junk,
             )
-            ap = DomainReidAp.calculate(
-                ranking_sequence=gallery_ranking,
+            ap_with_junk = DomainReidAp.calculate(
+                ranking_sequence=gallery_ranking_with_junk,
             )
             ap_without_junk = DomainReidAp.calculate(
                 ranking_sequence=gallery_ranking_without_junk,
             )
+            cmc_sequence_with_junk.add(cmc_with_junk)
+            ap_sequence_with_junk.add(ap_with_junk)
             cmc_sequence_without_junk.add(cmc_without_junk)
             ap_sequence_without_junk.add(ap_without_junk)
-            cmc_sequence_with_junk.add(cmc)
-            ap_sequence_with_junk.add(ap)
 
         cmc_curve_with_junk = cmc_sequence_with_junk.to_cmc_curve()
         cmc_curve_without_junk = cmc_sequence_without_junk.to_cmc_curve()
