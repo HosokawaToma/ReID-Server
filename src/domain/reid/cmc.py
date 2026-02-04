@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from domain.utils.base import DomainUtilsBase
 from domain.reid.rank_sequence import DomainReidRankSequence
+from error import ValidationError
 
 
 @dataclass(frozen=True)
@@ -23,7 +24,10 @@ class DomainReidCmc(DomainUtilsBase):
         :return DomainReidCmc: CMC
         """
         cmc = [0] * 50
-        top_rank = gallery_ranking.top_rank()
+        try:
+            top_rank = gallery_ranking.top_rank()
+        except ValidationError:
+            return cls(cmc=cmc)
         if top_rank <= 50:
             start = top_rank - 1
             cmc[start:50] = [1] * (50 - start)

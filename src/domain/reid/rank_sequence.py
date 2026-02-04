@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from domain.reid.rank import DomainReidRank
 from domain.utils.sequence_base import DomainUtilsSequenceBase
+from error import ValidationError
 
 @dataclass(frozen=True)
 class DomainReidRankSequence(DomainUtilsSequenceBase[DomainReidRank]):
@@ -12,6 +13,8 @@ class DomainReidRankSequence(DomainUtilsSequenceBase[DomainReidRank]):
         最小のランクを取得する
         :return int: 最小のランク
         """
+        if len(self.items) != 1:
+            raise ValidationError(f"ランクのシーケンスには1人のみが含まれている必要があります: {len(self.items)}")
         return min(rank.rank for rank in self.items)
 
     def sort_by_rank(self) -> "DomainReidRankSequence":
