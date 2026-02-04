@@ -33,14 +33,14 @@ class PresentationReidEvaluation(PresentationUtilBase):
         attempt: PresentationUtilPathInt,
         application: ApplicationReidEvaluation = get_application(ApplicationReidEvaluation),
     ) -> PresentationUtilJSONResponse:
-        cmc_curve_is_not_junk, cmc_curve_is_junk, map_is_not_junk, map_is_junk, query_person_ids = application.calculate(
+        cmc_curve_with_junk, cmc_curve_without_junk, map_with_junk, map_without_junk, query_person_ids = application.calculate(
             date=DtoDate(year=date.year, month=date.month, day=date.day),
             attempt=attempt,
         )
         return PresentationUtilJSONResponse(status=200, content={
-            "cmc_curve_is_not_junk": cmc_curve_is_not_junk.cmc_curve,
-            "cmc_curve_is_junk": cmc_curve_is_junk.cmc_curve,
-            "map_is_not_junk": map_is_not_junk.map,
-            "map_is_junk": map_is_junk.map,
+            "cmc_curve_with_junk": cmc_curve_with_junk.cmc_curve,
+            "cmc_curve_without_junk": cmc_curve_without_junk.cmc_curve,
+            "map_with_junk": map_with_junk.map,
+            "map_without_junk": map_without_junk.map,
             "query_person_ids": [str(id.id) for id in query_person_ids],
         })
