@@ -529,7 +529,7 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 items.append(DomainId(id=row.snapshot_id))
             return DomainIdSequence(items=items)
 
-    def find_rankings(
+    def find_rankings_without_junk(
         self,
         query_snapshot_ids: DomainIdSequence,
     ) -> dict[DomainId, DomainReidRankSequence]:
