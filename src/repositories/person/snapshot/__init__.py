@@ -529,7 +529,7 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 items.append(DomainId(id=row.snapshot_id))
             return DomainIdSequence(items=items)
 
-    def find_rankings_without_junk(
+    def find_rankings(
         self,
         query_snapshot_ids: DomainIdSequence,
     ) -> dict[DomainId, DomainReidRankSequence]:
@@ -541,45 +541,44 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         """
         with self.database as session:
             query_snapshot = aliased(MigrationModelPersonSnapshot)
-            candidate_snapshot = aliased(MigrationModelPersonSnapshot)
+            gallery_snapshot = aliased(MigrationModelPersonSnapshot)
             query_answer_label = aliased(
                 MigrationModelPersonSnapshotsAnswerLabels)
-            candidate_answer_label = aliased(
+            gallery_answer_label = aliased(
                 MigrationModelPersonSnapshotsAnswerLabels)
 
             rank_subquery = session.query(
                 query_snapshot.id.label("query_snapshot_id"),
+                gallery_snapshot.id.label("gallery_snapshot_id"),
                 func.row_number().over(
                     partition_by=query_snapshot.id,
-                    order_by=query_snapshot.feature.op(
-                        '<=>')(candidate_snapshot.feature)
+                    order_by=query_snapshot.feature.op('<=>')(gallery_snapshot.feature)
                 ).label("rank"),
                 query_answer_label.person_id.label("query_person_id"),
-                candidate_answer_label.person_id.label("candidate_person_id")
+                gallery_answer_label.person_id.label("gallery_person_id")
             ).join(
                 query_answer_label, query_snapshot.id == query_answer_label.person_snapshot_id
             ).join(
-                candidate_snapshot, func.date(query_snapshot.timestamp) == func.date(
-                    candidate_snapshot.timestamp)
+                gallery_snapshot, func.date(query_snapshot.timestamp) == func.date(gallery_snapshot.timestamp)
             ).join(
-                candidate_answer_label, candidate_snapshot.id == candidate_answer_label.person_snapshot_id
+                gallery_answer_label, gallery_snapshot.id == gallery_answer_label.person_snapshot_id
             ).filter(
                 query_snapshot.id.in_(
                     [query_snapshot_id.id for query_snapshot_id in query_snapshot_ids]),
-                candidate_snapshot.is_junk.is_(False),
-                query_snapshot.id != candidate_snapshot.id,
+                gallery_snapshot.is_junk.is_(False),
+                query_snapshot.id != gallery_snapshot.id,
                 ~and_(
-                    query_snapshot.camera_id == candidate_snapshot.camera_id,
-                    query_answer_label.person_id == candidate_answer_label.person_id
+                    query_snapshot.camera_id == gallery_snapshot.camera_id,
+                    query_answer_label.person_id == gallery_answer_label.person_id
                 )
             ).subquery()
 
             rows = session.query(
                 rank_subquery.c.query_snapshot_id,
-                rank_subquery.c.candidate_snapshot_id,
+                rank_subquery.c.gallery_snapshot_id,
                 rank_subquery.c.rank
             ).filter(
-                rank_subquery.c.query_person_id == rank_subquery.c.candidate_person_id
+                rank_subquery.c.query_person_id == rank_subquery.c.gallery_person_id
             ).all()
 
             result: dict[DomainId, DomainReidRankSequence] = {}
@@ -587,7 +586,7 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 result[query_snapshot_id] = DomainReidRankSequence(
                     items=[
                         DomainReidRank(id=DomainId(
-                            id=row.candidate_snapshot_id), rank=row.rank)
+                            id=row.gallery_snapshot_id), rank=row.rank)
                         for row in rows if row.query_snapshot_id == query_snapshot_id.id
                     ]
                 )
@@ -605,51 +604,51 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         """
         with self.database as session:
             query_snapshot = aliased(MigrationModelPersonSnapshot)
-            candidate_snapshot = aliased(MigrationModelPersonSnapshot)
-            query_answer_label = aliased(
-                MigrationModelPersonSnapshotsAnswerLabels)
-            candidate_answer_label = aliased(
-                MigrationModelPersonSnapshotsAnswerLabels)
+            gallery_snapshot = aliased(MigrationModelPersonSnapshot)
+            query_answer_label = aliased(MigrationModelPersonSnapshotsAnswerLabels)
+            gallery_answer_label = aliased(MigrationModelPersonSnapshotsAnswerLabels)
 
             rank_subquery = session.query(
                 query_snapshot.id.label("query_snapshot_id"),
+                gallery_snapshot.id.label("gallery_snapshot_id"),
                 func.row_number().over(
                     partition_by=query_snapshot.id,
                     order_by=query_snapshot.feature.op(
-                        '<=>')(candidate_snapshot.feature)
+                        '<=>')(gallery_snapshot.feature)
                 ).label("rank"),
                 query_answer_label.person_id.label("query_person_id"),
-                candidate_answer_label.person_id.label("candidate_person_id")
+                gallery_answer_label.person_id.label("gallery_person_id")
             ).join(
                 query_answer_label, query_snapshot.id == query_answer_label.person_snapshot_id
             ).join(
-                candidate_snapshot, func.date(query_snapshot.timestamp) == func.date(
-                    candidate_snapshot.timestamp)
+                gallery_snapshot, func.date(query_snapshot.timestamp) == func.date(
+                    gallery_snapshot.timestamp)
             ).join(
-                candidate_answer_label, candidate_snapshot.id == candidate_answer_label.person_snapshot_id
+                gallery_answer_label, gallery_snapshot.id == gallery_answer_label.person_snapshot_id
             ).filter(
                 query_snapshot.id.in_(
                     [query_snapshot_id.id for query_snapshot_id in query_snapshot_ids]),
-                query_snapshot.id != candidate_snapshot.id,
+                query_snapshot.id != gallery_snapshot.id,
                 ~and_(
-                    query_snapshot.camera_id == candidate_snapshot.camera_id,
-                    query_answer_label.person_id == candidate_answer_label.person_id
+                    query_snapshot.camera_id == gallery_snapshot.camera_id,
+                    query_answer_label.person_id == gallery_answer_label.person_id
                 )
             ).subquery()
 
             rows = session.query(
                 rank_subquery.c.query_snapshot_id,
-                rank_subquery.c.candidate_snapshot_id,
+                rank_subquery.c.gallery_snapshot_id,
                 rank_subquery.c.rank
             ).filter(
-                rank_subquery.c.query_person_id == rank_subquery.c.candidate_person_id
+                rank_subquery.c.query_person_id == rank_subquery.c.gallery_person_id
             ).all()
 
             result: dict[DomainId, DomainReidRankSequence] = {}
             for query_snapshot_id in query_snapshot_ids:
                 result[query_snapshot_id] = DomainReidRankSequence(
                     items=[
-                        DomainReidRank(id=DomainId(id=row.candidate_snapshot_id), rank=row.rank)
+                        DomainReidRank(id=DomainId(
+                            id=row.gallery_snapshot_id), rank=row.rank)
                         for row in rows if row.query_snapshot_id == query_snapshot_id.id
                     ]
                 )
