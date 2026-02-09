@@ -8,6 +8,7 @@ class ModuleYoloObjectDetector:
     PERSON_CLASS: ClassVar[int] = 0
     IOU_THRESHOLD: ClassVar[float] = 0.5
     CONFIDENCE_THRESHOLD: ClassVar[float] = 0.5
+    DEVICE: ClassVar[str] = "cuda"
 
     def __init__(self):
         self.model = YOLO(self.WEIGHTS_PATH)
@@ -18,6 +19,7 @@ class ModuleYoloObjectDetector:
             classes=[self.PERSON_CLASS],
             iou=self.IOU_THRESHOLD,
             conf=self.CONFIDENCE_THRESHOLD,
+            device=self.DEVICE,
             verbose=False,
         )
         return results

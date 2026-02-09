@@ -5,10 +5,11 @@ from PIL import Image
 
 class ModuleYoloInstanceSegmenter:
     WEIGHTS_PATH: ClassVar[str] = "./resources/models/yolo11x-seg.pt"
+    DEVICE: ClassVar[str] = "cuda"
 
     def __init__(self):
         self.model = YOLO(self.WEIGHTS_PATH)
 
     def extract(self, image: Image.Image) -> Results:
-        results = self.model(image, verbose=False)
+        results = self.model(image, device=self.DEVICE, verbose=False)
         return results[0]
