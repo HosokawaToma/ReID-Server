@@ -26,7 +26,7 @@ class DomainYoloKeyPoints(DomainUtilsBase):
     left_ankle: DomainYoloKeyPoint
     right_ankle: DomainYoloKeyPoint
 
-    CONFIDENCE_THRESHOLD: ClassVar[float] = 0.5
+    CONFIDENCE_THRESHOLD: ClassVar[float] = 0.65
 
     def is_full_length(self) -> bool:
         key_points = [
