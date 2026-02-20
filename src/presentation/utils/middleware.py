@@ -1,3 +1,8 @@
+"""
+HTTP ミドルウェア
+
+リクエストID付与・APIログ・例外捕捉とエラーレスポンス返却を行う。
+"""
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
