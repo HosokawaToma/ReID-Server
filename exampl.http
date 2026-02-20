@@ -1,37 +1,430 @@
-@host = https://123.456.789.0/api/v1
-@admin_token =
-@camera_token =
+@host = http://localhost:8000/api/v1
+@token =
+@refresh_token =
 
-###
-POST {{host}}/auth/login/admin_client HTTP/1.1
+### 管理者ログイン
+# [概要]
+# 管理者権限でログインし、APIアクセス用のトークンを取得します。
+# 認証に成功すると、レスポンスボディにアクセストークンが含まれ、
+# Cookieにリフレッシュトークン（`refresh_token`）が設定されます。
+#
+# [パラメータ]
+# - id (str, required): 管理者ID（例: "admin"）
+# - password (str, required): パスワード
+#
+# [レスポンス]
+# - 200 OK: {"token": "eyJ..."}
+# - 401 Unauthorized: IDまたはパスワードが誤っている場合
+POST {{host}}/admin/auth/login HTTP/1.1
 Content-Type: application/json
 
 {
-    "admin_client_id": "admin",
+    "id": "admin",
     "password": "password"
 }
 
-###
-POST {{host}}/auth/login/camera_client HTTP/1.1
+### 管理者トークンリフレッシュ
+# [概要]
+# 有効期限切れなどで無効になったアクセストークンを、リフレッシュトークンを使用して再発行します。
+# リフレッシュトークンはCookieから自動的に読み取られます。
+#
+# [パラメータ]
+# - Cookie: refresh_token (required)
+#
+# [レスポンス]
+# - 200 OK: {"token": "eyJ..."} (新しいアクセストークン)
+# - 401 Unauthorized: リフレッシュトークンが無効または期限切れの場合
+POST {{host}}/admin/auth/token/refresh HTTP/1.1
+Cookie: refresh_token={{refresh_token}}
+
+### 人物スナップショット作成
+# [概要]
+# カメラから取得した人物画像をシステムに登録します。
+# 画像は一時保存され、バックグラウンドで非同期に以下の処理が行われます：
+# 1. 人物検出（YOLO）
+# 2. 特徴量抽出（ReIDモデル）
+# 3. 同一人物判定・ID割り当て
+#
+# [パラメータ]
+# - image (file, required): 人物が写っている画像ファイル（JPEG等）
+# - timestamp (datetime, required): 撮影日時（ISO8601形式）
+# - camera_id (int, required): 撮影したカメラのID
+# - view_id (int, required): カメラのビューID（画角識別用）
+#
+# [レスポンス]
+# - 200 OK: {"message": "Person snapshot created"}
+POST {{host}}/person/snapshot/create HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="image"; filename="person.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/image.jpg
+--boundary
+Content-Disposition: form-data; name="timestamp"
+
+2024-01-01T12:00:00
+--boundary
+Content-Disposition: form-data; name="camera_id"
+
+1
+--boundary
+Content-Disposition: form-data; name="view_id"
+
+1
+--boundary--
+
+### 人物スナップショット検索
+# [概要]
+# 蓄積された人物スナップショットを様々な条件で検索します。
+# ページネーションに対応しており、URLの末尾でページ番号を指定します。
+#
+# [パスパラメータ]
+# - page (int): ページ番号（1始まり）
+#
+# [ボディパラメータ（検索条件）]
+# - ids (list[uuid]): 特定のスナップショットIDで絞り込み
+# - camera_ids (list[int]): カメラIDで絞り込み
+# - view_ids (list[int]): ビューIDで絞り込み
+# - is_junk (bool): ゴミ（誤検出など）かどうかで絞り込み（true: ゴミのみ, false: 有効なもののみ, null: 全て）
+# - person_ids (list[uuid]): 同定された人物IDで絞り込み
+# - timestamp_after (datetime): 指定日時以降のデータを検索
+# - timestamp_before (datetime): 指定日時以前のデータを検索
+# - sort_by_list (list[str]): ソート順（"timestamp_asc", "timestamp_desc"）
+#
+# [レスポンス]
+# - 200 OK: {"person_snapshots": [...], "pagination": {...}}
+POST {{host}}/person/snapshot/search/1 HTTP/1.1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "camera_client_id": "camera1",
-    "password": "camera1"
+    "ids": [],
+    "camera_ids": [1],
+    "view_ids": [1],
+    "is_junk": false,
+    "person_ids": [],
+    "timestamp_after": "2024-01-01T00:00:00",
+    "timestamp_before": "2024-01-02T00:00:00",
+    "sort_by_list": ["timestamp_desc"]
 }
 
-###
-POST {{host}}/auth/refresh/admin_client HTTP/1.1
-Authorization: Bearer {{admin_token}}
-
-###
-POST {{host}}/camera_clients/create HTTP/1.1
-Authorization: Bearer {{camera_token}}
+### 人物スナップショット更新（再同定キュー投入）
+# [概要]
+# 既存のスナップショットに対して、再同定（ReID）処理を再実行するためのキューに投入します。
+# アルゴリズムの改善やパラメータ変更後に、過去のデータに対してIDを再割り当てしたい場合に使用します。
+#
+# [ボディパラメータ（対象指定）]
+# - timestamp_after / timestamp_before: 対象期間
+# - camera_ids / view_ids: 対象カメラ
+# ※条件を指定しない場合、全データが対象となります。
+#
+# [レスポンス]
+# - 200 OK: {"message": "Person snapshots refreshed"}
+POST {{host}}/person/snapshot/refresh HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
 
 {
-    "camera_client_id": "camera1",
-    "password": "camera1",
-    "camera_id": 1,
-    "view_id": 1
+    "timestamp_after": "2024-01-01T00:00:00",
+    "timestamp_before": "2024-01-02T00:00:00",
+    "camera_ids": [1],
+    "view_ids": [1]
 }
 
+### 人物スナップショット更新（ジャンク判定キュー投入）
+# [概要]
+# 既存のスナップショットに対して、ジャンク（ゴミ画像）判定を再実行するためのキューに投入します。
+# 誤検出除去ロジックを更新した際に使用します。
+#
+# [ボディパラメータ]
+# - ids: 特定IDのみ対象にする場合
+# - timestamp_after / timestamp_before: 対象期間
+#
+# [レスポンス]
+# - 200 OK: {"message": "Person snapshot detect junk refreshed"}
+POST {{host}}/person/snapshot/refresh/detect_junk HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "ids": [],
+    "timestamp_after": "2024-01-01T00:00:00",
+    "timestamp_before": "2024-01-02T00:00:00"
+}
+
+### 人物スナップショット更新（特徴量抽出キュー投入）
+# [概要]
+# 既存のスナップショットに対して、特徴量ベクトル抽出を再実行するためのキューに投入します。
+# ReIDモデル（重み）を更新した際に、過去データの特徴量を新しいモデルで計算し直すために使用します。
+#
+# [ボディパラメータ]
+# - ids: 特定IDのみ対象にする場合
+# - timestamp_after / timestamp_before: 対象期間
+#
+# [レスポンス]
+# - 200 OK: {"message": "Person snapshot feature extract refreshed"}
+POST {{host}}/person/snapshot/refresh/feature_extract HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "ids": [],
+    "timestamp_after": "2024-01-01T00:00:00",
+    "timestamp_before": "2024-01-02T00:00:00"
+}
+
+### 人物フロ―検索
+# [概要]
+# 特定の人物（person_id）の移動軌跡（フロー）を検索します。
+# 「いつ」「どのカメラから」「どのカメラへ」移動したかという時系列データを取得できます。
+#
+# [ボディパラメータ]
+# - person_id (uuid, required): 追跡対象の人物ID
+# - timestamp_after / timestamp_before: 検索期間
+#
+# [レスポンス]
+# - 200 OK: {"person_flows": [{"source_camera_id": 1, "target_camera_id": 2, ...}, ...]}
+POST {{host}}/person/flow/search HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "person_id": "00000000-0000-0000-0000-000000000000",
+    "timestamp_after": "2024-01-01T00:00:00",
+    "timestamp_before": "2024-01-02T00:00:00"
+}
+
+### 人物フロ―重み検索
+# [概要]
+# カメラ間の移動量（エッジの重み）を集計します。
+# 施設内の人の流れの傾向（どのルートがよく使われるか）を分析するのに役立ちます。
+#
+# [ボディパラメータ]
+# - timestamp_after / timestamp_before: 集計期間
+#
+# [レスポンス]
+# - 200 OK: {"weights": [{"source_camera_id": 1, "target_camera_id": 2, "weight": 100}, ...]}
+POST {{host}}/person/flow/weight/search HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "timestamp_after": "2024-01-01T00:00:00",
+    "timestamp_before": "2024-01-02T00:00:00"
+}
+
+### カメラフレーム検索
+# [概要]
+# カメラから送信されたフレーム画像（人物切り出し前の元画像）のメタデータを検索します。
+#
+# [パスパラメータ]
+# - page (int): ページ番号
+#
+# [ボディパラメータ]
+# - camera_ids / view_ids: カメラ・ビュー指定
+# - timestamp_after / timestamp_before: 期間指定
+# - sort_by_list: ソート順
+#
+# [レスポンス]
+# - 200 OK: {"camera_frames": [...], "pagination": {...}}
+POST {{host}}/frame/search/1 HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "ids": [],
+    "camera_ids": [1],
+    "view_ids": [1],
+    "timestamp_after": "2024-01-01T00:00:00",
+    "timestamp_before": "2024-01-02T00:00:00",
+    "sort_by_list": ["timestamp_desc"]
+}
+
+### カメラフレーム画像取得
+# [概要]
+# カメラフレームの実データ（画像バイナリ）を取得します。
+#
+# [パスパラメータ]
+# - id (uuid): カメラフレームID
+#
+# [レスポンス]
+# - 200 OK: 画像データ (Content-Type: image/jpeg 等)
+# - 404 Not Found: 画像が存在しない場合
+GET {{host}}/camera_frame/image/search/00000000-0000-0000-0000-000000000000 HTTP/1.1
+Authorization: Bearer {{token}}
+
+### 人物スナップショット画像取得
+# [概要]
+# 人物スナップショットの実データ（切り出し画像バイナリ）を取得します。
+#
+# [パスパラメータ]
+# - id (uuid): 人物スナップショットID
+#
+# [レスポンス]
+# - 200 OK: 画像データ (Content-Type: image/jpeg 等)
+# - 404 Not Found: 画像が存在しない場合
+GET {{host}}/person/snapshot/image/search/00000000-0000-0000-0000-000000000000 HTTP/1.1
+Authorization: Bearer {{token}}
+
+### 人物スナップショット検索（ジャンククエリ）
+# [概要]
+# ReID精度評価用。指定した日付において、システムまたは人手により「ジャンク（ゴミ）」と判定された
+# スナップショットIDの一覧を取得します。これらは評価時にクエリ（検索元）として使用すべきかどうかの判断に使われます。
+#
+# [パスパラメータ]
+# - date (date): 対象日 (YYYY-MM-DD)
+# - page (int): ページ番号
+#
+# [レスポンス]
+# - 200 OK: {"person_snapshot_query_ids": [...], "pagination": {...}}
+POST {{host}}/person/snapshot/search/query/is_junk/2024-01-01/1 HTTP/1.1
+Authorization: Bearer {{token}}
+
+### 人物スナップショット検索（非ジャンククエリ）
+# [概要]
+# ReID精度評価用。指定した日付において、「ジャンクではない（有効な人物画像）」と判定された
+# スナップショットIDの一覧を取得します。これをクエリセットとして評価を行います。
+#
+# [パスパラメータ]
+# - date (date): 対象日 (YYYY-MM-DD)
+# - page (int): ページ番号
+#
+# [レスポンス]
+# - 200 OK: {"person_snapshot_query_ids": [...], "pagination": {...}}
+POST {{host}}/person/snapshot/search/query/is_not_junk/2024-01-01/1 HTTP/1.1
+Authorization: Bearer {{token}}
+
+### 人物スナップショット検索（ギャラリー・ジャンク含む）
+# [概要]
+# ReID精度評価用。あるスナップショット（クエリ）に対し、同日の別カメラで撮影された全スナップショット（ギャラリー）を
+# 特徴量の類似度が高い順に並べてID一覧を返します。ここではジャンク画像も検索対象（ギャラリー）に含まれます。
+#
+# [パスパラメータ]
+# - person_snapshot_id (uuid): クエリとなるスナップショットID
+#
+# [レスポンス]
+# - 200 OK: {"person_snapshot_gallery_ids": [...]} (類似度順のIDリスト)
+POST {{host}}/person/snapshot/search/gallery/contains_junk/00000000-0000-0000-0000-000000000000 HTTP/1.1
+Authorization: Bearer {{token}}
+
+### 人物スナップショット検索（ギャラリー・ジャンク除く）
+# [概要]
+# ReID精度評価用。あるスナップショット（クエリ）に対し、同日の別カメラで撮影されたスナップショット（ギャラリー）を
+# 特徴量の類似度が高い順に並べてID一覧を返します。ここではジャンク画像は検索対象から除外されます。
+#
+# [パスパラメータ]
+# - person_snapshot_id (uuid): クエリとなるスナップショットID
+#
+# [レスポンス]
+# - 200 OK: {"person_snapshot_gallery_ids": [...]} (類似度順のIDリスト)
+POST {{host}}/person/snapshot/search/gallery/not_contains_junk/00000000-0000-0000-0000-000000000000 HTTP/1.1
+Authorization: Bearer {{token}}
+
+### 人物スナップショット検索（ランキング）
+# [概要]
+# 特定のスナップショットに類似する画像をランキング形式で取得します。
+# 評価用APIと似ていますが、こちらはページネーション付きで、詳細なオブジェクト情報を返します。
+# UIでの類似画像検索などに使用できます。
+#
+# [パスパラメータ]
+# - person_snapshot_id (uuid): クエリID
+# - page (int): ページ番号
+#
+# [レスポンス]
+# - 200 OK: {"person_snapshots": [...], "pagination": {...}}
+POST {{host}}/person/snapshot/search/rank/00000000-0000-0000-0000-000000000000/1 HTTP/1.1
+Authorization: Bearer {{token}}
+
+### 人物スナップショット検索（最近傍）
+# [概要]
+# 特定のスナップショットに最も特徴量が近いスナップショット（Nearest Neighbors）を検索します。
+# ランキング検索と類似していますが、こちらはより純粋な特徴量空間での近傍探索を意図しています。
+#
+# [パスパラメータ]
+# - person_snapshot_id (uuid): クエリID
+# - page (int): ページ番号
+#
+# [レスポンス]
+# - 200 OK: {"person_snapshots": [...], "pagination": {...}}
+POST {{host}}/person/snapshot/search/nearest/00000000-0000-0000-0000-000000000000/1 HTTP/1.1
+Authorization: Bearer {{token}}
+
+### 正解ラベル検索
+# [概要]
+# 人物スナップショットに対して付与された正解ラベル（Ground Truth: person_id）を検索します。
+# アノテーション作業の進捗確認や、特定の人物IDが付与された画像の確認に使用します。
+#
+# [ボディパラメータ]
+# - person_snapshot_ids: スナップショットIDで絞り込み
+# - person_ids: 人物IDで絞り込み
+# - is_junk: ジャンクフラグで絞り込み
+#
+# [レスポンス]
+# - 200 OK: {"person_snapshot_answers": [{"id": "...", "person_id": "...", "is_junk": false}, ...]}
+POST {{host}}/person/snapshot/answer/search HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "person_snapshot_ids": [],
+    "person_ids": [],
+    "is_junk": false,
+    "sort_by_list": ["created_at_desc"]
+}
+
+### 正解ラベル割当
+# [概要]
+# アノテーションツール用API。
+# あるスナップショット（source）の正解ラベル（person_id）を、他の複数のスナップショット（target）に一括適用します。
+# 同一人物と思われる画像群に対して、まとめて同じIDを付与する際に便利です。
+#
+# [ボディパラメータ]
+# - source_person_snapshot_id (uuid, required): コピー元のID
+# - target_person_snapshot_ids (list[uuid], required): コピー先のIDリスト
+#
+# [レスポンス]
+# - 200 OK: {"message": "Answer label assigned"}
+POST {{host}}/person/snapshot/answer/assign HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "source_person_snapshot_id": "00000000-0000-0000-0000-000000000000",
+    "target_person_snapshot_ids": ["00000000-0000-0000-0000-000000000000"]
+}
+
+### 正解ラベル削除
+# [概要]
+# アノテーションツール用API。
+# 指定したスナップショットから正解ラベル（person_id）を削除し、未ラベル状態に戻します。
+#
+# [パスパラメータ]
+# - person_snapshot_id (uuid): 対象スナップショットID
+#
+# [レスポンス]
+# - 200 OK: {"message": "Answer label deleted"}
+POST {{host}}/person/snapshot/answer/delete/00000000-0000-0000-0000-000000000000 HTTP/1.1
+Authorization: Bearer {{token}}
+
+### ReID評価
+# [概要]
+# 指定した日付のデータセットを用いて、現在のReIDモデルの精度評価を実行します。
+# 評価指標として、CMC曲線（Cumulative Match Characteristic）とmAP（mean Average Precision）を計算します。
+# ジャンク画像を含めた場合と除外した場合の両方のスコアが返されます。
+#
+# [パスパラメータ]
+# - date (date): 評価対象日 (YYYY-MM-DD)
+# - attempt (int): 試行回数（同日に複数回評価する場合の識別子）
+#
+# [レスポンス]
+# - 200 OK: {
+#     "cmc_curve_with_junk": [...],
+#     "cmc_curve_without_junk": [...],
+#     "map_with_junk": 0.95,
+#     "map_without_junk": 0.98,
+#     "query_person_ids": [...]
+#   }
+GET {{host}}/reid/evaluation/2024-01-01/1 HTTP/1.1
