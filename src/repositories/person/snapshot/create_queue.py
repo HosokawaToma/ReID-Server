@@ -1,3 +1,9 @@
+"""
+人物検出キュー（作成用）のリポジトリ
+
+カメラフレーム画像を人物検出キューに投入・取得する責務を持つ。
+Redis・DB・ストレージを利用してキューと永続化を行う。
+"""
 from repositories.utils.redis import RepositoryUtilRedis
 from repositories.utils.redis import RepositoryUtilRedisKey
 from repositories.utils.database import RepositoryUtilDatabase
@@ -15,18 +21,35 @@ from uuid import UUID
 
 
 class RepositoryPersonSnapshotCreateQueue:
+    """
+    人物検出キュー（作成用）のリポジトリクラス
+
+    カメラフレーム画像をキューに push/pop し、ストレージ・DB と同期する。
+    """
+
     def __init__(
         self,
         redis: RepositoryUtilRedis,
         database: RepositoryUtilDatabase,
         storage: RepositoryUtilStorage,
     ):
+        """
+        :param RepositoryUtilRedis redis: Redis ユーティリティ
+        :param RepositoryUtilDatabase database: データベースユーティリティ
+        :param RepositoryUtilStorage storage: ストレージユーティリティ
+        """
         self.redis = redis
         self.database = database
         self.storage = storage
 
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryPersonSnapshotCreateQueue":
+        """
+        インスタンスを生成する。
+
+        :param Environment environment: 環境設定
+        :return RepositoryPersonSnapshotCreateQueue: リポジトリインスタンス
+        """
         return cls(
             redis=RepositoryUtilRedis.create(environment),
             database=RepositoryUtilDatabase.create(environment),
@@ -34,14 +57,28 @@ class RepositoryPersonSnapshotCreateQueue:
         )
 
     def _model_to_domain(self, model: MigrationModelCameraFrame, image: DomainImage) -> DomainCameraFrameImage:
+        """
+        マイグレーションモデルと画像からドメインのカメラフレーム画像を組み立てる。
+
+        :param MigrationModelCameraFrame model: カメラフレームのDBモデル
+        :param DomainImage image: 画像ドメイン
+        :return DomainCameraFrameImage: カメラフレーム画像ドメイン
+        """
         return DomainCameraFrameImage(
             id=DomainId(id=model.id),
-            location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+            location=DomainLocation(
+                camera_id=model.camera_id, view_id=model.view_id),
             timestamp=DomainTimestamp(timestamp=model.timestamp),
             image=image,
         )
 
     def _domain_to_model(self, domain: DomainCameraFrameImage) -> MigrationModelCameraFrame:
+        """
+        ドメインのカメラフレーム画像をマイグレーションモデルに変換する。
+
+        :param DomainCameraFrameImage domain: カメラフレーム画像ドメイン
+        :return MigrationModelCameraFrame: カメラフレームのDBモデル
+        """
         return MigrationModelCameraFrame(
             id=domain.id.id,
             camera_id=domain.location.camera_id,
@@ -70,10 +107,18 @@ class RepositoryPersonSnapshotCreateQueue:
         )
 
     def pop(self) -> DomainCameraFrameImage:
-        data = self.redis.dequeue(RepositoryUtilRedisKey.PERSON_SNAPSHOT_CREATE)
+        """
+        人物検出キューから1件取り出し、ストレージ・DBから画像とメタデータを取得して返す。
+
+        :return DomainCameraFrameImage: カメラフレーム画像
+        :raises NotFoundError: キューで参照しているIDの画像がDBに存在しない場合
+        """
+        data = self.redis.dequeue(
+            RepositoryUtilRedisKey.PERSON_SNAPSHOT_CREATE)
         with self.database as session:
             query = session.query(MigrationModelCameraFrame)
-            query = query.filter(MigrationModelCameraFrame.id == UUID(data["id"]))
+            query = query.filter(
+                MigrationModelCameraFrame.id == UUID(data["id"]))
             model = query.first()
             if model is None:
                 raise NotFoundError("画像が見つかりません")

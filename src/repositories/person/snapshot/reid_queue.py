@@ -1,3 +1,9 @@
+"""
+人物検出再識別キュー用リポジトリ
+
+人物検出結果またはそのIDを再識別キューに投入・取得する責務を持つ。
+Redis・DB・ストレージを利用する。
+"""
 from error import Error, NotFoundError
 from environment import Environment
 from repositories.utils.database import RepositoryUtilDatabase
@@ -19,18 +25,36 @@ import torch
 
 
 class RepositoryPersonSnapshotReidQueue:
+    """
+    人物検出再識別キュー用リポジトリクラス
+
+    人物検出結果（画像付き）またはIDをキューに push し、pop 時に
+    DB から人物検出特徴ドメイン（画像なし）を組み立てて返す。
+    """
+
     def __init__(
         self,
         redis: RepositoryUtilRedis,
         database: RepositoryUtilDatabase,
         storage: RepositoryUtilStorage,
     ):
+        """
+        :param RepositoryUtilRedis redis: Redis ユーティリティ
+        :param RepositoryUtilDatabase database: データベースユーティリティ
+        :param RepositoryUtilStorage storage: ストレージユーティリティ
+        """
         self.redis = redis
         self.database = database
         self.storage = storage
 
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryPersonSnapshotReidQueue":
+        """
+        インスタンスを生成する。
+
+        :param Environment environment: 環境設定
+        :return RepositoryPersonSnapshotReidQueue: インスタンス
+        """
         return cls(
             redis=RepositoryUtilRedis.create(environment),
             database=RepositoryUtilDatabase.create(environment),
@@ -110,18 +134,28 @@ class RepositoryPersonSnapshotReidQueue:
             raise errors[0]
 
     def pop(self) -> DomainPersonSnapshotFeature:
+        """
+        再識別キューから1件取り出し、DBから人物検出特徴（画像なし）を組み立てて返す。
+
+        :return DomainPersonSnapshotFeature: 人物検出特徴（ID・位置・時刻・特徴量・person_id）
+        :raises NotFoundError: キューで参照しているIDの人物検出結果がDBに存在しない場合
+        """
         data = self.redis.dequeue(RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID)
         with self.database as session:
-            model = session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id == data["id"]).first()
+            model = session.query(MigrationModelPersonSnapshot).filter(
+                MigrationModelPersonSnapshot.id == data["id"]).first()
             if model is None:
                 raise NotFoundError("人物検出結果が見つかりません")
             return DomainPersonSnapshotFeature(
                 id=DomainId(id=model.id),
-                location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                location=DomainLocation(
+                    camera_id=model.camera_id, view_id=model.view_id),
                 timestamp=DomainTimestamp(timestamp=model.timestamp),
-                feature=DomainPersonFeature(feature=torch.tensor(model.feature)),
+                feature=DomainPersonFeature(
+                    feature=torch.tensor(model.feature)),
                 person_id=DomainPersonId(
-                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                    id=DomainId(
+                        id=model.person_id) if model.person_id is not None else None,
                     is_junk=model.is_junk,
                 ),
             )
