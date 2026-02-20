@@ -1,7 +1,7 @@
 """
 バックグラウンドアプリケーション用ユーティリティ基底
 
-環境からインスタンスを生成する抽象基底を定義する。
+環境変数からインスタンスを生成する抽象基底を定義する。
 """
 from environment import Environment
 from typing import Type, TypeVar
@@ -15,15 +15,15 @@ class BackgroundApplicationUtilsBase(ABC):
     """
     バックグラウンドアプリケーションの抽象基底クラス。
 
-    環境から create でインスタンスを生成する。
+    環境変数から create でインスタンスを生成する。
     """
     @classmethod
     @abstractmethod
     def create(cls: Type[T], environment: Environment) -> T:
         """
-        環境からインスタンスを生成する。サブクラスで実装する。
+        環境変数からインスタンスを生成する。サブクラスで実装する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return T: アプリケーションインスタンス
         """
         pass

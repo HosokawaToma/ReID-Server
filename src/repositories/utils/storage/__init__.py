@@ -34,9 +34,9 @@ class RepositoryUtilStorage:
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryUtilStorage":
         """
-        環境に定義されたストレージディレクトリからインスタンスを生成する。
+        環境変数に定義されたストレージディレクトリからインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return RepositoryUtilStorage: ストレージユーティリティインスタンス
         """
         return cls(

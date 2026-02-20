@@ -48,9 +48,9 @@ class RepositoryUtilDatabase:
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryUtilDatabase":
         """
-        環境からデータベースユーティリティインスタンスを生成する。
+        環境変数からデータベースユーティリティインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return RepositoryUtilDatabase: データベースユーティリティインスタンス
         """
         return cls(

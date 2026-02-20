@@ -24,7 +24,7 @@ def get_admin_client_auth_application(
     """
     OAuth2 認証アプリケーションを取得する。Depends 用。
 
-    :param Environment environment: 環境設定
+    :param Environment environment: 環境変数
     :return ApplicationAdminClientAuthOAuth2: OAuth2 アプリケーション
     """
     return ApplicationAdminClientAuthOAuth2.create(environment)

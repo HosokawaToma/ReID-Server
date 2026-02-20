@@ -41,9 +41,9 @@ class BackgroundApplicationPersonSnapshotDetectJunk(BackgroundApplicationUtilsBa
     @classmethod
     def create(cls, environment: Environment) -> "BackgroundApplicationPersonSnapshotDetectJunk":
         """
-        環境からバックグラウンドアプリケーションインスタンスを生成する。
+        環境変数からバックグラウンドアプリケーションインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return BackgroundApplicationPersonSnapshotDetectJunk: バックグラウンドアプリケーションインスタンス
         """
         return cls(

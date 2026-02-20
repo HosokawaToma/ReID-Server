@@ -33,9 +33,9 @@ class BackgroundPersonSnapshotReid(BackgroundPresentationUtilsBase):
     @classmethod
     def create(cls, environment: Environment) -> "BackgroundPersonSnapshotReid":
         """
-        環境からプレゼンテーションインスタンスを生成する。
+        環境変数からプレゼンテーションインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return BackgroundPersonSnapshotReid: プレゼンテーションインスタンス
         """
         return cls(

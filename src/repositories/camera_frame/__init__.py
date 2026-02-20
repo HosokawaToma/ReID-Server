@@ -34,9 +34,9 @@ class RepositoryCameraFrame(RepositoryUtilBase):
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryCameraFrame":
         """
-        環境からリポジトリインスタンスを生成する。
+        環境変数からリポジトリインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return RepositoryCameraFrame: リポジトリインスタンス
         """
         return cls(

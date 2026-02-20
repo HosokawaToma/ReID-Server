@@ -1,7 +1,7 @@
 """
 プレゼンテーション用ファクトリ
 
-アップロード画像のDTO変換と、環境に依存するアプリケーションの取得を提供する。
+アップロード画像のDTO変換と、環境変数に依存するアプリケーションの取得を提供する。
 """
 from fastapi import UploadFile
 from dto.image import DtoImage
@@ -42,16 +42,16 @@ T = TypeVar("T", bound=ApplicationBase)
 
 def get_environment() -> Environment:
     """
-    環境設定を取得する。FastAPI の Depends で利用する。
+    環境変数を取得する。FastAPI の Depends で利用する。
 
-    :return Environment: 環境設定
+    :return Environment: 環境変数
     """
     return Environment()
 
 
 class PresentationUtilApplicationFactory(Generic[T]):
     """
-    環境設定からアプリケーションインスタンスを生成するファクトリ。FastAPI の Depends で利用する。
+    環境変数からアプリケーションインスタンスを生成するファクトリ。FastAPI の Depends で利用する。
     """
 
     def __init__(self, app_type: Type[T]):
@@ -64,9 +64,9 @@ class PresentationUtilApplicationFactory(Generic[T]):
 
     def __call__(self, environment: Environment = Depends(get_environment)) -> T:
         """
-        環境からアプリケーションインスタンスを生成する。
+        環境変数からアプリケーションインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return T: アプリケーションインスタンス
         """
         return self.app_type.create(environment)

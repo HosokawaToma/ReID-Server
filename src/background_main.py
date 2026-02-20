@@ -42,9 +42,9 @@ class BackgroundMain:
     @classmethod
     def create(cls, environment: Environment) -> "BackgroundMain":
         """
-        環境からバックグラウンドメインインスタンスを生成する。
+        環境変数からバックグラウンドメインインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return BackgroundMain: バックグラウンドメインインスタンス
         """
         return cls(

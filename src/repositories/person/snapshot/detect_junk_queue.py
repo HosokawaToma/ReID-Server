@@ -51,7 +51,7 @@ class RepositoryPersonSnapshotDetectJunkQueue:
         """
         インスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return RepositoryPersonSnapshotDetectJunkQueue: インスタンス
         """
         return cls(

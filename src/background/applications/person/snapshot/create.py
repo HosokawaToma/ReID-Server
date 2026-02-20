@@ -50,9 +50,9 @@ class BackgroundApplicationPersonSnapshotCreate(BackgroundApplicationUtilsBase):
     @classmethod
     def create(cls, environment: Environment) -> "BackgroundApplicationPersonSnapshotCreate":
         """
-        環境からバックグラウンドアプリケーションインスタンスを生成する。
+        環境変数からバックグラウンドアプリケーションインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return BackgroundApplicationPersonSnapshotCreate: バックグラウンドアプリケーションインスタンス
         """
         return cls(

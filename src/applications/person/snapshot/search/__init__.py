@@ -44,9 +44,9 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationPersonSnapshotSearch":
         """
-        環境からアプリケーションインスタンスを生成する。
+        環境変数からアプリケーションインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return ApplicationPersonSnapshotSearch: アプリケーションインスタンス
         """
         return cls(

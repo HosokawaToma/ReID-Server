@@ -47,7 +47,7 @@ class RepositoryPersonSnapshotCreateQueue:
         """
         インスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return RepositoryPersonSnapshotCreateQueue: リポジトリインスタンス
         """
         return cls(

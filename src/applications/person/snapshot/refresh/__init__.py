@@ -35,9 +35,9 @@ class ApplicationPersonSnapshotRefresh(ApplicationBase):
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationPersonSnapshotRefresh":
         """
-        環境からアプリケーションインスタンスを生成する。
+        環境変数からアプリケーションインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return ApplicationPersonSnapshotRefresh: アプリケーションインスタンス
         """
         return cls(

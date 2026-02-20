@@ -31,9 +31,9 @@ class RepositoryImage:
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryImage":
         """
-        環境に定義されたストレージディレクトリからインスタンスを生成する。
+        環境変数に定義されたストレージディレクトリからインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return RepositoryImage: リポジトリインスタンス
         """
         return cls(storage=RepositoryUtilStorage.create(environment))

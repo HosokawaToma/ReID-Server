@@ -33,9 +33,9 @@ class BackgroundPersonSnapshotDetectJunk(BackgroundPresentationUtilsBase):
     @classmethod
     def create(cls, environment: Environment) -> "BackgroundPersonSnapshotDetectJunk":
         """
-        環境からプレゼンテーションインスタンスを生成する。
+        環境変数からプレゼンテーションインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return BackgroundPersonSnapshotDetectJunk: プレゼンテーションインスタンス
         """
         return cls(

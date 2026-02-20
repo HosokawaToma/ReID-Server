@@ -51,9 +51,9 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryPersonSnapshot":
         """
-        環境からリポジトリインスタンスを生成する。
+        環境変数からリポジトリインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return RepositoryPersonSnapshot: リポジトリインスタンス
         """
         return cls(database=RepositoryUtilDatabase.create(environment))

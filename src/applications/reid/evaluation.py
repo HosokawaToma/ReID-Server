@@ -40,9 +40,9 @@ class ApplicationReidEvaluation(ApplicationBase):
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationReidEvaluation":
         """
-        環境からアプリケーションインスタンスを生成する。
+        環境変数からアプリケーションインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return ApplicationReidEvaluation: アプリケーションインスタンス
         """
         return cls(
@@ -52,7 +52,8 @@ class ApplicationReidEvaluation(ApplicationBase):
 
     def calculate(self, date: DtoDate, attempt: int) -> tuple[DtoReidCmcCurve, DtoReidCmcCurve, DtoReidMap, DtoReidMap, list[DtoId]]:
         """
-        1~50位までのCMC曲線とmAPを計算する
+        CMC曲線とmAPを計算する
+        CMC曲線は1~50位までを計算する
         ギャラリーデータにゴミデータを含めるケースと含めないケースでそれぞれ計算する
         :param DtoDate date: 日付
         :param int attempt: 試行回数

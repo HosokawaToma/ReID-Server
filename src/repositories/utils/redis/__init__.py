@@ -43,9 +43,9 @@ class RepositoryUtilRedis:
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryUtilRedis":
         """
-        環境からRedisユーティリティインスタンスを生成する。
+        環境変数からRedisユーティリティインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return RepositoryUtilRedis: Redisユーティリティインスタンス
         """
         return cls(

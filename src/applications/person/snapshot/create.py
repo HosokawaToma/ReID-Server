@@ -40,9 +40,9 @@ class ApplicationPersonSnapshotCreate(ApplicationBase):
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationPersonSnapshotCreate":
         """
-        環境からキューリポジトリを組み立て、アプリケーションインスタンスを生成する。
+        環境変数からキューリポジトリを組み立て、アプリケーションインスタンスを生成する。
 
-        :param Environment environment: 環境設定（Redis・DB・ストレージ接続先）
+        :param Environment environment: 環境変数（Redis・DB・ストレージ接続先）
         :return ApplicationPersonSnapshotCreate: アプリケーションインスタンス
         """
         return cls(

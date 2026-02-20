@@ -128,9 +128,9 @@ class ServerApp:
         environment: Environment,
     ) -> "ServerApp":
         """
-        環境からサーバアプリインスタンスを生成する。
+        環境変数からサーバアプリインスタンスを生成する。
 
-        :param Environment environment: 環境設定
+        :param Environment environment: 環境変数
         :return ServerApp: サーバアプリインスタンス
         """
         return cls(
