@@ -64,8 +64,9 @@ class RepositoryUtilDatabase:
     def __enter__(self) -> Session:
         """
         データベースのセッションを開く。
+
         :return Session: セッション
-        :raise DatabaseOpenError: セッションを開くことに失敗した場合
+        :raises InternalServerError: セッションが既に開いている場合、または接続に失敗した場合
         """
         if self._session is not None:
             raise InternalServerError("セッションがすでに開かれています")
@@ -87,14 +88,12 @@ class RepositoryUtilDatabase:
         traceback: TracebackType | None
     ) -> None:
         """
-        データベースのセッションを閉じる。
-        例外が発生した場合はロールバックを行う。
-        例外が発生しなかった場合はコミットを行う。
+        データベースのセッションを閉じる。例外が発生した場合はロールバック、そうでなければコミットを行う。
+
         :param Type[BaseException] | None exc_type: 例外の型
         :param BaseException | None exc_value: 例外の値
         :param TracebackType | None traceback: トレースバック
-        :raise RepositoryUtilDatabaseCloseError: セッションが開かれていない場合
-        :raise RepositoryUtilDatabaseCommitError: コミットに失敗した場合
+        :raises InternalServerError: セッションが開かれていない場合、またはコミットに失敗した場合
         """
         if self._session is None:
             raise InternalServerError("セッションが開かれていません")

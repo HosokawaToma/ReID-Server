@@ -15,12 +15,12 @@ from error import Error
 
 
 class DomainTimestampAddError(Error):
-    """時刻の加算処理で発生するエラー（現状は未使用）。"""
+    """現在は未使用。共通のエラークラスを送出する運用のため、このクラスは送出されない。"""
     pass
 
 
 class DomainTimestampSubError(Error):
-    """時刻の減算処理で発生するエラー（現状は未使用）。"""
+    """現在は未使用。共通のエラークラスを送出する運用のため、このクラスは送出されない。"""
     pass
 
 

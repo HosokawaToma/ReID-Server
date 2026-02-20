@@ -767,8 +767,8 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         人物検出結果の特徴量を取得します
         :param DomainId person_snapshot_id: 人物検出結果のID
         :return DomainPersonSnapshotFeature: 人物検出結果の特徴量
-        :raise NotFoundError: 人物検出結果が見つからない場合
-        :raise NotFoundError: 人物検出結果の特徴量が存在しない場合
+        :raises NotFoundError: 人物検出結果が見つからない場合
+        :raises NotFoundError: 人物検出結果の特徴量が存在しない場合
         """
         with self.database as session:
             model = session.query(MigrationModelPersonSnapshot).filter(
@@ -796,8 +796,8 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         同じ日付で過去に検出された特徴量が最も近い人物検出結果を取得します
         :param DomainPersonSnapshotFeature person_snapshot: 人物検出結果
         :return DomainPersonSnapshotFeature: 特徴量が最も近い人物検出結果
-        :raise NotFoundError: 特徴量が最も近い人物検出結果が見つからない場合
-        :raise NotFoundError: 特徴量が最も近い人物検出結果の特徴量が存在しない場合
+        :raises NotFoundError: 特徴量が最も近い人物検出結果が見つからない場合
+        :raises NotFoundError: 特徴量が最も近い人物検出結果の特徴量が存在しない場合
         """
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)

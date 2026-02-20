@@ -66,7 +66,7 @@ class RepositoryPersonSnapshotReidQueue:
         人物検出結果を再識別キューに追加します
         キューへの追加が失敗してもデータベースへの追加は行われます
         :param DomainPersonSnapshotImage person_snapshot: 人物検出結果
-        :raise RepositoryPersonSnapshotReidQueuePushError: キューへの追加が失敗した場合
+        :raises InternalServerError: キュー・ストレージ・DB への追加が失敗した場合
         """
         self.storage.save_image(
             image=person_snapshot.image,
@@ -94,7 +94,7 @@ class RepositoryPersonSnapshotReidQueue:
         人物検出結果を再識別キューに追加します
         キューへの追加が失敗してもデータベースへの追加は行われます
         :param DomainPersonSnapshotImageSequence person_snapshot_images: 人物検出結果のシーケンス
-        :raise RepositoryPersonSnapshotReidQueuePushAllError: 人物検出結果のシーケンスの中でキューへの追加が失敗した場合
+        :raises InternalServerError: シーケンスのいずれかでキュー・ストレージ・DB への追加が失敗した場合
         """
         errors = []
         for person_snapshot_image in person_snapshot_images:
@@ -110,7 +110,7 @@ class RepositoryPersonSnapshotReidQueue:
         人物検出結果を再識別キューに追加します
         キューへの追加が失敗してもデータベースへの追加は行われます
         :param DomainId id: 人物検出結果のID
-        :raise RepositoryPersonSnapshotReidQueuePushIdError: キューへの追加が失敗した場合
+        :raises InternalServerError: キューへの追加が失敗した場合
         """
         self.redis.push(
             key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID,
@@ -122,7 +122,7 @@ class RepositoryPersonSnapshotReidQueue:
         人物検出結果を再識別キューに追加します
         キューへの追加が失敗してもデータベースへの追加は行われます
         :param DomainIdSequence ids: 人物検出結果のIDのシーケンス
-        :raise RepositoryPersonSnapshotReidQueuePushIdsError: 人物検出結果のIDのシーケンスの中でキューへの追加が失敗した場合
+        :raises InternalServerError: シーケンスのいずれかでキューへの追加が失敗した場合
         """
         errors = []
         for id in ids:

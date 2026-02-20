@@ -91,7 +91,7 @@ class RepositoryPersonSnapshotCreateQueue:
         画像を人物検出キューに追加します
         キューへの追加が失敗してもストレージとデータベースへの追加は行われます
         :param DomainCameraFrameImage frame_image: 画像
-        :raise InternalServerError: 画像のキューへの追加が失敗した場合
+        :raises InternalServerError: 画像のキューへの追加が失敗した場合
         """
         with self.database as session:
             self.storage.save_image(

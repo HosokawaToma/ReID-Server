@@ -1,16 +1,10 @@
 """
 ドメインユーティリティ基底
 
-ドメインモデルの抽象基底クラスとエラーを定義する。
+ドメインモデルの抽象基底クラスを定義する。
 """
 from abc import ABC
 from dataclasses import dataclass, fields
-from error import Error
-
-
-class DomainUtilsBaseError(Error):
-    """ドメインユーティリティで発生するエラー。"""
-    pass
 
 
 @dataclass(frozen=True)

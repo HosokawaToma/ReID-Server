@@ -53,12 +53,11 @@ class ApplicationCameraFrameSearch(ApplicationBase):
         """
         ページ番号と検索条件に応じてカメラフレームの一覧を返す。
 
-        条件が None の場合は全件対象。ページングは 1 始まりで、1 ページあたりの件数は初期化時に指定した値を使用する。検索失敗時は ApplicationCameraFrameSearchError。
+        条件が None の場合は全件対象。ページングは 1 始まりで、1 ページあたりの件数は初期化時に指定した値を使用する。
 
         :param int page: ページ番号（1 以上）
         :param DtoCameraFrameQuery query: 検索条件（None の場合は条件なし）
         :return list[DtoCameraFrame]: 該当するカメラフレームのリスト
-        :raises ApplicationCameraFrameSearchError: 検索に失敗した場合
         """
         database_query = None
         if query is not None:
@@ -92,11 +91,10 @@ class ApplicationCameraFrameSearch(ApplicationBase):
         """
         検索条件に一致するカメラフレームの総件数と、1 ページあたり件数から求めた総ページ数を返す。
 
-        条件が None の場合は全件数。検索失敗時は ApplicationCameraFrameSearchError。
+        条件が None の場合は全件数。
 
         :param DtoCameraFrameQuery query: 検索条件（None の場合は条件なし）
         :return DtoPagination: 総件数と総ページ数
-        :raises ApplicationCameraFrameSearchError: 件数取得に失敗した場合
         """
         database_query = None
         if query is not None:

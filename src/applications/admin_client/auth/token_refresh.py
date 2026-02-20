@@ -76,7 +76,7 @@ class ApplicationAdminClientAuthTokenRefresh(ApplicationBase):
         アドミンクライアントのトークンを更新する
         :param DtoAdminClientAuthToken refresh_token: アドミンクライアントのトークン更新用トークン
         :return DtoAdminClientAuthResult: アドミンクライアントのトークン更新結果
-        :raises ApplicationAdminClientAuthTokenRefreshInvalidRefreshTokenError: アドミンクライアントのトークン更新用トークンが不正な場合に発生するエラー
+        :raises AuthenticationError: リフレッシュトークンが不正な場合、または期限切れの場合
         """
         client_token = DomainClientToken.decode(
             token=DomainToken(token=refresh_token.token),

@@ -42,7 +42,7 @@ class ApplicationPersonFlowWeightSearch(ApplicationBase):
         人流の重みを検索する
         :param DtoPersonFlowWeightQuery query: 人流の重み検索条件
         :return list[DtoPersonFlowWeight]: 人流の重みリスト
-        :raises ApplicationPersonFlowWeightSearchError: 人流の重み検索に失敗した場合に発生するエラー
+        :raises InternalServerError: 人流の重み検索に失敗した場合
         """
         filters = None
         if query is not None:

@@ -52,7 +52,8 @@ class ApplicationPersonSnapshotSearchRank(ApplicationBase):
         :param DtoId person_snapshot_id: クエリとする人物検出結果のID
         :param int page: ページ番号（1 始まり）
         :return list[DtoPersonSnapshotDetail]: ランキング順の人物検出詳細リスト
-        :raises ApplicationPersonSnapshotSearchRankError: 検索に失敗した場合
+        :raises NotFoundError: 指定した人物検出結果が見つからない場合
+        :raises InternalServerError: 検索に失敗した場合
         """
         person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(
             DomainId(id=person_snapshot_id.id))
@@ -75,7 +76,8 @@ class ApplicationPersonSnapshotSearchRank(ApplicationBase):
 
         :param DtoId person_snapshot_id: クエリとする人物検出結果のID
         :return DtoPagination: 総件数と総ページ数
-        :raises ApplicationPersonSnapshotSearchRankError: 件数取得に失敗した場合
+        :raises NotFoundError: 指定した人物検出結果が見つからない場合
+        :raises InternalServerError: 件数取得に失敗した場合
         """
         person_snapshot = self.repository_person_snapshot.find_detail_by_id(
             DomainId(id=person_snapshot_id.id))

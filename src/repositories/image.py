@@ -10,12 +10,6 @@ from repositories.utils.storage.paths.person_snapshot import RepositoryUtilStora
 from environment import Environment
 from domain.image import DomainImage
 from domain.id import DomainId
-from error import Error
-
-
-class RepositoryImageError(Error):
-    """画像リポジトリ層で発生するエラー（継承用）。"""
-    pass
 
 
 class RepositoryImage:

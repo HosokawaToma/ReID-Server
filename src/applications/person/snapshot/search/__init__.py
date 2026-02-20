@@ -67,7 +67,7 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
         :param int page: ページ番号（1 始まり）
         :param DtoPersonSnapshotQuery | None query: 検索条件（省略時は全件）
         :return list[DtoPersonSnapshotDetail]: 人物検出詳細のリスト
-        :raises ApplicationPersonSnapshotSearchError: 検索処理に失敗した場合
+        :raises InternalServerError: 検索処理に失敗した場合
         """
         database_query = None
         if query is not None:
@@ -107,7 +107,7 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
 
         :param DtoPersonSnapshotQuery | None query: 検索条件（省略時は全件）
         :return DtoPagination: 総件数と総ページ数
-        :raises ApplicationPersonSnapshotSearchError: 件数取得に失敗した場合
+        :raises InternalServerError: 件数取得に失敗した場合
         """
         database_query = None
         if query is not None:
@@ -136,7 +136,8 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
         :param DtoDate date: 対象日
         :param int page: ページ番号（1 始まり）
         :return list[DtoId]: 人物検出結果IDのリスト
-        :raises ApplicationPersonSnapshotSearchError: 検索に失敗した場合
+        :raises NotFoundError: 指定した人物検出結果が見つからない場合
+        :raises InternalServerError: 検索に失敗した場合
         """
         id_sequence = self.repository_person_snapshot.search_query_is_junk(
             date=DomainDate(year=date.year, month=date.month, day=date.day),
@@ -152,7 +153,7 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
 
         :param DtoDate date: 対象日
         :return DtoPagination: 総件数と総ページ数
-        :raises ApplicationPersonSnapshotSearchError: 件数取得に失敗した場合
+        :raises InternalServerError: 件数取得に失敗した場合
         """
         total_items = self.repository_person_snapshot.count_query_is_junk(
             date=DomainDate(year=date.year, month=date.month, day=date.day))
@@ -170,7 +171,8 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
         :param DtoDate date: 対象日
         :param int page: ページ番号（1 始まり）
         :return list[DtoId]: 人物検出結果IDのリスト
-        :raises ApplicationPersonSnapshotSearchError: 検索に失敗した場合
+        :raises NotFoundError: 指定した人物検出結果が見つからない場合
+        :raises InternalServerError: 検索に失敗した場合
         """
         id_sequence = self.repository_person_snapshot.search_query_is_not_junk(
             date=DomainDate(year=date.year, month=date.month, day=date.day),
@@ -186,7 +188,7 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
 
         :param DtoDate date: 対象日
         :return DtoPagination: 総件数と総ページ数
-        :raises ApplicationPersonSnapshotSearchError: 件数取得に失敗した場合
+        :raises InternalServerError: 件数取得に失敗した場合
         """
         total_items = self.repository_person_snapshot.count_query_is_not_junk(
             date=DomainDate(year=date.year, month=date.month, day=date.day))
@@ -203,7 +205,8 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
 
         :param DtoId person_snapshot_id: クエリとする人物検出結果のID
         :return list[DtoId]: ギャラリーに含まれる人物検出結果IDのリスト
-        :raises ApplicationPersonSnapshotSearchError: 検索に失敗した場合
+        :raises NotFoundError: 指定した人物検出結果が見つからない場合
+        :raises InternalServerError: 検索に失敗した場合
         :raises ValidationError: 正解データが無い場合
         """
         self._validate_search_gallery_contains_junk(
@@ -239,7 +242,8 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
 
         :param DtoId person_snapshot_id: クエリとする人物検出結果のID
         :return list[DtoId]: ギャラリーに含まれる人物検出結果IDのリスト
-        :raises ApplicationPersonSnapshotSearchError: 検索に失敗した場合
+        :raises NotFoundError: 指定した人物検出結果が見つからない場合
+        :raises InternalServerError: 検索に失敗した場合
         :raises ValidationError: 正解データが無い場合
         """
         self._validate_search_gallery_not_contains_junk(

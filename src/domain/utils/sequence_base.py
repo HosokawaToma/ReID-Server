@@ -9,16 +9,8 @@ from typing_extensions import Self
 from domain.utils.base import DomainUtilsBase
 from dataclasses import dataclass
 from typing import Iterator
-from error import Error
 
 T = TypeVar("T", bound=DomainUtilsBase)
-
-
-class DomainUtilsSequenceBaseError(Error):
-    """
-    シーケンス基底で発生するエラー。
-    """
-    pass
 
 
 @dataclass(frozen=True)

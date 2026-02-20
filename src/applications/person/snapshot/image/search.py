@@ -44,7 +44,9 @@ class ApplicationPersonSnapshotImageSearch(ApplicationBase):
 
         :param DtoId id: 人物検出結果のID（画像のキー）
         :return DtoImage: 画像のバイト列とフォーマット
-        :raises ApplicationPersonSnapshotImageSearchError: 画像が存在しないか取得に失敗した場合
+        :raises NotFoundError: 画像が存在しない、または読み込めない場合
+        :raises ConflictError: 同一 ID で複数拡張子のファイルが存在する場合
+        :raises InternalServerError: ストレージアクセス等で取得に失敗した場合
         """
         image = self.repository_image.find_person_snapshot(DomainId(id=id.id))
         return DtoImage(bytes=image.bytes, format=image.format)

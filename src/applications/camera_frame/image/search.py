@@ -41,7 +41,9 @@ class ApplicationCameraFrameImageSearch(ApplicationBase):
         カメラフレーム画像を検索する
         :param DtoId id: カメラフレーム画像のID
         :return DtoImage: カメラフレーム画像
-        :raises ApplicationCameraFrameImageSearchError: カメラフレーム画像検索に失敗した場合に発生するエラー
+        :raises NotFoundError: 画像が存在しない、または読み込めない場合
+        :raises ConflictError: 同一 ID で複数拡張子のファイルが存在する場合
+        :raises InternalServerError: ストレージアクセス等で取得に失敗した場合
         """
         image = self.repository_image.find_camera_frame(DomainId(id=id.id))
         return DtoImage(bytes=image.bytes, format=image.format)

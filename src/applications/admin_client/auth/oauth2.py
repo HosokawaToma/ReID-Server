@@ -52,7 +52,7 @@ class ApplicationAdminClientAuthOAuth2:
         アドミンクライアントのOAuth2認証を行う
         :param DtoAdminClientAuthToken token: アドミンクライアントのOAuth2認証トークン
         :return DtoAdminClientId: アドミンクライアントのID
-        :raises ApplicationAdminClientAuthOAuth2InvalidTokenError: アドミンクライアントのOAuth2認証トークンが不正な場合に発生するエラー
+        :raises AuthenticationError: トークンが不正な場合、または期限切れの場合
         """
         client_token = DomainClientToken.decode(
             token=DomainToken(token=token.token),

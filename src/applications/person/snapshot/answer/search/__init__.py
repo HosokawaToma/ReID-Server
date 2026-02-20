@@ -46,7 +46,7 @@ class ApplicationPersonSnapshotAnswerSearch(ApplicationBase):
 
         :param DtoPersonSnapshotAnswerQuery | None query: 検索条件（省略時は全件）
         :return list[DtoPersonSnapshotPersonId]: 正解ラベルDTOのリスト
-        :raises ApplicationPersonSnapshotAnswerSearchError: 検索に失敗した場合
+        :raises InternalServerError: 検索処理に失敗した場合
         """
         database_query = None
         if query is not None:
