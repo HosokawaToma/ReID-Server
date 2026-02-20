@@ -21,11 +21,28 @@ from presentation.utils.response import PresentationUtilJSONResponse
 
 
 class PresentationUtilMiddleware(BaseHTTPMiddleware):
+    """
+    HTTPミドルウェア。リクエストIDの付与、APIログ、例外の捕捉とエラーレスポンス返却を行う。
+    """
+
     def __init__(self, app: ASGIApp, logger: Logger):
+        """
+        ミドルウェアを初期化する。
+
+        :param ASGIApp app: ASGIアプリケーション
+        :param Logger logger: ロガー
+        """
         super().__init__(app=app)
         self.logger = logger
 
-    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]):
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+        """
+        リクエストにIDを付与し、ログを出力したうえで次の処理を実行し、例外時はエラーレスポンスを返す。
+
+        :param Request request: リクエスト
+        :param Callable call_next: 次のミドルウェアまたはルートハンドラ
+        :return Response: レスポンス
+        """
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
         self.logger.api_request_info(

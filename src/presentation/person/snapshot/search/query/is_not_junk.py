@@ -1,3 +1,8 @@
+"""
+人物検出クエリ検索（非ジャンク）のプレゼンテーション層
+
+日付とページで非ジャンクのクエリID一覧とページングをJSONで返す。
+"""
 from presentation.utils.base import PresentationUtilBase
 from logger import Logger
 from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
@@ -9,6 +14,9 @@ from dto.date import DtoDate
 
 
 class PresentationPersonSnapshotSearchQueryIsNotJunk(PresentationUtilBase):
+    """
+    人物検出クエリ検索（非ジャンク）のAPIエンドポイントを提供するプレゼンテーションクラス。
+    """
     router_path = "/person/snapshot/search/query/is_not_junk/{date}/{page}"
     methods = ["POST"]
     tags = ["Person Snapshot"]
@@ -21,12 +29,23 @@ class PresentationPersonSnapshotSearchQueryIsNotJunk(PresentationUtilBase):
     }
 
     def __init__(self, logger: Logger):
+        """
+        プレゼンテーションを初期化する。
+
+        :param Logger logger: ロガー
+        """
         super().__init__(logger=logger)
 
     @classmethod
     def create(cls) -> "PresentationPersonSnapshotSearchQueryIsNotJunk":
+        """
+        プレゼンテーションインスタンスを生成する。
+
+        :return PresentationPersonSnapshotSearchQueryIsNotJunk: プレゼンテーションインスタンス
+        """
         return cls(
-            logger=Logger("presentation_person_snapshot_search_query_is_not_junk"),
+            logger=Logger(
+                "presentation_person_snapshot_search_query_is_not_junk"),
         )
 
     async def handle(
@@ -37,6 +56,15 @@ class PresentationPersonSnapshotSearchQueryIsNotJunk(PresentationUtilBase):
         application: ApplicationPersonSnapshotSearch = get_application(
             ApplicationPersonSnapshotSearch),
     ):
+        """
+        指定日の非ジャンククエリID一覧とページングを取得し、JSONで返す。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
+        :param PresentationUtilPathDate date: 対象日
+        :param PresentationUtilPathInt page: ページ番号
+        :param ApplicationPersonSnapshotSearch application: 人物検出検索アプリケーション
+        :return PresentationUtilJSONResponse: クエリID一覧とページングを含むJSONレスポンス
+        """
         ids = application.search_query_is_not_junk(
             date=DtoDate(year=date.year, month=date.month, day=date.day),
             page=page,
