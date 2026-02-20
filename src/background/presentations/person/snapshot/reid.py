@@ -1,7 +1,7 @@
 """
-人物検出再識別のバックグラウンドプレゼンテーション層
+人物検出再同定のバックグラウンドプレゼンテーション層
 
-1回の handle で再識別を1件実行し、処理したIDをログに記録する。
+1回の handle で再同定を1件実行し、処理したIDをログに記録する。
 """
 from background.presentations.utils import BackgroundPresentationUtilsBase
 from background.applications.person.snapshot.reid import BackgroundApplicationPersonSnapshotReid
@@ -11,9 +11,9 @@ from logger import Logger
 
 class BackgroundPersonSnapshotReid(BackgroundPresentationUtilsBase):
     """
-    人物検出再識別のバックグラウンドタスクを担当するプレゼンテーション。
+    人物検出再同定のバックグラウンドタスクを担当するプレゼンテーション。
 
-    キューから1件取り出して再識別を1件実行し、処理したIDをログに記録する。
+    キューから1件取り出して再同定を1件実行し、処理したIDをログに記録する。
     """
 
     def __init__(
@@ -25,7 +25,7 @@ class BackgroundPersonSnapshotReid(BackgroundPresentationUtilsBase):
         プレゼンテーションを初期化する。
 
         :param Logger logger: ロガー
-        :param BackgroundApplicationPersonSnapshotReid application: 再識別アプリケーション
+        :param BackgroundApplicationPersonSnapshotReid application: 再同定アプリケーション
         """
         super().__init__(logger=logger)
         self.application = application
@@ -51,7 +51,7 @@ class BackgroundPersonSnapshotReid(BackgroundPresentationUtilsBase):
 
     def handle(self, process_id: str) -> None:
         """
-        再識別を1件実行し、処理した人物検出IDをログに出力する。
+        再同定を1件実行し、処理した人物検出IDをログに出力する。
 
         :param str process_id: プロセスID（ログ用）
         """

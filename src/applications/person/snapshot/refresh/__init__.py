@@ -1,7 +1,7 @@
 """
 人物検出更新アプリケーション
 
-クエリ条件に合う人物検出結果IDを再識別キューに投入する。
+クエリ条件に合う人物検出結果IDを再同定キューに投入する。
 """
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from environment import Environment
@@ -13,9 +13,9 @@ from repositories.person.snapshot.reid_queue import RepositoryPersonSnapshotReid
 
 class ApplicationPersonSnapshotRefresh(ApplicationBase):
     """
-    人物検出の更新（再識別キュー投入）を担当するアプリケーション。
+    人物検出の更新（再同定キュー投入）を担当するアプリケーション。
 
-    クエリ条件に合う人物検出結果の ID を再識別キューに一括投入する。
+    クエリ条件に合う人物検出結果の ID を再同定キューに一括投入する。
     """
 
     def __init__(
@@ -27,7 +27,7 @@ class ApplicationPersonSnapshotRefresh(ApplicationBase):
         アプリケーションを初期化する。
 
         :param RepositoryPersonSnapshot repository_person_snapshot: 人物検出結果リポジトリ
-        :param RepositoryPersonSnapshotReidQueue repository_person_snapshot_reid_queue: 再識別キュー
+        :param RepositoryPersonSnapshotReidQueue repository_person_snapshot_reid_queue: 再同定キュー
         """
         self.repository_person_snapshot = repository_person_snapshot
         self.repository_person_snapshot_reid_queue = repository_person_snapshot_reid_queue
@@ -49,7 +49,7 @@ class ApplicationPersonSnapshotRefresh(ApplicationBase):
 
     def refresh(self, query: DtoPersonSnapshotQuery | None = None) -> None:
         """
-        クエリ条件に合う人物検出結果の ID を再識別キューに投入する。条件が None の場合は該当する全 ID を投入する。
+        クエリ条件に合う人物検出結果の ID を再同定キューに投入する。条件が None の場合は該当する全 ID を投入する。
 
         :param DtoPersonSnapshotQuery | None query: 対象とする人物検出の条件（省略時は全件）
         :raises InternalServerError: キュー投入などに失敗した場合

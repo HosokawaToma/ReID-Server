@@ -1,7 +1,7 @@
 """
-再識別評価のプレゼンテーション層
+再同定評価のプレゼンテーション層
 
-日付・試行回数を受け取り、再識別評価結果をJSONで返す。
+日付・試行回数を受け取り、再同定評価結果をJSONで返す。
 """
 from presentation.utils.base import PresentationUtilBase
 from logger import Logger
@@ -14,16 +14,16 @@ from dto.date import DtoDate
 
 class PresentationReidEvaluation(PresentationUtilBase):
     """
-    再識別評価のAPIエンドポイントを提供するプレゼンテーションクラス。
+    再同定評価のAPIエンドポイントを提供するプレゼンテーションクラス。
     """
     router_path = "/reid/evaluation/{date}/{attempt}"
     methods = ["GET"]
     tags = ["reid"]
-    summary = "再識別評価を行う"
-    description = "再識別評価を行う"
+    summary = "再同定評価を行う"
+    description = "再同定評価を行う"
     responses = {
         200: {
-            "description": "再識別評価を行う",
+            "description": "再同定評価を行う",
         }
     }
 
@@ -54,11 +54,11 @@ class PresentationReidEvaluation(PresentationUtilBase):
             ApplicationReidEvaluation),
     ) -> PresentationUtilJSONResponse:
         """
-        パスから日付・試行回数を取得し、再識別評価を実行して結果を返す。
+        パスから日付・試行回数を取得し、再同定評価を実行して結果を返す。
 
         :param PresentationUtilPathDate date: 評価対象日
         :param PresentationUtilPathInt attempt: 試行回数
-        :param ApplicationReidEvaluation application: 再識別評価アプリケーション
+        :param ApplicationReidEvaluation application: 再同定評価アプリケーション
         :return PresentationUtilJSONResponse: CMC曲線・mAP・クエリ正解IDを含むJSONレスポンス
         """
         cmc_curve_with_junk, cmc_curve_without_junk, map_with_junk, map_without_junk, query_person_ids = application.calculate(

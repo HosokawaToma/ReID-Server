@@ -1,7 +1,7 @@
 """
 バックグラウンドプロセスエントリポイント
 
-人物検出作成・再識別・特徴量抽出・ジャンク判定の各タスクを非同期で起動・停止する。
+人物検出作成・再同定・特徴量抽出・ジャンク判定の各タスクを非同期で起動・停止する。
 """
 from environment import Environment
 from background.presentations.person.snapshot.create import BackgroundPersonSnapshotCreate
@@ -16,7 +16,7 @@ class BackgroundMain:
     """
     バックグラウンドタスクの統合。
 
-    人物検出作成・再識別・特徴量抽出・ジャンク判定の各タスクを保持し、一括で起動・停止できる。
+    人物検出作成・再同定・特徴量抽出・ジャンク判定の各タスクを保持し、一括で起動・停止できる。
     """
 
     def __init__(
@@ -30,7 +30,7 @@ class BackgroundMain:
         バックグラウンドメインを初期化する。
 
         :param BackgroundPersonSnapshotCreate person_snapshot_create: 人物検出作成タスク
-        :param BackgroundPersonSnapshotReid person_snapshot_reid: 再識別タスク
+        :param BackgroundPersonSnapshotReid person_snapshot_reid: 再同定タスク
         :param BackgroundPersonSnapshotFeatureExtract person_snapshot_feature_extract: 特徴量抽出タスク
         :param BackgroundPersonSnapshotDetectJunk person_snapshot_detect_junk: ジャンク判定タスク
         """

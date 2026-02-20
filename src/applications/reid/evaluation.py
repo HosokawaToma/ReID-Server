@@ -1,5 +1,5 @@
 """
-再識別評価アプリケーション
+再同定評価アプリケーション
 
 指定日のクエリ・ギャラリーを用いてCMC曲線とmAPを計算する。
 """
@@ -22,7 +22,7 @@ from itertools import chain
 
 class ApplicationReidEvaluation(ApplicationBase):
     """
-    再識別評価を行うアプリケーションクラス。
+    再同定評価を行うアプリケーションクラス。
 
     クエリ・ギャラリーのランキングからCMCとmAPを算出する。
     """

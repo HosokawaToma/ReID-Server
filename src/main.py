@@ -94,7 +94,7 @@ class ServerApp:
         :param PresentationPersonSnapshotSearchQueryIsJunk person_snapshot_search_query_is_junk: クエリ（ジャンク）
         :param PresentationPersonSnapshotSearchGalleryContainsJunk person_snapshot_search_gallery_contains_junk: ギャラリー（ジャンク含む）
         :param PresentationPersonSnapshotSearchGalleryNotContainsJunk person_snapshot_search_gallery_not_contains_junk: ギャラリー（ジャンク除く）
-        :param PresentationReidEvaluation reid_evaluation: 再識別評価
+        :param PresentationReidEvaluation reid_evaluation: 再同定評価
         """
         self.app_host = app_host
         self.app_port = app_port

@@ -1,7 +1,7 @@
 """
 人物検出作成のバックグラウンドアプリケーション
 
-キューからカメラフレームを1件取り出し、人物検出・再識別キュー投入・DTO返却を行う。
+キューからカメラフレームを1件取り出し、人物検出・再同定キュー投入・DTO返却を行う。
 """
 from repositories.person.snapshot.create_queue import RepositoryPersonSnapshotCreateQueue
 from repositories.person.snapshot.reid_queue import RepositoryPersonSnapshotReidQueue
@@ -18,7 +18,7 @@ class BackgroundApplicationPersonSnapshotCreate(BackgroundApplicationUtilsBase):
     """
     人物検出を1件作成するバックグラウンドアプリケーションクラス。
 
-    人物検出キューからフレームを取得し、YOLO・ReIDで人物検出して再識別キューに投入する。
+    人物検出キューからフレームを取得し、YOLO・ReIDで人物検出して再同定キューに投入する。
     """
 
     def __init__(
@@ -34,7 +34,7 @@ class BackgroundApplicationPersonSnapshotCreate(BackgroundApplicationUtilsBase):
         バックグラウンドアプリケーションを初期化する。
 
         :param RepositoryPersonSnapshotCreateQueue repository_person_snapshot_create_queue: 人物検出作成キュー
-        :param RepositoryPersonSnapshotReidQueue repository_person_snapshot_reid_queue: 再識別キュー
+        :param RepositoryPersonSnapshotReidQueue repository_person_snapshot_reid_queue: 再同定キュー
         :param RepositoryYoloObjectDetector repository_yolo_object_detector: YOLO物体検出リポジトリ
         :param RepositoryYoloInstanceSegmenter repository_yolo_instance_segmenter: YOLOインスタンスセグメンテーションリポジトリ
         :param RepositoryYoloPoseEstimator repository_yolo_pose_estimator: YOLOポーズ推定リポジトリ
@@ -68,7 +68,7 @@ class BackgroundApplicationPersonSnapshotCreate(BackgroundApplicationUtilsBase):
 
     def save(self) -> list[DtoPersonSnapshotDetail]:
         """
-        人物検出キューから1件取り出し、人物検出を実行して再識別キューに投入し、作成した人物検出のDTO一覧を返す。
+        人物検出キューから1件取り出し、人物検出を実行して再同定キューに投入し、作成した人物検出のDTO一覧を返す。
 
         :return list[DtoPersonSnapshotDetail]: 作成した人物検出結果のDTO一覧
         """

@@ -12,7 +12,7 @@ from error import ValidationError
 @dataclass(frozen=True)
 class DomainReidRankSequence(DomainUtilsSequenceBase[DomainReidRank]):
     """
-    再識別評価のランクのシーケンスのドメインモデル
+    再同定評価のランクのシーケンスのドメインモデル
     """
     def top_rank(self) -> int:
         """

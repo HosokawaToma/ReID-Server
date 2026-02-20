@@ -1,7 +1,7 @@
 """
-人物検出再識別キュー用リポジトリ
+人物検出再同定キュー用リポジトリ
 
-人物検出結果またはそのIDを再識別キューに投入・取得する責務を持つ。
+人物検出結果またはそのIDを再同定キューに投入・取得する責務を持つ。
 Redis・DB・ストレージを利用する。
 """
 from error import Error, NotFoundError
@@ -26,7 +26,7 @@ import torch
 
 class RepositoryPersonSnapshotReidQueue:
     """
-    人物検出再識別キュー用リポジトリクラス
+    人物検出再同定キュー用リポジトリクラス
 
     人物検出結果（画像付き）またはIDをキューに push し、pop 時に
     DB から人物検出特徴ドメイン（画像なし）を組み立てて返す。
@@ -63,7 +63,7 @@ class RepositoryPersonSnapshotReidQueue:
 
     def push(self, person_snapshot: DomainPersonSnapshotImage) -> None:
         """
-        人物検出結果を再識別キューに追加します
+        人物検出結果を再同定キューに追加します
         キューへの追加が失敗してもデータベースへの追加は行われます
         :param DomainPersonSnapshotImage person_snapshot: 人物検出結果
         :raises InternalServerError: キュー・ストレージ・DB への追加が失敗した場合
@@ -91,7 +91,7 @@ class RepositoryPersonSnapshotReidQueue:
 
     def push_all(self, person_snapshot_images: DomainPersonSnapshotImageSequence) -> None:
         """
-        人物検出結果を再識別キューに追加します
+        人物検出結果を再同定キューに追加します
         キューへの追加が失敗してもデータベースへの追加は行われます
         :param DomainPersonSnapshotImageSequence person_snapshot_images: 人物検出結果のシーケンス
         :raises InternalServerError: シーケンスのいずれかでキュー・ストレージ・DB への追加が失敗した場合
@@ -107,7 +107,7 @@ class RepositoryPersonSnapshotReidQueue:
 
     def push_id(self, id: DomainId) -> None:
         """
-        人物検出結果を再識別キューに追加します
+        人物検出結果を再同定キューに追加します
         キューへの追加が失敗してもデータベースへの追加は行われます
         :param DomainId id: 人物検出結果のID
         :raises InternalServerError: キューへの追加が失敗した場合
@@ -119,7 +119,7 @@ class RepositoryPersonSnapshotReidQueue:
 
     def push_ids(self, ids: DomainIdSequence) -> None:
         """
-        人物検出結果を再識別キューに追加します
+        人物検出結果を再同定キューに追加します
         キューへの追加が失敗してもデータベースへの追加は行われます
         :param DomainIdSequence ids: 人物検出結果のIDのシーケンス
         :raises InternalServerError: シーケンスのいずれかでキューへの追加が失敗した場合
@@ -135,7 +135,7 @@ class RepositoryPersonSnapshotReidQueue:
 
     def pop(self) -> DomainPersonSnapshotFeature:
         """
-        再識別キューから1件取り出し、DBから人物検出特徴（画像なし）を組み立てて返す。
+        再同定キューから1件取り出し、DBから人物検出特徴（画像なし）を組み立てて返す。
 
         :return DomainPersonSnapshotFeature: 人物検出特徴（ID・位置・時刻・特徴量・person_id）
         :raises NotFoundError: キューで参照しているIDの人物検出結果がDBに存在しない場合

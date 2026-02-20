@@ -1,5 +1,5 @@
 """
-人物検出再識別のバックグラウンドアプリケーション
+人物検出再同定のバックグラウンドアプリケーション
 
 キューから1件取り出し、最近傍と照合して person_id を決定し、保存してDTOを返す。
 """
@@ -14,7 +14,7 @@ from dto.person.snapshot.person_id import DtoPersonSnapshotPersonId
 
 class BackgroundApplicationPersonSnapshotReid(BackgroundApplicationUtilsBase):
     """
-    人物検出を1件再識別するバックグラウンドアプリケーションクラス。
+    人物検出を1件再同定するバックグラウンドアプリケーションクラス。
     """
 
     def __init__(
@@ -25,7 +25,7 @@ class BackgroundApplicationPersonSnapshotReid(BackgroundApplicationUtilsBase):
         """
         バックグラウンドアプリケーションを初期化する。
 
-        :param RepositoryPersonSnapshotReidQueue repository_person_snapshot_reid_queue: 再識別キュー
+        :param RepositoryPersonSnapshotReidQueue repository_person_snapshot_reid_queue: 再同定キュー
         :param RepositoryPersonSnapshot repository_person_snapshot: 人物検出結果リポジトリ
         """
         self.repository_person_snapshot_reid_queue = repository_person_snapshot_reid_queue
@@ -51,7 +51,7 @@ class BackgroundApplicationPersonSnapshotReid(BackgroundApplicationUtilsBase):
 
     def reid(self) -> DtoPersonSnapshotPersonId:
         """
-        再識別キューから1件取り出し、最近傍と照合して person_id を保存し、DTOを返す。
+        再同定キューから1件取り出し、最近傍と照合して person_id を保存し、DTOを返す。
 
         :return DtoPersonSnapshotPersonId: 処理した人物検出結果のID・person_id・is_junk
         """

@@ -1,7 +1,7 @@
 """
 人物検出更新のプレゼンテーション層
 
-条件（時刻・カメラ等）を受け取り、該当する人物検出を再識別キューに投入してJSONで返す。
+条件（時刻・カメラ等）を受け取り、該当する人物検出を再同定キューに投入してJSONで返す。
 """
 from presentation.utils.base import PresentationUtilBase
 from presentation.utils.request import PresentationUtilRequestBody
@@ -16,7 +16,7 @@ from presentation.utils.factory import get_application
 
 class PresentationPersonSnapshotRefreshRequest(PresentationUtilRequestBody):
     """
-    人物検出更新（再識別キュー投入）API のリクエストボディを保持する DTO。時刻範囲・カメラ・ビューを任意で指定できる。
+    人物検出更新（再同定キュー投入）API のリクエストボディを保持する DTO。時刻範囲・カメラ・ビューを任意で指定できる。
     """
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
@@ -26,7 +26,7 @@ class PresentationPersonSnapshotRefreshRequest(PresentationUtilRequestBody):
 
 class PresentationPersonSnapshotRefresh(PresentationUtilBase):
     """
-    人物検出更新の API エンドポイントを担当するプレゼンテーション。条件に合う人物検出を再識別キューに投入し、結果を JSON で返す。
+    人物検出更新の API エンドポイントを担当するプレゼンテーション。条件に合う人物検出を再同定キューに投入し、結果を JSON で返す。
     """
     router_path = "/person/snapshot/refresh"
     methods = ["POST"]
@@ -69,7 +69,7 @@ class PresentationPersonSnapshotRefresh(PresentationUtilBase):
             ApplicationPersonSnapshotRefresh),
     ):
         """
-        リクエストの条件に合う人物検出を再識別キューに投入し、成功メッセージをJSONで返す。
+        リクエストの条件に合う人物検出を再同定キューに投入し、成功メッセージをJSONで返す。
 
         :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
         :param PresentationPersonSnapshotRefreshRequest request: 更新条件（Noneの場合は全件対象）

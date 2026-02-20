@@ -12,7 +12,7 @@ from error import ValidationError
 @dataclass(frozen=True)
 class DomainReidCmc(DomainUtilsBase):
     """
-    再識別評価の CMC（累積マッチング）値を保持するドメインモデル。
+    再同定評価の CMC（累積マッチング）値を保持するドメインモデル。
     """
     cmc: list[int]
 
