@@ -1,3 +1,8 @@
+"""
+カメラフレーム検索アプリケーション
+
+ページとクエリ条件でカメラフレームを検索し、DTOとページングを返す。
+"""
 from repositories.camera_frame import RepositoryCameraFrame
 from repositories.utils.database.query.camera_frame import RepositoryUtilDatabaseQueryCameraFrame
 from repositories.utils.database.query.camera_frame import RepositoryUtilDatabaseQueryCameraFrameSortByKey
@@ -9,13 +14,30 @@ from domain.paging import DomainPaging
 from dto.pagination import DtoPagination
 from domain.pagination import DomainPagination
 
+
 class ApplicationCameraFrameSearch(ApplicationBase):
+    """
+    カメラフレームを検索するアプリケーションクラス。
+    """
+
     def __init__(self, repository_camera_frame: RepositoryCameraFrame, search_limit: int):
+        """
+        アプリケーションを初期化する。
+
+        :param RepositoryCameraFrame repository_camera_frame: カメラフレームリポジトリ
+        :param int search_limit: 1ページあたりの件数
+        """
         self.repository_camera_frame = repository_camera_frame
         self.search_limit = search_limit
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationCameraFrameSearch":
+        """
+        環境からアプリケーションインスタンスを生成する。
+
+        :param Environment environment: 環境設定
+        :return ApplicationCameraFrameSearch: アプリケーションインスタンス
+        """
         return cls(
             repository_camera_frame=RepositoryCameraFrame.create(environment),
             search_limit=environment.search_limit,
@@ -42,7 +64,8 @@ class ApplicationCameraFrameSearch(ApplicationBase):
                 timestamp_after=query.timestamp_after,
                 timestamp_before=query.timestamp_before,
                 sort_by_list=[
-                    RepositoryUtilDatabaseQueryCameraFrameSortByKey(sort_by.value)
+                    RepositoryUtilDatabaseQueryCameraFrameSortByKey(
+                        sort_by.value)
                     for sort_by in query.sort_by_list
                 ] if query.sort_by_list is not None else None,
             )
@@ -76,8 +99,10 @@ class ApplicationCameraFrameSearch(ApplicationBase):
                 timestamp_after=query.timestamp_after,
                 timestamp_before=query.timestamp_before,
             )
-        total_items = self.repository_camera_frame.search_count(query=database_query)
-        pagination = DomainPagination.create(total_items=total_items, search_limit=self.search_limit)
+        total_items = self.repository_camera_frame.search_count(
+            query=database_query)
+        pagination = DomainPagination.create(
+            total_items=total_items, search_limit=self.search_limit)
         return DtoPagination(
             total_items=pagination.total_items,
             total_pages=pagination.total_pages,

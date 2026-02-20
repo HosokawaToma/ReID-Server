@@ -1,3 +1,8 @@
+"""
+人物検出検索アプリケーション
+
+ページとクエリ条件で人物検出結果を検索し、DTOとページングを返す。
+"""
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from repositories.utils.database.query.person_snapshot import RepositoryUtilDatabaseQueryPersonSnapshot
 from repositories.utils.database.query.person_snapshot import RepositoryUtilDatabaseQueryPersonSnapshotSortByKey
@@ -14,17 +19,34 @@ from dto.date import DtoDate
 from domain.date import DomainDate
 from error import ValidationError
 
+
 class ApplicationPersonSnapshotSearch(ApplicationBase):
+    """
+    人物検出結果を検索するアプリケーションクラス。
+    """
+
     def __init__(
         self,
         repository_person_snapshot: RepositoryPersonSnapshot,
         search_limit: int,
     ):
+        """
+        アプリケーションを初期化する。
+
+        :param RepositoryPersonSnapshot repository_person_snapshot: 人物検出結果リポジトリ
+        :param int search_limit: 1ページあたりの件数
+        """
         self.repository_person_snapshot = repository_person_snapshot
         self.search_limit = search_limit
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationPersonSnapshotSearch":
+        """
+        環境からアプリケーションインスタンスを生成する。
+
+        :param Environment environment: 環境設定
+        :return ApplicationPersonSnapshotSearch: アプリケーションインスタンス
+        """
         return cls(
             repository_person_snapshot=RepositoryPersonSnapshot.create(
                 environment=environment,
@@ -54,7 +76,8 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
                 timestamp_before=query.timestamp_before,
                 person_ids=query.person_ids,
                 sort_by_list=[
-                    RepositoryUtilDatabaseQueryPersonSnapshotSortByKey(sort_by.value)
+                    RepositoryUtilDatabaseQueryPersonSnapshotSortByKey(
+                        sort_by.value)
                     for sort_by in query.sort_by_list
                 ] if query.sort_by_list is not None else None,
             )
@@ -92,8 +115,10 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
                 timestamp_before=query.timestamp_before,
                 person_ids=query.person_ids,
             )
-        total_items = self.repository_person_snapshot.count(query=database_query)
-        pagination = DomainPagination.create(total_items=total_items, search_limit=self.search_limit)
+        total_items = self.repository_person_snapshot.count(
+            query=database_query)
+        pagination = DomainPagination.create(
+            total_items=total_items, search_limit=self.search_limit)
         return DtoPagination(
             total_items=pagination.total_items,
             total_pages=pagination.total_pages,
@@ -122,8 +147,10 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
         :return DtoPagination: クエリデータのページング
         :raises ApplicationPersonSnapshotSearchError: クエリデータの数取得に失敗した場合に発生するエラー
         """
-        total_items = self.repository_person_snapshot.count_query_is_junk(date=DomainDate(year=date.year, month=date.month, day=date.day))
-        pagination = DomainPagination.create(total_items=total_items, search_limit=self.search_limit)
+        total_items = self.repository_person_snapshot.count_query_is_junk(
+            date=DomainDate(year=date.year, month=date.month, day=date.day))
+        pagination = DomainPagination.create(
+            total_items=total_items, search_limit=self.search_limit)
         return DtoPagination(
             total_items=pagination.total_items,
             total_pages=pagination.total_pages,
@@ -152,8 +179,10 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
         :return DtoPagination: クエリデータのページング
         :raises ApplicationPersonSnapshotSearchError: クエリデータの数取得に失敗した場合に発生するエラー
         """
-        total_items = self.repository_person_snapshot.count_query_is_not_junk(date=DomainDate(year=date.year, month=date.month, day=date.day))
-        pagination = DomainPagination.create(total_items=total_items, search_limit=self.search_limit)
+        total_items = self.repository_person_snapshot.count_query_is_not_junk(
+            date=DomainDate(year=date.year, month=date.month, day=date.day))
+        pagination = DomainPagination.create(
+            total_items=total_items, search_limit=self.search_limit)
         return DtoPagination(
             total_items=pagination.total_items,
             total_pages=pagination.total_pages,
@@ -166,7 +195,8 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
         :return list[DtoId]: ギャラリーIDリスト
         :raises ApplicationPersonSnapshotSearchError: 人物検出検索に失敗した場合に発生するエラー
         """
-        self._validate_search_gallery_contains_junk(person_snapshot_id=person_snapshot_id)
+        self._validate_search_gallery_contains_junk(
+            person_snapshot_id=person_snapshot_id)
         person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(
             person_snapshot_id=DomainId(id=person_snapshot_id.id),
         )
@@ -199,7 +229,8 @@ class ApplicationPersonSnapshotSearch(ApplicationBase):
         :return list[DtoId]: ギャラリーIDリスト
         :raises ApplicationPersonSnapshotSearchError: 人物検出検索に失敗した場合に発生するエラー
         """
-        self._validate_search_gallery_not_contains_junk(person_snapshot_id=person_snapshot_id)
+        self._validate_search_gallery_not_contains_junk(
+            person_snapshot_id=person_snapshot_id)
         person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(
             person_snapshot_id=DomainId(id=person_snapshot_id.id),
         )

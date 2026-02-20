@@ -7,11 +7,16 @@ from domain.time import DomainTime
 from domain.date import DomainDate
 from error import Error
 
+
 class DomainTimestampAddError(Error):
+    """時刻の加算で発生するエラー。"""
     pass
 
+
 class DomainTimestampSubError(Error):
+    """時刻の減算で発生するエラー。"""
     pass
+
 
 @dataclass(frozen=True)
 class DomainTimestamp(DomainUtilsBase):
@@ -29,22 +34,26 @@ class DomainTimestamp(DomainUtilsBase):
     @classmethod
     def from_date(cls, date: DomainDate) -> "DomainTimestamp":
         return DomainTimestamp(
-            timestamp=datetime.combine(datetime(date.year, date.month, date.day), datetime.min.time()),
+            timestamp=datetime.combine(
+                datetime(date.year, date.month, date.day), datetime.min.time()),
         )
 
     def today(self) -> "DomainTimestamp":
         return DomainTimestamp(
-            timestamp=datetime.combine(self.timestamp.date(), datetime.min.time()),
+            timestamp=datetime.combine(
+                self.timestamp.date(), datetime.min.time()),
         )
 
     def yesterday(self) -> "DomainTimestamp":
         return DomainTimestamp(
-            timestamp=datetime.combine(self.timestamp.date() - timedelta(days=1), datetime.min.time()),
+            timestamp=datetime.combine(
+                self.timestamp.date() - timedelta(days=1), datetime.min.time()),
         )
 
     def tomorrow(self) -> "DomainTimestamp":
         return DomainTimestamp(
-            timestamp=datetime.combine(self.timestamp.date() + timedelta(days=1), datetime.min.time()),
+            timestamp=datetime.combine(
+                self.timestamp.date() + timedelta(days=1), datetime.min.time()),
         )
 
     def __add__(self, other: "DomainTime") -> "DomainTimestamp":

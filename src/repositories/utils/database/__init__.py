@@ -1,3 +1,8 @@
+"""
+データベースユーティリティ
+
+PostgreSQL接続とセッション（コンテキストマネージャ）を提供する。
+"""
 from sqlalchemy import create_engine, Engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -8,10 +13,24 @@ from types import TracebackType
 
 
 class RepositoryUtilDatabase:
+    """
+    データベース接続を扱うユーティリティクラス。
+
+    エンジンはクラス共有。with でセッションを取得し、exit でコミット/ロールバックする。
+    """
     ENGINE_URL_TEMPLATE = "postgresql://{user}:{password}@{host}:{port}/{database}"
     _engine: Engine | None = None
 
     def __init__(self, host: str, port: str, database: str, user: str, password: str):
+        """
+        接続情報でエンジン（未作成時のみ）とセッションメーカーを初期化する。
+
+        :param str host: ホスト
+        :param str port: ポート
+        :param str database: データベース名
+        :param str user: ユーザ名
+        :param str password: パスワード
+        """
         if RepositoryUtilDatabase._engine is None:
             RepositoryUtilDatabase._engine = create_engine(
                 self.ENGINE_URL_TEMPLATE.format(
@@ -28,6 +47,12 @@ class RepositoryUtilDatabase:
 
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryUtilDatabase":
+        """
+        環境からデータベースユーティリティインスタンスを生成する。
+
+        :param Environment environment: 環境設定
+        :return RepositoryUtilDatabase: データベースユーティリティインスタンス
+        """
         return cls(
             host=environment.database_host,
             port=environment.database_port,
@@ -52,14 +77,15 @@ class RepositoryUtilDatabase:
             if self._session:
                 self._session.close()
                 self._session = None
-            raise InternalServerError("セッションを開くことに失敗しました: " + str(error)) from error
+            raise InternalServerError(
+                "セッションを開くことに失敗しました: " + str(error)) from error
 
     def __exit__(
-            self,
-            exc_type: Type[BaseException] | None,
-            exc_value: BaseException | None,
-            traceback: TracebackType | None
-        ) -> None:
+        self,
+        exc_type: Type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None
+    ) -> None:
         """
         データベースのセッションを閉じる。
         例外が発生した場合はロールバックを行う。
@@ -76,13 +102,14 @@ class RepositoryUtilDatabase:
             if exc_type is not None:
                 self._session.rollback()
                 if exc_value is not None:
-                   raise
+                    raise
                 else:
                     raise exc_type()
             self._session.commit()
         except SQLAlchemyError as error:
             self._session.rollback()
-            raise InternalServerError("セッションをコミットすることに失敗しました: " + str(error)) from error
+            raise InternalServerError(
+                "セッションをコミットすることに失敗しました: " + str(error)) from error
         finally:
             self._session.close()
             self._session = None

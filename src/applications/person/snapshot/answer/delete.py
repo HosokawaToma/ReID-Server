@@ -1,17 +1,39 @@
+"""
+人物検出結果の正解ラベル削除アプリケーション
+
+指定した人物検出結果IDの正解ラベルを削除する。
+"""
 from applications import ApplicationBase
 from environment import Environment
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from dto.id import DtoId
 from domain.id import DomainId
 
+
 class ApplicationPersonSnapshotAnswerDelete(ApplicationBase):
+    """
+    人物検出結果の正解ラベルを削除するアプリケーションクラス。
+    """
+
     def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot):
+        """
+        アプリケーションを初期化する。
+
+        :param RepositoryPersonSnapshot repository_person_snapshot: 人物検出結果リポジトリ
+        """
         self.repository_person_snapshot = repository_person_snapshot
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationPersonSnapshotAnswerDelete":
+        """
+        環境からアプリケーションインスタンスを生成する。
+
+        :param Environment environment: 環境設定
+        :return ApplicationPersonSnapshotAnswerDelete: アプリケーションインスタンス
+        """
         return cls(
-            repository_person_snapshot=RepositoryPersonSnapshot.create(environment=environment),
+            repository_person_snapshot=RepositoryPersonSnapshot.create(
+                environment=environment),
         )
 
     def delete(self, person_snapshot_id: DtoId) -> None:
@@ -19,4 +41,5 @@ class ApplicationPersonSnapshotAnswerDelete(ApplicationBase):
         人物検出結果の正解ラベルを削除する
         :param DtoId person_snapshot_id: 人物検出結果のID
         """
-        self.repository_person_snapshot.delete_answer_label_by_id(person_snapshot_id=DomainId(id=person_snapshot_id.id))
+        self.repository_person_snapshot.delete_answer_label_by_id(
+            person_snapshot_id=DomainId(id=person_snapshot_id.id))
