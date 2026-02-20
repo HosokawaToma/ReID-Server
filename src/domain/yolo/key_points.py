@@ -1,3 +1,8 @@
+"""
+YOLO キーポイント集合のドメインモデル
+
+17 点の姿勢キーポイントを保持し、全身検出の可否判定を提供する。
+"""
 from dataclasses import dataclass
 from domain.yolo.key_point import DomainYoloKeyPoint
 from typing import ClassVar

@@ -1,3 +1,8 @@
+"""
+YOLO インスタンスセグメンテーションのドメインラッパー
+
+画像からマスク列を抽出する。
+"""
 from domain.yolo.mask import DomainYoloMask
 from domain.yolo.mask_sequence import DomainYoloMaskSequence
 from domain.image import DomainImage

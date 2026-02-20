@@ -1,3 +1,8 @@
+"""
+YOLO マスクシーケンスのドメインモデル
+
+マスクのリストを保持し、1人分かどうかの判定を提供する。
+"""
 from dataclasses import dataclass
 from domain.yolo.mask import DomainYoloMask
 from domain.utils.sequence_base import DomainUtilsSequenceBase

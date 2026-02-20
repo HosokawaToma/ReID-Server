@@ -1,6 +1,12 @@
+"""
+人物スナップショットと人物IDの対応シーケンスのドメインモデル
+
+検出結果IDと人物IDのペアのリストを保持する。
+"""
 from dataclasses import dataclass
 from domain.person.snapshot.person_id import DomainPersonSnapshotPersonId
 from domain.utils.sequence_base import DomainUtilsSequenceBase
+
 
 @dataclass(frozen=True)
 class DomainPersonSnapshotPersonIdSequence(DomainUtilsSequenceBase[DomainPersonSnapshotPersonId]):

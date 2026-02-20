@@ -1,3 +1,8 @@
+"""
+人物 ID のドメインモデル
+
+人物の UUID とゴミフラグを保持し、新規ID・ゴミID・複製を提供する。
+"""
 from dataclasses import dataclass, field
 from domain.id import DomainId
 from domain.utils.base import DomainUtilsBase

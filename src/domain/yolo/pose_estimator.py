@@ -1,3 +1,8 @@
+"""
+YOLO 姿勢推定のドメインラッパー
+
+画像からキーポイント列を抽出する。
+"""
 from domain.yolo.key_points_sequence import DomainYoloKeyPointsSequence
 from domain.yolo.key_points import DomainYoloKeyPoints
 from domain.yolo.key_point import DomainYoloKeyPoint
@@ -15,6 +20,12 @@ class DomainYoloPoseEstimator(DomainUtilsBase):
     model: ModuleYoloPoseEstimator
 
     def extract(self, image: DomainImage) -> DomainYoloKeyPointsSequence:
+        """
+        画像から姿勢キーポイント列を抽出する。
+
+        :param DomainImage image: 入力画像
+        :return DomainYoloKeyPointsSequence: キーポイント列（1人あたり1要素）
+        """
         results = self.model.extract(image.image)
         key_points: list[DomainYoloKeyPoints] = []
         for item in results:
