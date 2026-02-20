@@ -1,3 +1,8 @@
+"""
+人物検出ジャンク再判定のプレゼンテーション層
+
+条件を受け取り、該当する人物検出をジャンク判定キューに投入してJSONで返す。
+"""
 from presentation.utils.base import PresentationUtilBase
 from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
 from presentation.utils.factory import get_application
@@ -9,7 +14,9 @@ from dto.person.snapshot.query import DtoPersonSnapshotQuery
 from datetime import datetime
 import uuid
 
+
 class PresentationPersonSnapshotRefreshDetectJunkRequest(PresentationUtilRequestBody):
+    """ジャンク再判定APIのリクエストボディ。"""
     ids: list[uuid.UUID] | None = None
     person_ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
@@ -18,7 +25,11 @@ class PresentationPersonSnapshotRefreshDetectJunkRequest(PresentationUtilRequest
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
 
+
 class PresentationPersonSnapshotRefreshDetectJunk(PresentationUtilBase):
+    """
+    人物検出ジャンク再判定のAPIエンドポイントを提供するプレゼンテーションクラス。
+    """
     router_path = "/person/snapshot/refresh/detect_junk"
     methods = ["POST"]
     tags = ["Person Snapshot"]
@@ -31,10 +42,20 @@ class PresentationPersonSnapshotRefreshDetectJunk(PresentationUtilBase):
     }
 
     def __init__(self, logger: Logger):
+        """
+        プレゼンテーションを初期化する。
+
+        :param Logger logger: ロガー
+        """
         super().__init__(logger=logger)
 
     @classmethod
     def create(cls) -> "PresentationPersonSnapshotRefreshDetectJunk":
+        """
+        プレゼンテーションインスタンスを生成する。
+
+        :return PresentationPersonSnapshotRefreshDetectJunk: プレゼンテーションインスタンス
+        """
         return cls(
             logger=Logger("presentation_person_snapshot_refresh_detect_junk"),
         )
@@ -43,8 +64,17 @@ class PresentationPersonSnapshotRefreshDetectJunk(PresentationUtilBase):
         self,
         admin_client_id: PresentationUtilAdminClientAuthenticated,
         request: PresentationPersonSnapshotRefreshDetectJunkRequest | None = None,
-        application: ApplicationPersonSnapshotRefreshDetectJunk = get_application(ApplicationPersonSnapshotRefreshDetectJunk),
+        application: ApplicationPersonSnapshotRefreshDetectJunk = get_application(
+            ApplicationPersonSnapshotRefreshDetectJunk),
     ):
+        """
+        リクエストの条件に合う人物検出をジャンク判定キューに投入し、成功メッセージをJSONで返す。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
+        :param PresentationPersonSnapshotRefreshDetectJunkRequest request: 条件（Noneの場合は全件対象）
+        :param ApplicationPersonSnapshotRefreshDetectJunk application: ジャンク再判定アプリケーション
+        :return PresentationUtilJSONResponse: 成功メッセージを含むJSONレスポンス
+        """
         query = None
         if request is not None:
             query = DtoPersonSnapshotQuery(

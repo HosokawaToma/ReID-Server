@@ -1,3 +1,8 @@
+"""
+カメラフレーム検索のプレゼンテーション層
+
+ページとリクエストボディで条件を指定し、カメラフレーム一覧とページングをJSONで返す。
+"""
 from applications.camera_frame.search import ApplicationCameraFrameSearch
 from presentation.utils.base import PresentationUtilBase
 from presentation.utils.factory import get_application
@@ -12,12 +17,16 @@ import uuid
 from enum import Enum
 from presentation.utils.type import PresentationUtilPathInt
 
+
 class PresentationCameraFrameSearchSortByKey(str, Enum):
+    """カメラフレーム検索のソートキー。"""
     TIMESTAMP_ASC = "timestamp_asc"
     TIMESTAMP_DESC = "timestamp_desc"
 
+
 @dataclass
 class PresentationCameraFrameSearchRequestBody(PresentationUtilRequestBody):
+    """カメラフレーム検索APIのリクエストボディ。"""
     ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
@@ -25,7 +34,11 @@ class PresentationCameraFrameSearchRequestBody(PresentationUtilRequestBody):
     timestamp_before: datetime | None = None
     sort_by_list: list[PresentationCameraFrameSearchSortByKey] | None = None
 
+
 class PresentationCameraFrameSearch(PresentationUtilBase):
+    """
+    カメラフレーム検索のAPIエンドポイントを提供するプレゼンテーションクラス。
+    """
     router_path = "/frame/search/{page}"
     methods = ["POST"]
     tags = ["Camera Frame"]
@@ -38,10 +51,20 @@ class PresentationCameraFrameSearch(PresentationUtilBase):
     }
 
     def __init__(self, logger: Logger):
+        """
+        プレゼンテーションを初期化する。
+
+        :param Logger logger: ロガー
+        """
         super().__init__(logger=logger)
 
     @classmethod
     def create(cls) -> "PresentationCameraFrameSearch":
+        """
+        プレゼンテーションインスタンスを生成する。
+
+        :return PresentationCameraFrameSearch: プレゼンテーションインスタンス
+        """
         return cls(
             logger=Logger("presentation_camera_frame_search"),
         )
@@ -51,8 +74,18 @@ class PresentationCameraFrameSearch(PresentationUtilBase):
         admin_client_id: PresentationUtilAdminClientAuthenticated,
         page: PresentationUtilPathInt,
         body: PresentationCameraFrameSearchRequestBody | None = None,
-        application: ApplicationCameraFrameSearch = get_application(ApplicationCameraFrameSearch),
+        application: ApplicationCameraFrameSearch = get_application(
+            ApplicationCameraFrameSearch),
     ) -> PresentationUtilJSONResponse:
+        """
+        リクエストの条件でカメラフレームを検索し、一覧とページングをJSONで返す。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
+        :param PresentationUtilPathInt page: ページ番号
+        :param PresentationCameraFrameSearchRequestBody body: 検索条件（Noneの場合は全件）
+        :param ApplicationCameraFrameSearch application: カメラフレーム検索アプリケーション
+        :return PresentationUtilJSONResponse: カメラフレーム一覧とページングを含むJSONレスポンス
+        """
         query = None
         if body is not None:
             query = DtoCameraFrameQuery(

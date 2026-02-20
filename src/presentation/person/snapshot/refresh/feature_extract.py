@@ -10,7 +10,15 @@ from datetime import datetime
 import uuid
 
 
+"""
+人物検出特徴量再抽出のプレゼンテーション層
+
+条件を受け取り、該当する人物検出を特徴量抽出キューに投入してJSONで返す。
+"""
+
+
 class PresentationPersonSnapshotRefreshRequest(PresentationUtilRequestBody):
+    """特徴量再抽出APIのリクエストボディ。"""
     ids: list[uuid.UUID] | None = None
     person_ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
@@ -19,7 +27,11 @@ class PresentationPersonSnapshotRefreshRequest(PresentationUtilRequestBody):
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
 
+
 class PresentationPersonSnapshotRefreshFeatureExtract(PresentationUtilBase):
+    """
+    人物検出特徴量再抽出のAPIエンドポイントを提供するプレゼンテーションクラス。
+    """
     router_path = "/person/snapshot/refresh/feature_extract"
     methods = ["POST"]
     tags = ["Person Snapshot"]
@@ -32,20 +44,40 @@ class PresentationPersonSnapshotRefreshFeatureExtract(PresentationUtilBase):
     }
 
     def __init__(self, logger: Logger):
+        """
+        プレゼンテーションを初期化する。
+
+        :param Logger logger: ロガー
+        """
         super().__init__(logger=logger)
 
     @classmethod
     def create(cls) -> "PresentationPersonSnapshotRefreshFeatureExtract":
+        """
+        プレゼンテーションインスタンスを生成する。
+
+        :return PresentationPersonSnapshotRefreshFeatureExtract: プレゼンテーションインスタンス
+        """
         return cls(
-            logger=Logger("presentation_person_snapshot_refresh_feature_extract"),
+            logger=Logger(
+                "presentation_person_snapshot_refresh_feature_extract"),
         )
 
     async def handle(
         self,
         admin_client_id: PresentationUtilAdminClientAuthenticated,
         request: PresentationPersonSnapshotRefreshRequest | None = None,
-        application: ApplicationPersonSnapshotRefreshFeatureExtract = get_application(ApplicationPersonSnapshotRefreshFeatureExtract),
+        application: ApplicationPersonSnapshotRefreshFeatureExtract = get_application(
+            ApplicationPersonSnapshotRefreshFeatureExtract),
     ):
+        """
+        リクエストの条件に合う人物検出を特徴量抽出キューに投入し、成功メッセージをJSONで返す。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
+        :param PresentationPersonSnapshotRefreshRequest request: 条件（Noneの場合は全件対象）
+        :param ApplicationPersonSnapshotRefreshFeatureExtract application: 特徴量再抽出アプリケーション
+        :return PresentationUtilJSONResponse: 成功メッセージを含むJSONレスポンス
+        """
         query = None
         if request is not None:
             query = DtoPersonSnapshotQuery(

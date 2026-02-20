@@ -1,3 +1,8 @@
+"""
+人物検出更新のプレゼンテーション層
+
+条件（時刻・カメラ等）を受け取り、該当する人物検出を再識別キューに投入してJSONで返す。
+"""
 from presentation.utils.base import PresentationUtilBase
 from presentation.utils.request import PresentationUtilRequestBody
 from presentation.utils.response import PresentationUtilJSONResponse
@@ -10,6 +15,7 @@ from presentation.utils.factory import get_application
 
 
 class PresentationPersonSnapshotRefreshRequest(PresentationUtilRequestBody):
+    """人物検出更新APIのリクエストボディ。"""
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
     camera_ids: list[int] | None = None
@@ -17,6 +23,9 @@ class PresentationPersonSnapshotRefreshRequest(PresentationUtilRequestBody):
 
 
 class PresentationPersonSnapshotRefresh(PresentationUtilBase):
+    """
+    人物検出更新のAPIエンドポイントを提供するプレゼンテーションクラス。
+    """
     router_path = "/person/snapshot/refresh"
     methods = ["POST"]
     tags = ["Person Snapshot"]
@@ -32,10 +41,20 @@ class PresentationPersonSnapshotRefresh(PresentationUtilBase):
         self,
         logger: Logger,
     ):
-        super().__init__(logger)
+        """
+        プレゼンテーションを初期化する。
+
+        :param Logger logger: ロガー
+        """
+        super().__init__(logger=logger)
 
     @classmethod
     def create(cls) -> "PresentationPersonSnapshotRefresh":
+        """
+        プレゼンテーションインスタンスを生成する。
+
+        :return PresentationPersonSnapshotRefresh: プレゼンテーションインスタンス
+        """
         return cls(
             logger=Logger("presentation_person_snapshot_refresh"),
         )
@@ -44,8 +63,17 @@ class PresentationPersonSnapshotRefresh(PresentationUtilBase):
         self,
         admin_client_id: PresentationUtilAdminClientAuthenticated,
         request: PresentationPersonSnapshotRefreshRequest | None = None,
-        application: ApplicationPersonSnapshotRefresh = get_application(ApplicationPersonSnapshotRefresh),
+        application: ApplicationPersonSnapshotRefresh = get_application(
+            ApplicationPersonSnapshotRefresh),
     ):
+        """
+        リクエストの条件に合う人物検出を再識別キューに投入し、成功メッセージをJSONで返す。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
+        :param PresentationPersonSnapshotRefreshRequest request: 更新条件（Noneの場合は全件対象）
+        :param ApplicationPersonSnapshotRefresh application: 人物検出更新アプリケーション
+        :return PresentationUtilJSONResponse: 成功メッセージを含むJSONレスポンス
+        """
         query = None
         if request is not None:
             query = DtoPersonSnapshotQuery(
