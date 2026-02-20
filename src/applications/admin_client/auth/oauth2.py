@@ -1,3 +1,8 @@
+"""
+管理クライアント OAuth2 認証アプリケーション
+
+Bearer トークンを検証し、管理クライアントIDを返す。
+"""
 from domain.client.token import DomainClientToken
 from domain.token import DomainToken
 from environment import Environment
@@ -7,18 +12,35 @@ from error import AuthenticationError
 
 
 class ApplicationAdminClientAuthOAuth2:
+    """
+    Bearer トークンによる管理クライアント認証を行うアプリケーションクラス。
+    """
+
     def __init__(
         self,
         secret_key: str,
         algorithm: str,
         expire_minutes: int,
     ):
+        """
+        アプリケーションを初期化する。
+
+        :param str secret_key: JWT署名鍵
+        :param str algorithm: JWTアルゴリズム
+        :param int expire_minutes: トークン有効分数
+        """
         self.secret_key = secret_key
         self.algorithm = algorithm
         self.expire_minutes = expire_minutes
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationAdminClientAuthOAuth2":
+        """
+        環境からアプリケーションインスタンスを生成する。
+
+        :param Environment environment: 環境設定
+        :return ApplicationAdminClientAuthOAuth2: アプリケーションインスタンス
+        """
         return cls(
             secret_key=environment.jwt_secret_key,
             algorithm=environment.jwt_algorithm,

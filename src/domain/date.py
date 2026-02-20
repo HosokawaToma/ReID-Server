@@ -1,4 +1,10 @@
+"""
+日付のドメインモデル
+
+年・月・日を保持する。
+"""
 from dataclasses import dataclass
+
 
 @dataclass(frozen=True)
 class DomainDate:

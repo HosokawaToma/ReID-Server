@@ -1,12 +1,20 @@
+"""
+ページング（総件数・総ページ数）のドメインモデル
+
+総件数と1ページあたり件数から総ページ数を算出する。
+"""
 from dataclasses import dataclass
 from domain.utils.base import DomainUtilsBase
 import math
 from error import ValidationError
 
+
 @dataclass(frozen=True)
 class DomainPagination(DomainUtilsBase):
     """
-    ページングのドメインモデル
+    ページングのドメインモデル。
+
+    総件数と総ページ数を保持する。
     """
     total_items: int
     total_pages: int
@@ -20,9 +28,11 @@ class DomainPagination(DomainUtilsBase):
         :return DomainPagination: ページング
         """
         if search_limit <= 0:
-            raise ValidationError("search_limit must be greater than 0: {search_limit}")
+            raise ValidationError(
+                "search_limit must be greater than 0: {search_limit}")
         if total_items < 0:
-            raise ValidationError("total_items must be greater than 0: {total_items}")
+            raise ValidationError(
+                "total_items must be greater than 0: {total_items}")
         return cls(
             total_items=total_items,
             total_pages=math.ceil(total_items / search_limit),

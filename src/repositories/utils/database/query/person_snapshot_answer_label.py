@@ -1,15 +1,28 @@
+"""
+人物検出正解ラベル用データベースクエリビルダ
+
+person_snapshots_answer_labels テーブルに対する条件・ソートを組み立てる。
+"""
 from dataclasses import dataclass
 from sqlalchemy.orm import Query
 from migration.models.person_snapshots_answer_labels import MigrationModelPersonSnapshotsAnswerLabels
 import uuid
 from enum import Enum
 
+
 class RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabelSortByKey(Enum):
+    """正解ラベルクエリのソートキー。"""
     CREATED_AT_ASC = "created_at_asc"
     CREATED_AT_DESC = "created_at_desc"
 
+
 @dataclass
 class RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabel:
+    """
+    正解ラベルテーブル用のクエリ条件を保持するデータクラス。
+
+    build で SQLAlchemy の Query にフィルタ・ソートを適用する。
+    """
     person_snapshot_ids: list[uuid.UUID] | None = None
     person_ids: list[uuid.UUID] | None = None
     is_junk: bool | None = None
@@ -25,15 +38,20 @@ class RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabel:
         :return Query[MigrationModelPersonSnapshotsAnswerLabels]: ビルドされたクエリ
         """
         if self.person_snapshot_ids is not None:
-            session_query = session_query.filter(MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id.in_(self.person_snapshot_ids))
+            session_query = session_query.filter(
+                MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id.in_(self.person_snapshot_ids))
         if self.person_ids is not None:
-            session_query = session_query.filter(MigrationModelPersonSnapshotsAnswerLabels.person_id.in_(self.person_ids))
+            session_query = session_query.filter(
+                MigrationModelPersonSnapshotsAnswerLabels.person_id.in_(self.person_ids))
         if self.is_junk is not None:
-            session_query = session_query.filter(MigrationModelPersonSnapshotsAnswerLabels.is_junk == self.is_junk)
+            session_query = session_query.filter(
+                MigrationModelPersonSnapshotsAnswerLabels.is_junk == self.is_junk)
         if self.sort_by_list is not None:
             for sort_by in self.sort_by_list:
                 if sort_by == RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabelSortByKey.CREATED_AT_ASC:
-                    session_query = session_query.order_by(MigrationModelPersonSnapshotsAnswerLabels.created_at.asc())
+                    session_query = session_query.order_by(
+                        MigrationModelPersonSnapshotsAnswerLabels.created_at.asc())
                 elif sort_by == RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabelSortByKey.CREATED_AT_DESC:
-                    session_query = session_query.order_by(MigrationModelPersonSnapshotsAnswerLabels.created_at.desc())
+                    session_query = session_query.order_by(
+                        MigrationModelPersonSnapshotsAnswerLabels.created_at.desc())
         return session_query

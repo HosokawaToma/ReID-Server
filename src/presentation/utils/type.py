@@ -1,3 +1,8 @@
+"""
+プレゼンテーション用型エイリアス
+
+FastAPI の Form / Path / Depends で用いる Annotated 型を定義する。
+"""
 from fastapi import Depends
 from dto.image import DtoImage
 from presentation.utils.factory import PresentationUtilFactoryFromImage
