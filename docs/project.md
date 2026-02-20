@@ -1,7 +1,7 @@
 # プロジェクト構成
 
 ## ファイル・ディレクトリ構成
-
+本プロジェクトのファイル・ディレクトリ構成
 ```
 ReID-Server/
 ├── .cursor/                              # Cursor設定
@@ -41,37 +41,3 @@ ReID-Server/
 ├── pytest.ini                            # pytest設定
 └── requirements.txt                      # Python依存パッケージ
 ```
-
-### `src/applications/`
-アプリケーション層。ビジネスロジックを担当。
-
-### `src/background/`
-バックグラウンド処理。非同期タスクを担当。
-
-### `src/domain/`
-ドメイン層。ドメインモデルとビジネスルールを定義。
-
-### `src/dto/`
-データ転送オブジェクト。レイヤー間のデータ受け渡しに使用。
-
-### `src/migration/`
-データベースマイグレーション。ORMモデルとマイグレーションスクリプトを含む。
-
-### `src/modules/`
-外部モジュール（ReIDモデルなど）。
-
-### `src/presentation/`
-プレゼンテーション層。APIエンドポイントを担当。
-
-### `src/repositories/`
-リポジトリ層。データ永続化を担当。
-
-### `src/tests/`
-ユニットテスト。
-
-### `docs/`
-プロジェクトのドキュメント。
-
-### `scripts/`
-各種スクリプト。
-
