@@ -1,5 +1,6 @@
 from abc import ABC
 from typing import TypeVar, Generic
+from typing_extensions import Self
 from domain.utils.base import DomainUtilsBase
 from dataclasses import dataclass
 from typing import Iterator
@@ -34,5 +35,5 @@ class DomainUtilsSequenceBase(ABC, Generic[T]):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}([{', '.join(repr(item) for item in self.items)}])"
 
-    def __add__(self, other: "DomainUtilsSequenceBase[T]") -> "DomainUtilsSequenceBase[T]":
-        return DomainUtilsSequenceBase(items=self.items + other.items)
+    def __add__(self, other: Self) -> Self:
+        return self.__class__(items=self.items + other.items)
