@@ -1,29 +1,58 @@
+"""
+人物検出再識別のバックグラウンドプレゼンテーション層
+
+1回の handle で再識別を1件実行し、処理したIDをログに記録する。
+"""
 from background.presentations.utils import BackgroundPresentationUtilsBase
 from background.applications.person.snapshot.reid import BackgroundApplicationPersonSnapshotReid
 from environment import Environment
 from logger import Logger
 
+
 class BackgroundPersonSnapshotReid(BackgroundPresentationUtilsBase):
+    """
+    人物検出再識別タスクを実行するバックグラウンドプレゼンテーションクラス。
+    """
+
     def __init__(
         self,
         logger: Logger,
         application: BackgroundApplicationPersonSnapshotReid,
     ):
-        super().__init__(logger)
+        """
+        プレゼンテーションを初期化する。
+
+        :param Logger logger: ロガー
+        :param BackgroundApplicationPersonSnapshotReid application: 再識別アプリケーション
+        """
+        super().__init__(logger=logger)
         self.application = application
 
     @classmethod
     def create(cls, environment: Environment) -> "BackgroundPersonSnapshotReid":
+        """
+        環境からプレゼンテーションインスタンスを生成する。
+
+        :param Environment environment: 環境設定
+        :return BackgroundPersonSnapshotReid: プレゼンテーションインスタンス
+        """
         return cls(
-            application=BackgroundApplicationPersonSnapshotReid.create(environment),
+            application=BackgroundApplicationPersonSnapshotReid.create(
+                environment),
             logger=Logger("background_person_snapshot_reid"),
         )
 
     @property
     def name(self) -> str:
+        """タスク名を返す。"""
         return "person_snapshot_reid"
 
     def handle(self, process_id: str) -> None:
+        """
+        再識別を1件実行し、処理した人物検出IDをログに出力する。
+
+        :param str process_id: プロセスID（ログ用）
+        """
         person_snapshot_person_id = self.application.reid()
         self.logger.background_info(
             process_id=process_id,

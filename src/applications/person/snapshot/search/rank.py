@@ -1,3 +1,8 @@
+"""
+人物検出ランキング検索アプリケーション
+
+指定した人物検出結果をクエリに、別カメラ・同日の類似度順ランキングを取得する。
+"""
 from applications import ApplicationBase
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from environment import Environment
@@ -8,15 +13,33 @@ from dto.pagination import DtoPagination
 from domain.pagination import DomainPagination
 from domain.paging import DomainPaging
 
+
 class ApplicationPersonSnapshotSearchRank(ApplicationBase):
+    """
+    人物検出結果のランキング（別カメラ・同日・類似度順）を検索するアプリケーションクラス。
+    """
+
     def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot, search_limit: int):
+        """
+        アプリケーションを初期化する。
+
+        :param RepositoryPersonSnapshot repository_person_snapshot: 人物検出結果リポジトリ
+        :param int search_limit: 1ページあたりの件数
+        """
         self.repository_person_snapshot = repository_person_snapshot
         self.search_limit = search_limit
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationPersonSnapshotSearchRank":
+        """
+        環境からアプリケーションインスタンスを生成する。
+
+        :param Environment environment: 環境設定
+        :return ApplicationPersonSnapshotSearchRank: アプリケーションインスタンス
+        """
         return cls(
-            repository_person_snapshot=RepositoryPersonSnapshot.create(environment=environment),
+            repository_person_snapshot=RepositoryPersonSnapshot.create(
+                environment=environment),
             search_limit=environment.search_limit,
         )
 
@@ -28,7 +51,8 @@ class ApplicationPersonSnapshotSearchRank(ApplicationBase):
         :return list[DtoPersonSnapshotDetail]: 人物検出結果のランキングリスト
         :raises ApplicationPersonSnapshotSearchRankError: 人物検出結果のランキング検索に失敗した場合に発生するエラー
         """
-        person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(DomainId(id=person_snapshot_id.id))
+        person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(
+            DomainId(id=person_snapshot_id.id))
         person_snapshot_details = self.repository_person_snapshot.search_details_by_ranking(
             person_snapshot=person_snapshot_feature,
             paging=DomainPaging(page=page, search_limit=self.search_limit),
@@ -49,7 +73,10 @@ class ApplicationPersonSnapshotSearchRank(ApplicationBase):
         :return DtoPagination: 人物検出結果のランキングのページング
         :raises ApplicationPersonSnapshotSearchRankError: 人物検出結果のランキングの数取得に失敗した場合に発生するエラー
         """
-        person_snapshot = self.repository_person_snapshot.find_detail_by_id(DomainId(id=person_snapshot_id.id))
-        total_items = self.repository_person_snapshot.count_by_ranking(person_snapshot=person_snapshot)
-        pagination = DomainPagination.create(total_items=total_items, search_limit=self.search_limit)
+        person_snapshot = self.repository_person_snapshot.find_detail_by_id(
+            DomainId(id=person_snapshot_id.id))
+        total_items = self.repository_person_snapshot.count_by_ranking(
+            person_snapshot=person_snapshot)
+        pagination = DomainPagination.create(
+            total_items=total_items, search_limit=self.search_limit)
         return DtoPagination(total_items=pagination.total_items, total_pages=pagination.total_pages)
