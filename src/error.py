@@ -1,9 +1,23 @@
+"""
+アプリケーション用エラー定義
+
+HTTP ステータスに対応するカスタム例外と、システム・クライアント・ビジネスエラーの階層を定義する。
+全層で共通のエラークラスを送出する運用であり、クラス専用のエラーは定義しない。
+"""
+
+
 class Error(Exception):
     """
     カスタムエラークラスの基底クラス
     :param str message: エラーの詳細情報
     """
+
     def __init__(self, message: str):
+        """
+        エラーを初期化する。
+
+        :param str message: エラーメッセージ
+        """
         self.message = message
 
 
@@ -15,6 +29,7 @@ class CustomSystemError(Error):
     """
     pass
 
+
 class InternalServerError(CustomSystemError):
     """
     内部サーバーエラークラス
@@ -23,6 +38,8 @@ class InternalServerError(CustomSystemError):
     :param str message: エラーの詳細情報
     """
     pass
+
+
 class BadGatewayError(CustomSystemError):
     """
     外部連携エラークラス
@@ -31,6 +48,8 @@ class BadGatewayError(CustomSystemError):
     :param str message: エラーの詳細情報
     """
     pass
+
+
 class ServiceUnavailableError(CustomSystemError):
     """
     サービス利用不可エラークラス
@@ -39,6 +58,7 @@ class ServiceUnavailableError(CustomSystemError):
     :param str message: エラーの詳細情報
     """
     pass
+
 
 class GatewayTimeoutError(CustomSystemError):
     """
@@ -49,6 +69,7 @@ class GatewayTimeoutError(CustomSystemError):
     """
     pass
 
+
 class ClientError(Error):
     """
     クライアントエラークラスの基底クラス
@@ -56,6 +77,7 @@ class ClientError(Error):
     :param str message: エラーの詳細情報
     """
     pass
+
 
 class AuthenticationError(ClientError):
     """
@@ -66,6 +88,7 @@ class AuthenticationError(ClientError):
     """
     pass
 
+
 class AuthorizationError(ClientError):
     """
     認可エラークラス
@@ -74,6 +97,7 @@ class AuthorizationError(ClientError):
     :param str message: エラーの詳細情報
     """
     pass
+
 
 class ValidationError(ClientError):
     """
@@ -84,6 +108,7 @@ class ValidationError(ClientError):
     """
     pass
 
+
 class NotFoundError(ClientError):
     """
     未検出エラークラス
@@ -93,6 +118,7 @@ class NotFoundError(ClientError):
     """
     pass
 
+
 class BusinessError(ClientError):
     """
     ビジネスロジックエラークラス
@@ -100,6 +126,7 @@ class BusinessError(ClientError):
     :param str message: エラーの詳細情報
     """
     pass
+
 
 class ConflictError(BusinessError):
     """
@@ -110,6 +137,7 @@ class ConflictError(BusinessError):
     """
     pass
 
+
 class UnprocessableError(BusinessError):
     """
     処理不要エラークラス
@@ -119,6 +147,7 @@ class UnprocessableError(BusinessError):
     """
     pass
 
+
 class TooManyRequestsError(ClientError):
     """
     レートリミットエラークラス
@@ -127,6 +156,7 @@ class TooManyRequestsError(ClientError):
     :param str message: エラーの詳細情報
     """
     pass
+
 
 class PayloadTooLargeError(ClientError):
     """

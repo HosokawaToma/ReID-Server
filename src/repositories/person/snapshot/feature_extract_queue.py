@@ -1,3 +1,9 @@
+"""
+人物検出特徴量抽出キュー用リポジトリ
+
+人物検出結果IDを特徴量抽出キューに投入・取得する責務を持つ。
+Redis・DB・ストレージを利用する。
+"""
 from repositories.utils.redis import RepositoryUtilRedis
 from repositories.utils.redis import RepositoryUtilRedisKey
 from repositories.utils.database import RepositoryUtilDatabase
@@ -16,19 +22,38 @@ from error import NotFoundError
 from uuid import UUID
 import torch
 
+
 class RepositoryPersonSnapshotFeatureExtractQueue:
+    """
+    人物検出特徴量抽出キュー用リポジトリクラス
+
+    人物検出結果IDをキューに push/pop し、pop 時にストレージ・DB から
+    人物検出画像ドメインを組み立てて返す。
+    """
+
     def __init__(
         self,
         redis: RepositoryUtilRedis,
         database: RepositoryUtilDatabase,
         storage: RepositoryUtilStorage,
     ):
+        """
+        :param RepositoryUtilRedis redis: Redis ユーティリティ
+        :param RepositoryUtilDatabase database: データベースユーティリティ
+        :param RepositoryUtilStorage storage: ストレージユーティリティ
+        """
         self.redis = redis
         self.database = database
         self.storage = storage
 
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryPersonSnapshotFeatureExtractQueue":
+        """
+        インスタンスを生成する。
+
+        :param Environment environment: 環境変数
+        :return RepositoryPersonSnapshotFeatureExtractQueue: インスタンス
+        """
         return cls(
             redis=RepositoryUtilRedis.create(environment),
             database=RepositoryUtilDatabase.create(environment),
@@ -36,17 +61,34 @@ class RepositoryPersonSnapshotFeatureExtractQueue:
         )
 
     def push(self, person_snapshot_id: DomainId) -> None:
+        """
+        人物検出結果IDを特徴量抽出キューに1件追加する。
+
+        :param DomainId person_snapshot_id: 人物検出結果のID
+        """
         self.redis.push(
             key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_FEATURE_EXTRACT,
             value={"id": str(person_snapshot_id.id)},
         )
 
     def push_ids(self, ids: DomainIdSequence) -> None:
+        """
+        人物検出結果IDのシーケンスを特徴量抽出キューに順次追加する。
+
+        :param DomainIdSequence ids: 人物検出結果のIDのシーケンス
+        """
         for id in ids:
             self.push(id)
 
     def pop(self) -> DomainPersonSnapshotImage:
-        data = self.redis.dequeue(RepositoryUtilRedisKey.PERSON_SNAPSHOT_FEATURE_EXTRACT)
+        """
+        特徴量抽出キューから1件取り出し、DB・ストレージから人物検出画像を組み立てて返す。
+
+        :return DomainPersonSnapshotImage: 人物検出画像（特徴量・person_id・画像含む）
+        :raises NotFoundError: キューで参照しているIDの人物検出結果がDBに存在しない場合
+        """
+        data = self.redis.dequeue(
+            RepositoryUtilRedisKey.PERSON_SNAPSHOT_FEATURE_EXTRACT)
         image = self.storage.search_image(
             path=RepositoryUtilStoragePathPersonSnapshot(
                 id=DomainId(id=UUID(data["id"])),
@@ -54,19 +96,22 @@ class RepositoryPersonSnapshotFeatureExtractQueue:
         )
         with self.database as session:
             model = session.query(
-                    MigrationModelPersonSnapshot
-                ).filter(
-                    MigrationModelPersonSnapshot.id == UUID(data["id"]),
-                ).first()
+                MigrationModelPersonSnapshot
+            ).filter(
+                MigrationModelPersonSnapshot.id == UUID(data["id"]),
+            ).first()
             if model is None:
                 raise NotFoundError("人物検出結果が見つかりません")
             return DomainPersonSnapshotImage(
                 id=DomainId(id=model.id),
-                location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                location=DomainLocation(
+                    camera_id=model.camera_id, view_id=model.view_id),
                 timestamp=DomainTimestamp(timestamp=model.timestamp),
-                feature=DomainPersonFeature(feature=torch.tensor(model.feature)),
+                feature=DomainPersonFeature(
+                    feature=torch.tensor(model.feature)),
                 person_id=DomainPersonId(
-                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                    id=DomainId(
+                        id=model.person_id) if model.person_id is not None else None,
                     is_junk=model.is_junk,
                 ),
                 image=image,

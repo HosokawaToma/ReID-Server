@@ -1,7 +1,8 @@
-from .base import Base
-from .person_snapshots import MigrationModelPersonSnapshot
-from .camera_frames import MigrationModelCameraFrame
-from .person_snapshots_answer_labels import MigrationModelPersonSnapshotsAnswerLabels
+"""
+マイグレーション用 ORM モデル
 
-# すべてのモデルが同じBaseを使用するため、単一のメタデータオブジェクトを使用
+SQLAlchemy モデルと Alembic 用メタデータをエクスポートする。
+"""
+from .base import Base
+
 ALEMBIC_MODELS = Base.metadata

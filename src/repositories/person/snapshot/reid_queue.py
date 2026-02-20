@@ -1,3 +1,9 @@
+"""
+人物検出再同定キュー用リポジトリ
+
+人物検出結果またはそのIDを再同定キューに投入・取得する責務を持つ。
+Redis・DB・ストレージを利用する。
+"""
 from error import Error, NotFoundError
 from environment import Environment
 from repositories.utils.database import RepositoryUtilDatabase
@@ -19,18 +25,36 @@ import torch
 
 
 class RepositoryPersonSnapshotReidQueue:
+    """
+    人物検出再同定キュー用リポジトリクラス
+
+    人物検出結果（画像付き）またはIDをキューに push し、pop 時に
+    DB から人物検出特徴ドメイン（画像なし）を組み立てて返す。
+    """
+
     def __init__(
         self,
         redis: RepositoryUtilRedis,
         database: RepositoryUtilDatabase,
         storage: RepositoryUtilStorage,
     ):
+        """
+        :param RepositoryUtilRedis redis: Redis ユーティリティ
+        :param RepositoryUtilDatabase database: データベースユーティリティ
+        :param RepositoryUtilStorage storage: ストレージユーティリティ
+        """
         self.redis = redis
         self.database = database
         self.storage = storage
 
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryPersonSnapshotReidQueue":
+        """
+        インスタンスを生成する。
+
+        :param Environment environment: 環境変数
+        :return RepositoryPersonSnapshotReidQueue: インスタンス
+        """
         return cls(
             redis=RepositoryUtilRedis.create(environment),
             database=RepositoryUtilDatabase.create(environment),
@@ -39,10 +63,10 @@ class RepositoryPersonSnapshotReidQueue:
 
     def push(self, person_snapshot: DomainPersonSnapshotImage) -> None:
         """
-        人物検出結果を再識別キューに追加します
+        人物検出結果を再同定キューに追加します
         キューへの追加が失敗してもデータベースへの追加は行われます
         :param DomainPersonSnapshotImage person_snapshot: 人物検出結果
-        :raise RepositoryPersonSnapshotReidQueuePushError: キューへの追加が失敗した場合
+        :raises InternalServerError: キュー・ストレージ・DB への追加が失敗した場合
         """
         self.storage.save_image(
             image=person_snapshot.image,
@@ -67,10 +91,10 @@ class RepositoryPersonSnapshotReidQueue:
 
     def push_all(self, person_snapshot_images: DomainPersonSnapshotImageSequence) -> None:
         """
-        人物検出結果を再識別キューに追加します
+        人物検出結果を再同定キューに追加します
         キューへの追加が失敗してもデータベースへの追加は行われます
         :param DomainPersonSnapshotImageSequence person_snapshot_images: 人物検出結果のシーケンス
-        :raise RepositoryPersonSnapshotReidQueuePushAllError: 人物検出結果のシーケンスの中でキューへの追加が失敗した場合
+        :raises InternalServerError: シーケンスのいずれかでキュー・ストレージ・DB への追加が失敗した場合
         """
         errors = []
         for person_snapshot_image in person_snapshot_images:
@@ -83,10 +107,10 @@ class RepositoryPersonSnapshotReidQueue:
 
     def push_id(self, id: DomainId) -> None:
         """
-        人物検出結果を再識別キューに追加します
+        人物検出結果を再同定キューに追加します
         キューへの追加が失敗してもデータベースへの追加は行われます
         :param DomainId id: 人物検出結果のID
-        :raise RepositoryPersonSnapshotReidQueuePushIdError: キューへの追加が失敗した場合
+        :raises InternalServerError: キューへの追加が失敗した場合
         """
         self.redis.push(
             key=RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID,
@@ -95,10 +119,10 @@ class RepositoryPersonSnapshotReidQueue:
 
     def push_ids(self, ids: DomainIdSequence) -> None:
         """
-        人物検出結果を再識別キューに追加します
+        人物検出結果を再同定キューに追加します
         キューへの追加が失敗してもデータベースへの追加は行われます
         :param DomainIdSequence ids: 人物検出結果のIDのシーケンス
-        :raise RepositoryPersonSnapshotReidQueuePushIdsError: 人物検出結果のIDのシーケンスの中でキューへの追加が失敗した場合
+        :raises InternalServerError: シーケンスのいずれかでキューへの追加が失敗した場合
         """
         errors = []
         for id in ids:
@@ -110,18 +134,28 @@ class RepositoryPersonSnapshotReidQueue:
             raise errors[0]
 
     def pop(self) -> DomainPersonSnapshotFeature:
+        """
+        再同定キューから1件取り出し、DBから人物検出特徴（画像なし）を組み立てて返す。
+
+        :return DomainPersonSnapshotFeature: 人物検出特徴（ID・位置・時刻・特徴量・person_id）
+        :raises NotFoundError: キューで参照しているIDの人物検出結果がDBに存在しない場合
+        """
         data = self.redis.dequeue(RepositoryUtilRedisKey.PERSON_SNAPSHOT_REID)
         with self.database as session:
-            model = session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id == data["id"]).first()
+            model = session.query(MigrationModelPersonSnapshot).filter(
+                MigrationModelPersonSnapshot.id == data["id"]).first()
             if model is None:
                 raise NotFoundError("人物検出結果が見つかりません")
             return DomainPersonSnapshotFeature(
                 id=DomainId(id=model.id),
-                location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                location=DomainLocation(
+                    camera_id=model.camera_id, view_id=model.view_id),
                 timestamp=DomainTimestamp(timestamp=model.timestamp),
-                feature=DomainPersonFeature(feature=torch.tensor(model.feature)),
+                feature=DomainPersonFeature(
+                    feature=torch.tensor(model.feature)),
                 person_id=DomainPersonId(
-                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                    id=DomainId(
+                        id=model.person_id) if model.person_id is not None else None,
                     is_junk=model.is_junk,
                 ),
             )

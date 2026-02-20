@@ -1,3 +1,8 @@
+"""
+人物スナップショット詳細シーケンスのドメインモデル
+
+詳細のリストを保持し、人流への変換・時間順ソートを提供する。
+"""
 from dataclasses import dataclass
 from domain.person.snapshot.detail import DomainPersonSnapshotDetail
 from domain.utils.sequence_base import DomainUtilsSequenceBase
@@ -6,8 +11,14 @@ from domain.person.flow.sequence import DomainPersonFlowSequence
 from domain.time import DomainTime
 from typing import ClassVar
 
+
 @dataclass(frozen=True)
 class DomainPersonSnapshotDetailSequence(DomainUtilsSequenceBase[DomainPersonSnapshotDetail]):
+    """
+    人物スナップショット詳細のシーケンス。
+
+    同一人物の時系列詳細から人流（フロー）への変換を行う。
+    """
     INTERVAL: ClassVar[DomainTime] = DomainTime(seconds=10)
 
     def to_flows(self) -> DomainPersonFlowSequence:

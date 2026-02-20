@@ -1,3 +1,8 @@
+"""
+再同定評価アプリケーション
+
+指定日のクエリ・ギャラリーを用いてCMC曲線とmAPを計算する。
+"""
 from applications import ApplicationBase
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from environment import Environment
@@ -16,13 +21,30 @@ from itertools import chain
 
 
 class ApplicationReidEvaluation(ApplicationBase):
+    """
+    再同定評価を行うアプリケーションクラス。
+
+    クエリ・ギャラリーのランキングからCMCとmAPを算出する。
+    """
+
     def __init__(self,
                  repository_person_snapshot: RepositoryPersonSnapshot,
                  ):
+        """
+        アプリケーションを初期化する。
+
+        :param RepositoryPersonSnapshot repository_person_snapshot: 人物検出結果リポジトリ
+        """
         self.repository_person_snapshot = repository_person_snapshot
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationReidEvaluation":
+        """
+        環境変数からアプリケーションインスタンスを生成する。
+
+        :param Environment environment: 環境変数
+        :return ApplicationReidEvaluation: アプリケーションインスタンス
+        """
         return cls(
             repository_person_snapshot=RepositoryPersonSnapshot.create(
                 environment),
@@ -30,7 +52,8 @@ class ApplicationReidEvaluation(ApplicationBase):
 
     def calculate(self, date: DtoDate, attempt: int) -> tuple[DtoReidCmcCurve, DtoReidCmcCurve, DtoReidMap, DtoReidMap, list[DtoId]]:
         """
-        1~50位までのCMC曲線とmAPを計算する
+        CMC曲線とmAPを計算する
+        CMC曲線は1~50位までを計算する
         ギャラリーデータにゴミデータを含めるケースと含めないケースでそれぞれ計算する
         :param DtoDate date: 日付
         :param int attempt: 試行回数

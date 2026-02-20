@@ -1,3 +1,8 @@
+"""
+ReID AP シーケンスのドメインモデル
+
+AP のリストを保持し、平均 AP（mAP）を算出する。
+"""
 from dataclasses import dataclass
 from domain.reid.ap import DomainReidAp
 from domain.utils.sequence_base import DomainUtilsSequenceBase

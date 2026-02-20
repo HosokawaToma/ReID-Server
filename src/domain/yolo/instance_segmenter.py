@@ -1,3 +1,8 @@
+"""
+YOLO インスタンスセグメンテーションのドメインラッパー
+
+画像からマスク列を抽出する。
+"""
 from domain.yolo.mask import DomainYoloMask
 from domain.yolo.mask_sequence import DomainYoloMaskSequence
 from domain.image import DomainImage
@@ -9,7 +14,7 @@ from modules.yolo.instance_segmenter import ModuleYoloInstanceSegmenter
 @dataclass(frozen=True)
 class DomainYoloInstanceSegmenter(DomainUtilsBase):
     """
-    YOLOの個体推定のドメインモデル
+    YOLO の個体（インスタンス）セグメンテーション結果を保持するドメインモデル。
     """
     model: ModuleYoloInstanceSegmenter
 

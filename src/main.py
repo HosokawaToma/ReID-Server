@@ -1,3 +1,8 @@
+"""
+アプリケーションエントリポイント
+
+FastAPI アプリを組み立て、管理認証・人物検出・カメラフレーム・ReID 評価等のルートを登録し、指定ホスト・ポートで HTTP サーバを起動する。
+"""
 import fastapi
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
@@ -26,7 +31,14 @@ from presentation.person.snapshot.search.gallery.not_contains_junk import Presen
 from presentation.person.snapshot.refresh.feature_extract import PresentationPersonSnapshotRefreshFeatureExtract
 from presentation.reid.evaluation import PresentationReidEvaluation
 
+
 class ServerApp:
+    """
+    HTTP サーバのエントリポイントを担当するクラス。
+
+    認証・人物スナップショット・カメラフレーム・人物フロー・ReID 評価など各エンドポイントを 1 ルートずつ登録し、uvicorn で指定ホスト・ポートに HTTP サーバを起動する。
+    """
+
     def __init__(
         self,
         app_host: str,
@@ -55,6 +67,35 @@ class ServerApp:
         person_snapshot_search_gallery_not_contains_junk: PresentationPersonSnapshotSearchGalleryNotContainsJunk,
         reid_evaluation: PresentationReidEvaluation,
     ):
+        """
+        サーバアプリを初期化する。
+
+        :param str app_host: バインドするホスト
+        :param int app_port: バインドするポート
+        :param fastapi.FastAPI fastapi_app: FastAPIアプリケーション
+        :param PresentationAdminAuthLogin admin_auth_login: 管理認証ログイン
+        :param PresentationAdminAuthTokenRefresh admin_auth_token_refresh: トークンリフレッシュ
+        :param PresentationPersonSnapshotCreate person_snapshot_create: 人物検出作成
+        :param PresentationPersonSnapshotRefresh person_snapshot_refresh: 人物検出更新
+        :param PresentationPersonSnapshotRefreshDetectJunk person_snapshot_refresh_detect_junk: ジャンク判定
+        :param PresentationPersonSnapshotSearch person_snapshot_search: 人物検出検索
+        :param PresentationPersonFlowSearch person_flow_search: 人物フロー検索
+        :param PresentationPersonFlowWeightSearch person_flow_weight_search: フロー重み検索
+        :param PresentationPersonSnapshotImageSearch person_snapshot_image_search: 人物検出画像検索
+        :param PresentationPersonSnapshotAnswerSearch person_snapshot_answer_search: 正解検索
+        :param PresentationPersonSnapshotAnswerAssign person_snapshot_answer_assign: 正解割当
+        :param PresentationPersonSnapshotAnswerDelete person_snapshot_answer_delete: 正解削除
+        :param PresentationPersonSnapshotSearchRank person_snapshot_search_rank: ランク検索
+        :param PresentationPersonSnapshotSearchNearest person_snapshot_search_nearest: 最近傍検索
+        :param PresentationCameraFrameSearch camera_frame_search: カメラフレーム検索
+        :param PresentationCameraFrameImageSearch camera_frame_image_search: カメラフレーム画像検索
+        :param PresentationPersonSnapshotRefreshFeatureExtract person_snapshot_refresh_feature_extract: 特徴量抽出
+        :param PresentationPersonSnapshotSearchQueryIsNotJunk person_snapshot_search_query_is_not_junk: クエリ（非ジャンク）
+        :param PresentationPersonSnapshotSearchQueryIsJunk person_snapshot_search_query_is_junk: クエリ（ジャンク）
+        :param PresentationPersonSnapshotSearchGalleryContainsJunk person_snapshot_search_gallery_contains_junk: ギャラリー（ジャンク含む）
+        :param PresentationPersonSnapshotSearchGalleryNotContainsJunk person_snapshot_search_gallery_not_contains_junk: ギャラリー（ジャンク除く）
+        :param PresentationReidEvaluation reid_evaluation: 再同定評価
+        """
         self.app_host = app_host
         self.app_port = app_port
         self.fastapi_app = fastapi_app
@@ -86,6 +127,12 @@ class ServerApp:
         cls,
         environment: Environment,
     ) -> "ServerApp":
+        """
+        環境変数からサーバアプリインスタンスを生成する。
+
+        :param Environment environment: 環境変数
+        :return ServerApp: サーバアプリインスタンス
+        """
         return cls(
             app_host=environment.app_host,
             app_port=environment.app_port,
@@ -117,7 +164,10 @@ class ServerApp:
             reid_evaluation=PresentationReidEvaluation.create(),
         )
 
-    def run(self):
+    def run(self) -> None:
+        """
+        CORS を許可するミドルウェアを追加し、全エンドポイントをルート登録したのち、指定ホスト・ポートで HTTP サーバを起動する。ブロッキングで動作する。
+        """
         self.fastapi_app.add_middleware(
             CORSMiddleware,
             allow_origins=["*"],
@@ -144,10 +194,13 @@ class ServerApp:
         self.person_snapshot_refresh_feature_extract.setup(self.fastapi_app)
         self.person_snapshot_search_query_is_not_junk.setup(self.fastapi_app)
         self.person_snapshot_search_query_is_junk.setup(self.fastapi_app)
-        self.person_snapshot_search_gallery_contains_junk.setup(self.fastapi_app)
-        self.person_snapshot_search_gallery_not_contains_junk.setup(self.fastapi_app)
+        self.person_snapshot_search_gallery_contains_junk.setup(
+            self.fastapi_app)
+        self.person_snapshot_search_gallery_not_contains_junk.setup(
+            self.fastapi_app)
         self.reid_evaluation.setup(self.fastapi_app)
         uvicorn.run(self.fastapi_app, host=self.app_host, port=self.app_port)
+
 
 if __name__ == "__main__":
     server_app = ServerApp.create(environment=Environment())

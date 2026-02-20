@@ -1,3 +1,8 @@
+"""
+人物検出結果正解ラベルのマイグレーションモデル
+
+person_snapshots_answer_labels テーブルを定義する。
+"""
 from sqlalchemy import UUID, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 import uuid

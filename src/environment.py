@@ -1,12 +1,26 @@
+"""
+環境変数モジュール
+
+環境変数からアプリ・DB・Redis・JWT等の設定を読み込む。
+"""
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+
 @dataclass
 class EnvironmentHash:
+    """ハッシュ用のシークレットを保持する。"""
     secret: str
+
+
 @dataclass
 class Environment:
+    """
+    環境変数から読み込んだ設定を保持するデータクラス。
+
+    初期化時に環境変数を読み、アプリのホスト・ポート、DB・Redis・ストレージ・JWT・管理クライアント認証など各項目に代入する。必須の変数が未設定の場合は例外となる。
+    """
     app_host: str = field(init=False)
     app_port: int = field(init=False)
     hash_key: str = field(init=False)
@@ -37,26 +51,33 @@ class Environment:
     coturn_credential: str = field(init=False)
     search_limit: int = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
+        """
+        環境変数を読み、各フィールドに代入する。必須の環境変数が無い場合は ValueError となる。
+        """
         self.app_host = self._get_string("APP_HOST")
         self.app_port = self._get_int("APP_PORT")
         self.hash_key = self._get_string("HASH_KEY")
         self.public_ip = self._get_string("PUBLIC_IP")
         self.admin_client_id = self._get_string("ADMIN_CLIENT_ID")
         self.admin_client_password = self._get_string("ADMIN_CLIENT_PASSWORD")
-        self.is_delete_unnecessary_images = self._get_bool("IS_DELETE_UNNECESSARY_IMAGES")
+        self.is_delete_unnecessary_images = self._get_bool(
+            "IS_DELETE_UNNECESSARY_IMAGES")
         self.jwt_secret_key = self._get_string("JWT_SECRET_KEY")
         self.jwt_algorithm = self._get_string("JWT_ALGORITHM")
         self.jwt_expire_minutes = self._get_int("JWT_EXPIRE_MINUTES")
-        self.jwt_refresh_secret_key = self._get_string("JWT_REFRESH_SECRET_KEY")
+        self.jwt_refresh_secret_key = self._get_string(
+            "JWT_REFRESH_SECRET_KEY")
         self.jwt_refresh_algorithm = self._get_string("JWT_REFRESH_ALGORITHM")
-        self.jwt_refresh_expire_minutes = self._get_int("JWT_REFRESH_EXPIRE_MINUTES")
+        self.jwt_refresh_expire_minutes = self._get_int(
+            "JWT_REFRESH_EXPIRE_MINUTES")
         self.database_host = self._get_string("POSTGRESQL_HOST")
         self.database_port = self._get_string("POSTGRESQL_PORT")
         self.database_database = self._get_string("POSTGRESQL_DATABASE")
         self.database_user = self._get_string("POSTGRESQL_USER")
         self.database_password = self._get_string("POSTGRESQL_PASSWORD")
-        self.storage_directory = Path(self._get_string("STORAGE_DIRECTORY_NAME"))
+        self.storage_directory = Path(
+            self._get_string("STORAGE_DIRECTORY_NAME"))
         self.redis_host = self._get_string("REDIS_HOST")
         self.redis_port = self._get_int("REDIS_PORT")
         self.redis_db = self._get_int("REDIS_DB")
@@ -69,12 +90,26 @@ class Environment:
         self.search_limit = self._get_int("SEARCH_LIMIT")
 
     def _get_string(self, key: str) -> str:
+        """
+        環境変数の文字列値を取得する。
+
+        :param str key: 環境変数名
+        :return str: 値
+        :raises ValueError: 未設定または空の場合
+        """
         value = os.getenv(key)
         if value is None:
             raise ValueError(f"{key} is not set")
         return value
 
     def _get_int(self, key: str) -> int:
+        """
+        環境変数の整数値を取得する。
+
+        :param str key: 環境変数名
+        :return int: 値
+        :raises ValueError: 未設定または整数でない場合
+        """
         value = os.getenv(key)
         if value is None:
             raise ValueError(f"{key} is not set")
@@ -84,6 +119,13 @@ class Environment:
             raise ValueError(f"{key} is not a valid integer")
 
     def _get_bool(self, key: str) -> bool:
+        """
+        環境変数の真偽値を取得する。
+
+        :param str key: 環境変数名
+        :return bool: 値
+        :raises ValueError: 未設定または true/false 等で解釈できない場合
+        """
         value = os.getenv(key)
         if value is None:
             raise ValueError(f"{key} is not set")

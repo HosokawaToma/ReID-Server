@@ -1,3 +1,8 @@
+"""
+人物スナップショット特徴量のドメインモデル
+
+検出結果の ID・位置・タイムスタンプ・特徴量・人物ID を保持し、ReID 判定を提供する。
+"""
 from dataclasses import dataclass
 from domain.person.feature import DomainPersonFeature
 from domain.utils.base import DomainUtilsBase
@@ -5,6 +10,7 @@ from domain.id import DomainId
 from domain.location import DomainLocation
 from domain.timestamp import DomainTimestamp
 from domain.person.id import DomainPersonId
+
 
 @dataclass(frozen=True)
 class DomainPersonSnapshotFeature(DomainUtilsBase):

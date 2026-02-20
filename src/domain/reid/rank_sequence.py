@@ -1,12 +1,18 @@
+"""
+ReID ランクシーケンスのドメインモデル
+
+ランクのリストを保持し、最小ランク取得・ランク順ソートを提供する。
+"""
 from dataclasses import dataclass
 from domain.reid.rank import DomainReidRank
 from domain.utils.sequence_base import DomainUtilsSequenceBase
 from error import ValidationError
 
+
 @dataclass(frozen=True)
 class DomainReidRankSequence(DomainUtilsSequenceBase[DomainReidRank]):
     """
-    再識別評価のランクのシーケンスのドメインモデル
+    再同定評価のランクのシーケンスのドメインモデル
     """
     def top_rank(self) -> int:
         """

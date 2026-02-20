@@ -1,16 +1,21 @@
+"""
+ドメインユーティリティ基底
+
+ドメインモデルの抽象基底クラスを定義する。
+"""
 from abc import ABC
 from dataclasses import dataclass, fields
-from error import Error
 
-
-class DomainUtilsBaseError(Error):
-    pass
 
 @dataclass(frozen=True)
 class DomainUtilsBase(ABC):
     """
-    ドメインモデルのベースクラス
+    ドメインモデルの抽象基底クラス。
+
+    すべてのドメインエンティティ・値オブジェクトが継承する。文字列表現はクラス名とフィールド一覧で与える。
     """
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({fields(self)})"
+        """クラス名と全フィールドの値を含む文字列表現を返す。"""
+        parts = [f"{f.name}={getattr(self, f.name)!r}" for f in fields(self)]
+        return f"{self.__class__.__name__}({', '.join(parts)})"

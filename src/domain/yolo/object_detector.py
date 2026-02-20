@@ -1,3 +1,8 @@
+"""
+YOLO 物体検出のドメインラッパー
+
+画像から人物のバウンディングボックス列を抽出する。
+"""
 from dataclasses import dataclass
 from ultralytics.engine.results import Results, Boxes
 from domain.yolo.bounding_box import DomainYoloBoundingBox
@@ -6,14 +11,21 @@ from domain.utils.base import DomainUtilsBase
 from domain.image import DomainImage
 from modules.yolo.object_detector import ModuleYoloObjectDetector
 
+
 @dataclass(frozen=True)
 class DomainYoloObjectDetector(DomainUtilsBase):
     """
-    YOLOの物体検出器のドメインモデル
+    YOLO の物体検出結果（バウンディングボックス等）を保持するドメインモデル。
     """
     model: ModuleYoloObjectDetector
 
     def extract_person(self, image: DomainImage) -> DomainYoloBoundingBoxSequence:
+        """
+        画像から人物のバウンディングボックス列を抽出する。
+
+        :param DomainImage image: 入力画像
+        :return DomainYoloBoundingBoxSequence: 検出框の列
+        """
         results = self.model.extract_person(
             image.image,
         )

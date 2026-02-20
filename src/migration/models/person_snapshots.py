@@ -1,3 +1,8 @@
+"""
+人物検出結果のマイグレーションモデル
+
+person_snapshots テーブルを定義する。
+"""
 from sqlalchemy import UUID, Integer, DateTime, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 import uuid
@@ -8,6 +13,11 @@ from .base import Base
 
 
 class MigrationModelPersonSnapshot(Base):
+    """
+    人物検出結果を保存するテーブル。
+
+    id, camera_id, view_id, timestamp, is_junk, person_id, feature を保持する。
+    """
     __tablename__ = "person_snapshots"
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     camera_id: Mapped[int] = mapped_column(Integer, nullable=False)

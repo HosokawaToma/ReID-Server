@@ -1,3 +1,8 @@
+"""
+人物検出結果（スナップショット）のリポジトリ
+
+人物検出結果のCRUD・検索・ランキング取得・正解ラベル管理などを行う。
+"""
 from repositories.utils.database import RepositoryUtilDatabase
 from repositories.utils.base import RepositoryUtilBase
 from error import NotFoundError, ValidationError
@@ -27,15 +32,39 @@ from sqlalchemy.orm import aliased
 from sqlalchemy.sql import and_
 import torch
 
+
 class RepositoryPersonSnapshot(RepositoryUtilBase):
+    """
+    人物検出結果のリポジトリクラス
+
+    人物検出結果の取得・検索・正解ラベル・特徴量の永続化を担当する。
+    """
+
     def __init__(self, database: RepositoryUtilDatabase):
+        """
+        リポジトリを初期化する。
+
+        :param RepositoryUtilDatabase database: データベースユーティリティ
+        """
         self.database = database
 
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryPersonSnapshot":
+        """
+        環境変数からリポジトリインスタンスを生成する。
+
+        :param Environment environment: 環境変数
+        :return RepositoryPersonSnapshot: リポジトリインスタンス
+        """
         return cls(database=RepositoryUtilDatabase.create(environment))
 
     def find_ids(self, query: RepositoryUtilDatabaseQueryPersonSnapshot | None = None) -> DomainIdSequence:
+        """
+        クエリ条件に一致する人物検出結果のID一覧を取得する。
+
+        :param RepositoryUtilDatabaseQueryPersonSnapshot query: 検索クエリ（Noneの場合は全件）
+        :return DomainIdSequence: 人物検出結果のIDのシーケンス
+        """
         with self.database as session:
             session_query = session.query(MigrationModelPersonSnapshot)
             if query is not None:
@@ -56,9 +85,11 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 MigrationModelPersonSnapshot.id.in_(id_list)
             ).all()
             found_ids = {model.id for model in models}
-            missing_ids = [id_val for id_val in id_list if id_val not in found_ids]
+            missing_ids = [
+                id_val for id_val in id_list if id_val not in found_ids]
             if missing_ids:
-                raise NotFoundError(f"person_snapshot not found: {missing_ids}")
+                raise NotFoundError(
+                    f"person_snapshot not found: {missing_ids}")
             return DomainIdSequence(items=[DomainId(id=model.id) for model in models])
 
     def count(self, query: RepositoryUtilDatabaseQueryPersonSnapshot | None = None) -> int:
@@ -82,11 +113,16 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         :raises NotFoundError: 人物検出結果のランキングが見つからない場合
         """
         with self.database as session:
-            query = session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id != person_snapshot.id.id)
-            query = query.filter(MigrationModelPersonSnapshot.camera_id != person_snapshot.location.camera_id)
-            query = query.filter(MigrationModelPersonSnapshot.is_junk.is_(False))
-            query = query.filter(MigrationModelPersonSnapshot.timestamp < person_snapshot.timestamp.tomorrow().timestamp)
-            query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
+            query = session.query(MigrationModelPersonSnapshot).filter(
+                MigrationModelPersonSnapshot.id != person_snapshot.id.id)
+            query = query.filter(
+                MigrationModelPersonSnapshot.camera_id != person_snapshot.location.camera_id)
+            query = query.filter(
+                MigrationModelPersonSnapshot.is_junk.is_(False))
+            query = query.filter(MigrationModelPersonSnapshot.timestamp <
+                                 person_snapshot.timestamp.tomorrow().timestamp)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp >=
+                                 person_snapshot.timestamp.today().timestamp)
             return query.count()
 
     def count_by_nearest(self, person_snapshot: DomainPersonSnapshotDetail) -> int:
@@ -97,9 +133,12 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         :raises NotFoundError: 人物検出結果の特徴量が見つからない場合
         """
         with self.database as session:
-            query = session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id != person_snapshot.id.id)
-            query = query.filter(MigrationModelPersonSnapshot.timestamp < person_snapshot.timestamp.tomorrow().timestamp)
-            query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
+            query = session.query(MigrationModelPersonSnapshot).filter(
+                MigrationModelPersonSnapshot.id != person_snapshot.id.id)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp <
+                                 person_snapshot.timestamp.tomorrow().timestamp)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp >=
+                                 person_snapshot.timestamp.today().timestamp)
             return query.count()
 
     def find_detail_by_id(self, person_snapshot_id: DomainId) -> DomainPersonSnapshotDetail:
@@ -110,14 +149,17 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         :raises NotFoundError: 人物検出結果の詳細が見つからない場合
         """
         with self.database as session:
-            model = session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id == person_snapshot_id.id).first()
+            model = session.query(MigrationModelPersonSnapshot).filter(
+                MigrationModelPersonSnapshot.id == person_snapshot_id.id).first()
             if model is None:
                 raise NotFoundError("人物検出結果が見つかりません")
             return DomainPersonSnapshotDetail(
                 id=DomainId(id=model.id),
-                location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                location=DomainLocation(
+                    camera_id=model.camera_id, view_id=model.view_id),
                 timestamp=DomainTimestamp(timestamp=model.timestamp),
-                person_id=DomainPersonId(id=DomainId(id=model.person_id) if model.person_id is not None else None),
+                person_id=DomainPersonId(id=DomainId(
+                    id=model.person_id) if model.person_id is not None else None),
             )
 
     def find_detail_answer_by_id(self, person_snapshot_id: DomainId) -> DomainPersonSnapshotDetail:
@@ -141,10 +183,12 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             answer_label: MigrationModelPersonSnapshotsAnswerLabels
             return DomainPersonSnapshotDetail(
                 id=DomainId(id=person_snapshot.id),
-                location=DomainLocation(camera_id=person_snapshot.camera_id, view_id=person_snapshot.view_id),
+                location=DomainLocation(
+                    camera_id=person_snapshot.camera_id, view_id=person_snapshot.view_id),
                 timestamp=DomainTimestamp(timestamp=person_snapshot.timestamp),
                 person_id=DomainPersonId(
-                    id=DomainId(id=answer_label.person_id) if answer_label.person_id is not None else None,
+                    id=DomainId(
+                        id=answer_label.person_id) if answer_label.person_id is not None else None,
                     is_junk=answer_label.is_junk,
                 ),
             )
@@ -170,10 +214,12 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             return DomainPersonSnapshotDetailSequence(items=[
                 DomainPersonSnapshotDetail(
                     id=DomainId(id=model.id),
-                    location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                    location=DomainLocation(
+                        camera_id=model.camera_id, view_id=model.view_id),
                     timestamp=DomainTimestamp(timestamp=model.timestamp),
                     person_id=DomainPersonId(
-                        id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                        id=DomainId(
+                            id=model.person_id) if model.person_id is not None else None,
                         is_junk=model.is_junk,
                     ),
                 ) for model in models])
@@ -192,20 +238,27 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         """
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
-            query = query.filter(MigrationModelPersonSnapshot.id != person_snapshot.id.id)
-            query = query.filter(MigrationModelPersonSnapshot.camera_id != person_snapshot.location.camera_id)
-            query = query.filter(MigrationModelPersonSnapshot.timestamp < person_snapshot.timestamp.tomorrow().timestamp)
-            query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
-            query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature._feature.cpu().numpy().tolist()))
+            query = query.filter(
+                MigrationModelPersonSnapshot.id != person_snapshot.id.id)
+            query = query.filter(
+                MigrationModelPersonSnapshot.camera_id != person_snapshot.location.camera_id)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp <
+                                 person_snapshot.timestamp.tomorrow().timestamp)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp >=
+                                 person_snapshot.timestamp.today().timestamp)
+            query = query.order_by(MigrationModelPersonSnapshot.feature.op(
+                "<=>")(person_snapshot.feature._feature.cpu().numpy().tolist()))
             query = self._apply_paging(query, paging)
             models = query.all()
             return DomainPersonSnapshotDetailSequence(items=[
                 DomainPersonSnapshotDetail(
                     id=DomainId(id=model.id),
-                    location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                    location=DomainLocation(
+                        camera_id=model.camera_id, view_id=model.view_id),
                     timestamp=DomainTimestamp(timestamp=model.timestamp),
                     person_id=DomainPersonId(
-                        id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                        id=DomainId(
+                            id=model.person_id) if model.person_id is not None else None,
                         is_junk=model.is_junk,
                     ),
                 ) for model in models])
@@ -219,18 +272,24 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         """
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
-            query = query.filter(MigrationModelPersonSnapshot.id != person_snapshot.id.id)
-            query = query.filter(MigrationModelPersonSnapshot.timestamp < person_snapshot.timestamp.tomorrow().timestamp)
-            query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
-            query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature._feature.cpu().numpy().tolist()))
+            query = query.filter(
+                MigrationModelPersonSnapshot.id != person_snapshot.id.id)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp <
+                                 person_snapshot.timestamp.tomorrow().timestamp)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp >=
+                                 person_snapshot.timestamp.today().timestamp)
+            query = query.order_by(MigrationModelPersonSnapshot.feature.op(
+                "<=>")(person_snapshot.feature._feature.cpu().numpy().tolist()))
             query = self._apply_paging(query, paging)
             models = query.all()
             return DomainPersonSnapshotDetailSequence(items=[
                 DomainPersonSnapshotDetail(
                     id=DomainId(id=model.id),
-                    location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                    location=DomainLocation(
+                        camera_id=model.camera_id, view_id=model.view_id),
                     timestamp=DomainTimestamp(timestamp=model.timestamp),
-                    person_id=DomainPersonId(id=DomainId(id=model.person_id) if model.person_id is not None else None, is_junk=model.is_junk),
+                    person_id=DomainPersonId(id=DomainId(
+                        id=model.person_id) if model.person_id is not None else None, is_junk=model.is_junk),
                 ) for model in models])
 
     def search_query_is_junk(self, date: DomainDate, paging: DomainPaging) -> DomainIdSequence:
@@ -250,9 +309,11 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 MigrationModelPersonSnapshotsAnswerLabels,
                 MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
             ).filter(
-                MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(date).today().timestamp
+                MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(
+                    date).today().timestamp
             ).filter(
-                MigrationModelPersonSnapshot.timestamp < DomainTimestamp.from_date(date).tomorrow().timestamp
+                MigrationModelPersonSnapshot.timestamp < DomainTimestamp.from_date(
+                    date).tomorrow().timestamp
             ).filter(
                 MigrationModelPersonSnapshot.is_junk.is_(True)
             ).distinct(
@@ -281,9 +342,11 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 MigrationModelPersonSnapshotsAnswerLabels,
                 MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
             ).filter(
-                MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(date).today().timestamp
+                MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(
+                    date).today().timestamp
             ).filter(
-                MigrationModelPersonSnapshot.timestamp < DomainTimestamp.from_date(date).tomorrow().timestamp
+                MigrationModelPersonSnapshot.timestamp < DomainTimestamp.from_date(
+                    date).tomorrow().timestamp
             ).filter(
                 MigrationModelPersonSnapshot.is_junk.is_(True)
             ).distinct(
@@ -306,9 +369,11 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 MigrationModelPersonSnapshotsAnswerLabels,
                 MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
             ).filter(
-                MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(date).today().timestamp
+                MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(
+                    date).today().timestamp
             ).filter(
-                MigrationModelPersonSnapshot.timestamp < DomainTimestamp.from_date(date).tomorrow().timestamp
+                MigrationModelPersonSnapshot.timestamp < DomainTimestamp.from_date(
+                    date).tomorrow().timestamp
             ).filter(
                 MigrationModelPersonSnapshot.is_junk.is_(False)
             ).distinct(
@@ -335,18 +400,20 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         with self.database as session:
             return session.query(
                 MigrationModelPersonSnapshot, MigrationModelPersonSnapshotsAnswerLabels
-                ).join(
-                    MigrationModelPersonSnapshotsAnswerLabels,
-                    MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
-                ).filter(
-                    MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(date).today().timestamp
-                ).filter(
-                    MigrationModelPersonSnapshot.timestamp <= DomainTimestamp.from_date(date).tomorrow().timestamp
-                ).filter(
-                    MigrationModelPersonSnapshot.is_junk.is_(False)
-                ).distinct(
-                    MigrationModelPersonSnapshotsAnswerLabels.person_id
-                ).count()
+            ).join(
+                MigrationModelPersonSnapshotsAnswerLabels,
+                MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
+            ).filter(
+                MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(
+                    date).today().timestamp
+            ).filter(
+                MigrationModelPersonSnapshot.timestamp <= DomainTimestamp.from_date(
+                    date).tomorrow().timestamp
+            ).filter(
+                MigrationModelPersonSnapshot.is_junk.is_(False)
+            ).distinct(
+                MigrationModelPersonSnapshotsAnswerLabels.person_id
+            ).count()
 
     def search_gallery_contains_junk(self, person_snapshot_feature: DomainPersonSnapshotFeature) -> DomainIdSequence:
         """
@@ -368,7 +435,8 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             ).filter(
                 MigrationModelPersonSnapshot.timestamp >= person_snapshot_feature.timestamp.today().timestamp
             ).order_by(
-                MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot_feature.feature._feature.cpu().numpy().tolist())
+                MigrationModelPersonSnapshot.feature.op("<=>")(
+                    person_snapshot_feature.feature._feature.cpu().numpy().tolist())
             ).limit(50).all()
             return DomainIdSequence(
                 items=[DomainId(id=model.id) for model in models]
@@ -420,7 +488,8 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             ).filter(
                 MigrationModelPersonSnapshot.is_junk.is_(False)
             ).order_by(
-                MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot_feature.feature._feature.cpu().numpy().tolist())
+                MigrationModelPersonSnapshot.feature.op("<=>")(
+                    person_snapshot_feature.feature._feature.cpu().numpy().tolist())
             ).limit(50).all()
             return DomainIdSequence(items=[DomainId(id=model.id) for model in models])
 
@@ -458,19 +527,22 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             models = session.query(
                 MigrationModelPersonSnapshot
             ).filter(
-                MigrationModelPersonSnapshot.id.in_([id.id for id in ids.items])
+                MigrationModelPersonSnapshot.id.in_(
+                    [id.id for id in ids.items])
             ).all()
             return DomainPersonSnapshotFeatureSequence(
                 items=[
                     DomainPersonSnapshotFeature(
                         id=DomainId(id=model.id),
-                        location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                        location=DomainLocation(
+                            camera_id=model.camera_id, view_id=model.view_id),
                         timestamp=DomainTimestamp(timestamp=model.timestamp),
                         feature=DomainPersonFeature(
                             feature=torch.tensor(model.feature),
                         ),
                         person_id=DomainPersonId(
-                            id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                            id=DomainId(
+                                id=model.person_id) if model.person_id is not None else None,
                             is_junk=model.is_junk,
                         ),
                     ) for model in models
@@ -478,17 +550,25 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
             )
 
     def find_answer_labels_by_ids(self, ids: DomainIdSequence) -> DomainPersonSnapshotPersonIdSequence:
+        """
+        指定した人物検出結果IDに対応する正解ラベル一覧を取得する。
+
+        :param DomainIdSequence ids: 人物検出結果のIDのシーケンス
+        :return DomainPersonSnapshotPersonIdSequence: 正解ラベル（人物検出結果IDとperson_id）のシーケンス
+        """
         with self.database as session:
             models = session.query(
                 MigrationModelPersonSnapshotsAnswerLabels
             ).filter(
-                MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id.in_([id.id for id in ids.items])
+                MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id.in_(
+                    [id.id for id in ids.items])
             ).all()
             return DomainPersonSnapshotPersonIdSequence(
                 items=[DomainPersonSnapshotPersonId(
                     id=DomainId(id=model.person_snapshot_id),
                     person_id=DomainPersonId(
-                        id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                        id=DomainId(
+                            id=model.person_id) if model.person_id is not None else None,
                         is_junk=model.is_junk,
                     ),
                 ) for model in models]
@@ -514,8 +594,10 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 MigrationModelPersonSnapshotsAnswerLabels,
                 MigrationModelPersonSnapshot.id == MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id
             ).filter(
-                MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(date).today().timestamp,
-                MigrationModelPersonSnapshot.timestamp < DomainTimestamp.from_date(date).tomorrow().timestamp,
+                MigrationModelPersonSnapshot.timestamp >= DomainTimestamp.from_date(
+                    date).today().timestamp,
+                MigrationModelPersonSnapshot.timestamp < DomainTimestamp.from_date(
+                    date).tomorrow().timestamp,
                 MigrationModelPersonSnapshot.is_junk.is_(False)
             ).subquery()
             query = session.query(
@@ -552,14 +634,16 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                 gallery_snapshot.id.label("gallery_snapshot_id"),
                 func.row_number().over(
                     partition_by=query_snapshot.id,
-                    order_by=query_snapshot.feature.op('<=>')(gallery_snapshot.feature)
+                    order_by=query_snapshot.feature.op(
+                        '<=>')(gallery_snapshot.feature)
                 ).label("rank"),
                 query_answer_label.person_id.label("query_person_id"),
                 gallery_answer_label.person_id.label("gallery_person_id")
             ).join(
                 query_answer_label, query_snapshot.id == query_answer_label.person_snapshot_id
             ).join(
-                gallery_snapshot, func.date(query_snapshot.timestamp) == func.date(gallery_snapshot.timestamp)
+                gallery_snapshot, func.date(query_snapshot.timestamp) == func.date(
+                    gallery_snapshot.timestamp)
             ).join(
                 gallery_answer_label, gallery_snapshot.id == gallery_answer_label.person_snapshot_id
             ).filter(
@@ -602,8 +686,10 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         with self.database as session:
             query_snapshot = aliased(MigrationModelPersonSnapshot)
             gallery_snapshot = aliased(MigrationModelPersonSnapshot)
-            query_answer_label = aliased(MigrationModelPersonSnapshotsAnswerLabels)
-            gallery_answer_label = aliased(MigrationModelPersonSnapshotsAnswerLabels)
+            query_answer_label = aliased(
+                MigrationModelPersonSnapshotsAnswerLabels)
+            gallery_answer_label = aliased(
+                MigrationModelPersonSnapshotsAnswerLabels)
 
             rank_subquery = session.query(
                 query_snapshot.id.label("query_snapshot_id"),
@@ -658,15 +744,18 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         :return DomainPersonSnapshotDetailSequence: 人物検出結果の詳細リスト
         """
         with self.database as session:
-            models = session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id.in_([id.id for id in ids.items])).all()
+            models = session.query(MigrationModelPersonSnapshot).filter(
+                MigrationModelPersonSnapshot.id.in_([id.id for id in ids.items])).all()
             return DomainPersonSnapshotDetailSequence(
                 items=[
                     DomainPersonSnapshotDetail(
                         id=DomainId(id=model.id),
-                        location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                        location=DomainLocation(
+                            camera_id=model.camera_id, view_id=model.view_id),
                         timestamp=DomainTimestamp(timestamp=model.timestamp),
                         person_id=DomainPersonId(
-                            id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                            id=DomainId(
+                                id=model.person_id) if model.person_id is not None else None,
                             is_junk=model.is_junk,
                         ),
                     ) for model in models
@@ -678,22 +767,26 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         人物検出結果の特徴量を取得します
         :param DomainId person_snapshot_id: 人物検出結果のID
         :return DomainPersonSnapshotFeature: 人物検出結果の特徴量
-        :raise NotFoundError: 人物検出結果が見つからない場合
-        :raise NotFoundError: 人物検出結果の特徴量が存在しない場合
+        :raises NotFoundError: 人物検出結果が見つからない場合
+        :raises NotFoundError: 人物検出結果の特徴量が存在しない場合
         """
         with self.database as session:
-            model = session.query(MigrationModelPersonSnapshot).filter(MigrationModelPersonSnapshot.id == person_snapshot_id.id).first()
+            model = session.query(MigrationModelPersonSnapshot).filter(
+                MigrationModelPersonSnapshot.id == person_snapshot_id.id).first()
             if model is None:
                 raise NotFoundError("人物検出結果が見つかりません")
             if model.feature is None:
                 raise NotFoundError("人物検出結果の特徴量が存在しません")
             return DomainPersonSnapshotFeature(
                 id=DomainId(id=model.id),
-                location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                location=DomainLocation(
+                    camera_id=model.camera_id, view_id=model.view_id),
                 timestamp=DomainTimestamp(timestamp=model.timestamp),
-                feature=DomainPersonFeature(feature=torch.tensor(model.feature)),
+                feature=DomainPersonFeature(
+                    feature=torch.tensor(model.feature)),
                 person_id=DomainPersonId(
-                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                    id=DomainId(
+                        id=model.person_id) if model.person_id is not None else None,
                     is_junk=model.is_junk,
                 ),
             )
@@ -703,27 +796,36 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         同じ日付で過去に検出された特徴量が最も近い人物検出結果を取得します
         :param DomainPersonSnapshotFeature person_snapshot: 人物検出結果
         :return DomainPersonSnapshotFeature: 特徴量が最も近い人物検出結果
-        :raise NotFoundError: 特徴量が最も近い人物検出結果が見つからない場合
-        :raise NotFoundError: 特徴量が最も近い人物検出結果の特徴量が存在しない場合
+        :raises NotFoundError: 特徴量が最も近い人物検出結果が見つからない場合
+        :raises NotFoundError: 特徴量が最も近い人物検出結果の特徴量が存在しない場合
         """
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshot)
-            query = query.filter(MigrationModelPersonSnapshot.id != person_snapshot.id.id)
-            query = query.filter(MigrationModelPersonSnapshot.timestamp <= person_snapshot.timestamp.timestamp)
-            query = query.filter(MigrationModelPersonSnapshot.timestamp >= person_snapshot.timestamp.today().timestamp)
-            query = query.filter(MigrationModelPersonSnapshot.is_junk.is_(False))
-            query = query.filter(MigrationModelPersonSnapshot.feature.isnot(None))
-            query = query.order_by(MigrationModelPersonSnapshot.feature.op("<=>")(person_snapshot.feature._feature.cpu().numpy().tolist()))
+            query = query.filter(
+                MigrationModelPersonSnapshot.id != person_snapshot.id.id)
+            query = query.filter(
+                MigrationModelPersonSnapshot.timestamp <= person_snapshot.timestamp.timestamp)
+            query = query.filter(MigrationModelPersonSnapshot.timestamp >=
+                                 person_snapshot.timestamp.today().timestamp)
+            query = query.filter(
+                MigrationModelPersonSnapshot.is_junk.is_(False))
+            query = query.filter(
+                MigrationModelPersonSnapshot.feature.isnot(None))
+            query = query.order_by(MigrationModelPersonSnapshot.feature.op(
+                "<=>")(person_snapshot.feature._feature.cpu().numpy().tolist()))
             model = query.first()
             if model is None:
                 raise NotFoundError("特徴量が最も近い人物検出結果が見つかりません")
             return DomainPersonSnapshotFeature(
                 id=DomainId(id=model.id),
-                location=DomainLocation(camera_id=model.camera_id, view_id=model.view_id),
+                location=DomainLocation(
+                    camera_id=model.camera_id, view_id=model.view_id),
                 timestamp=DomainTimestamp(timestamp=model.timestamp),
-                feature=DomainPersonFeature(feature=torch.tensor(model.feature)),
+                feature=DomainPersonFeature(
+                    feature=torch.tensor(model.feature)),
                 person_id=DomainPersonId(
-                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                    id=DomainId(
+                        id=model.person_id) if model.person_id is not None else None,
                     is_junk=model.is_junk,
                 ),
             )
@@ -736,13 +838,15 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         :raises NotFoundError: 人物検出結果の正解ラベルが見つからない場合
         """
         with self.database as session:
-            model = session.query(MigrationModelPersonSnapshotsAnswerLabels).filter(MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == person_snapshot_id.id).first()
+            model = session.query(MigrationModelPersonSnapshotsAnswerLabels).filter(
+                MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == person_snapshot_id.id).first()
             if model is None:
                 raise NotFoundError("人物検出結果の正解ラベルが見つかりません")
             return DomainPersonSnapshotPersonId(
                 id=DomainId(id=model.person_snapshot_id),
                 person_id=DomainPersonId(
-                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                    id=DomainId(
+                        id=model.person_id) if model.person_id is not None else None,
                     is_junk=model.is_junk,
                 ),
             )
@@ -755,14 +859,16 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
         :raises NotFoundError: 人物検出結果の正解ラベルが見つからない場合
         """
         with self.database as session:
-            session_query = session.query(MigrationModelPersonSnapshotsAnswerLabels)
+            session_query = session.query(
+                MigrationModelPersonSnapshotsAnswerLabels)
             if query is not None:
                 session_query = query.build(session_query)
             models = session_query.all()
             return DomainPersonSnapshotPersonIdSequence(items=[DomainPersonSnapshotPersonId(
                 id=DomainId(id=model.person_snapshot_id),
                 person_id=DomainPersonId(
-                    id=DomainId(id=model.person_id) if model.person_id is not None else None,
+                    id=DomainId(
+                        id=model.person_id) if model.person_id is not None else None,
                     is_junk=model.is_junk,
                 ),
             ) for model in models])
@@ -836,10 +942,12 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
 
     def delete_answer_label_by_id(self, person_snapshot_id: DomainId) -> None:
         """
-        人物検出結果の正解ラベルを削除する
+        指定した人物検出結果IDの正解ラベルを削除する。
+
         :param DomainId person_snapshot_id: 人物検出結果のID
         """
         with self.database as session:
             query = session.query(MigrationModelPersonSnapshotsAnswerLabels)
-            query = query.filter(MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == person_snapshot_id.id)
+            query = query.filter(
+                MigrationModelPersonSnapshotsAnswerLabels.person_snapshot_id == person_snapshot_id.id)
             query.delete()

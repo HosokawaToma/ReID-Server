@@ -1,8 +1,14 @@
+"""
+人物スナップショット画像シーケンスのドメインモデル
+
+人物検出画像のリストを保持し、一括ゴミ判定を提供する。
+"""
 from dataclasses import dataclass
 from domain.person.snapshot.image import DomainPersonSnapshotImage
 from domain.utils.sequence_base import DomainUtilsSequenceBase
 from domain.yolo.instance_segmenter import DomainYoloInstanceSegmenter
 from domain.yolo.pose_estimator import DomainYoloPoseEstimator
+
 
 @dataclass(frozen=True)
 class DomainPersonSnapshotImageSequence(DomainUtilsSequenceBase[DomainPersonSnapshotImage]):
@@ -18,6 +24,7 @@ class DomainPersonSnapshotImageSequence(DomainUtilsSequenceBase[DomainPersonSnap
         :return DomainPersonSnapshotImageSequence: ゴミデータを判定した人物検出結果の画像の集合
         """
         return DomainPersonSnapshotImageSequence(items=[
-            person_snapshot_image.detect_junk(instance_segmenter, pose_estimator)
+            person_snapshot_image.detect_junk(
+                instance_segmenter, pose_estimator)
             for person_snapshot_image in self.items
         ])

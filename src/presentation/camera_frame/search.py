@@ -1,3 +1,9 @@
+"""
+カメラフレーム検索のプレゼンテーション層
+
+POST /frame/search/{page} でページ番号と検索条件（ID・カメラ・ビュー・時刻範囲・ソート）を受け取り、
+カメラフレーム一覧と総件数・ページング情報を JSON で返す API を提供する。認証済み管理クライアントのみ利用可能。成功時は 200。
+"""
 from applications.camera_frame.search import ApplicationCameraFrameSearch
 from presentation.utils.base import PresentationUtilBase
 from presentation.utils.factory import get_application
@@ -12,12 +18,20 @@ import uuid
 from enum import Enum
 from presentation.utils.type import PresentationUtilPathInt
 
+
 class PresentationCameraFrameSearchSortByKey(str, Enum):
+    """カメラフレーム検索のソートキー。"""
     TIMESTAMP_ASC = "timestamp_asc"
     TIMESTAMP_DESC = "timestamp_desc"
 
+
 @dataclass
 class PresentationCameraFrameSearchRequestBody(PresentationUtilRequestBody):
+    """
+    カメラフレーム検索 API のリクエストボディを保持する DTO。
+
+    ID 一覧（ids）、カメラ ID 一覧（camera_ids）、ビュー ID 一覧（view_ids）、撮影時刻範囲（timestamp_after, timestamp_before）、ソート順（sort_by_list）を任意で指定する。すべて省略可能。
+    """
     ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
@@ -25,7 +39,13 @@ class PresentationCameraFrameSearchRequestBody(PresentationUtilRequestBody):
     timestamp_before: datetime | None = None
     sort_by_list: list[PresentationCameraFrameSearchSortByKey] | None = None
 
+
 class PresentationCameraFrameSearch(PresentationUtilBase):
+    """
+    カメラフレーム検索の API エンドポイントを担当するプレゼンテーション。
+
+    POST /frame/search/{page} でページ番号（パス）とボディの検索条件を送信し、該当するカメラフレームの一覧と総件数・ページング情報を取得する。成功時は 200 と camera_frames, pagination を返す。Bearer トークン必須。
+    """
     router_path = "/frame/search/{page}"
     methods = ["POST"]
     tags = ["Camera Frame"]
@@ -38,10 +58,20 @@ class PresentationCameraFrameSearch(PresentationUtilBase):
     }
 
     def __init__(self, logger: Logger):
+        """
+        プレゼンテーションを初期化する。
+
+        :param Logger logger: ロガー
+        """
         super().__init__(logger=logger)
 
     @classmethod
     def create(cls) -> "PresentationCameraFrameSearch":
+        """
+        プレゼンテーションインスタンスを生成する。
+
+        :return PresentationCameraFrameSearch: プレゼンテーションインスタンス
+        """
         return cls(
             logger=Logger("presentation_camera_frame_search"),
         )
@@ -51,8 +81,20 @@ class PresentationCameraFrameSearch(PresentationUtilBase):
         admin_client_id: PresentationUtilAdminClientAuthenticated,
         page: PresentationUtilPathInt,
         body: PresentationCameraFrameSearchRequestBody | None = None,
-        application: ApplicationCameraFrameSearch = get_application(ApplicationCameraFrameSearch),
+        application: ApplicationCameraFrameSearch = get_application(
+            ApplicationCameraFrameSearch),
     ) -> PresentationUtilJSONResponse:
+        """
+        リクエストの条件とページ番号でカメラフレームを検索し、一覧とページング情報を JSON で返す。
+
+        ボディが None の場合はクエリを None にし、全件対象のうち指定ページを取得する。アプリケーション層で search と search_paging を呼び、camera_frames 配列と pagination をレスポンスに含める。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント（Bearer 検証で注入）
+        :param PresentationUtilPathInt page: ページ番号（パス: /frame/search/{page}）
+        :param PresentationCameraFrameSearchRequestBody body: 検索条件（None の場合は全件）
+        :param ApplicationCameraFrameSearch application: カメラフレーム検索アプリケーション（Depends で注入）
+        :return PresentationUtilJSONResponse: 200 と camera_frames, pagination を含む JSON
+        """
         query = None
         if body is not None:
             query = DtoCameraFrameQuery(

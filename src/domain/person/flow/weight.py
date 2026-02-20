@@ -1,6 +1,12 @@
+"""
+人物フロー重みのドメインモデル
+
+地点間の移動人数（重み）を保持する。
+"""
 from dataclasses import dataclass
 from domain.location import DomainLocation
 from domain.utils.base import DomainUtilsBase
+
 
 @dataclass(frozen=True)
 class DomainPersonFlowWeight(DomainUtilsBase):

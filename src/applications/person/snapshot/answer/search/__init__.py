@@ -1,3 +1,8 @@
+"""
+人物検出結果の正解ラベル検索アプリケーション
+
+クエリ条件に応じて正解ラベル一覧を取得する。
+"""
 from applications import ApplicationBase
 from environment import Environment
 from repositories.person.snapshot import RepositoryPersonSnapshot
@@ -8,21 +13,40 @@ from repositories.utils.database.query.person_snapshot_answer_label import Repos
 
 
 class ApplicationPersonSnapshotAnswerSearch(ApplicationBase):
+    """
+    人物検出結果の正解ラベル検索を担当するアプリケーション。
+
+    クエリ条件（人物検出ID・人物ID・ゴミフラグ・ソート）に応じて正解ラベル（人物検出ID・人物ID・ゴミフラグ）のリストを返す。
+    """
+
     def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot):
+        """
+        アプリケーションを初期化する。
+
+        :param RepositoryPersonSnapshot repository_person_snapshot: 人物検出結果リポジトリ
+        """
         self.repository_person_snapshot = repository_person_snapshot
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationPersonSnapshotAnswerSearch":
+        """
+        環境変数からアプリケーションインスタンスを生成する。
+
+        :param Environment environment: 環境変数
+        :return ApplicationPersonSnapshotAnswerSearch: アプリケーションインスタンス
+        """
         return cls(
-            repository_person_snapshot=RepositoryPersonSnapshot.create(environment=environment),
+            repository_person_snapshot=RepositoryPersonSnapshot.create(
+                environment=environment),
         )
 
     def search(self, query: DtoPersonSnapshotAnswerQuery | None = None) -> list[DtoPersonSnapshotPersonId]:
         """
-        人物検出結果の正解ラベルを検索する
-        :param DtoPersonSnapshotAnswerQuery query: クエリ
-        :return list[DtoPersonSnapshotPersonId]: 人物検出結果の正解ラベルリスト
-        :raises ApplicationPersonSnapshotAnswerSearchError: 人物検出結果の正解ラベル検索に失敗した場合に発生するエラー
+        クエリ条件に合う正解ラベル（人物検出ID・人物ID・ゴミフラグ）のリストを返す。条件が None の場合は全件を対象とする。
+
+        :param DtoPersonSnapshotAnswerQuery | None query: 検索条件（省略時は全件）
+        :return list[DtoPersonSnapshotPersonId]: 正解ラベルDTOのリスト
+        :raises InternalServerError: 検索処理に失敗した場合
         """
         database_query = None
         if query is not None:
@@ -31,11 +55,13 @@ class ApplicationPersonSnapshotAnswerSearch(ApplicationBase):
                 person_ids=query.person_ids,
                 is_junk=query.is_junk,
                 sort_by_list=[
-                    RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabelSortByKey(sort_by.value)
+                    RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabelSortByKey(
+                        sort_by.value)
                     for sort_by in query.sort_by_list
                 ] if query.sort_by_list is not None else None,
             )
-        answer_labels = self.repository_person_snapshot.find_answer_labels(query=database_query)
+        answer_labels = self.repository_person_snapshot.find_answer_labels(
+            query=database_query)
         return [DtoPersonSnapshotPersonId(
             id=answer_label.id.id,
             person_id=answer_label.person_id.id.id if answer_label.person_id.id is not None else None,
