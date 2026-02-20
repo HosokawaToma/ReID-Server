@@ -1,7 +1,8 @@
 """
 プレゼンテーション基底
 
-FastAPIルート登録とハンドラの抽象を提供する。
+FastAPI にルートを 1 本登録し、リクエストを処理して JSON または画像レスポンスを返すための抽象基底を提供する。
+サブクラスは router_path, methods, tags, summary, description, responses を定義し、handle で実際の処理を実装する。
 """
 from fastapi import Depends
 from typing import Any, Annotated, Sequence
@@ -16,7 +17,8 @@ class PresentationUtilBase(ABC):
     """
     プレゼンテーション層の抽象基底クラス。
 
-    ルートパス・HTTP メソッド・タグ等でルートを定義し、FastAPI アプリに 1 ルートとして登録する。リクエスト処理の内容はサブクラスで実装する。
+    クラス属性で router_path（パス）、methods（HTTP メソッド一覧）、tags（OpenAPI タグ）、summary・description・responses（OpenAPI 用）を定義する。
+    setup(app) で FastAPI アプリに add_api_route により 1 ルートとして登録する。リクエスト処理はサブクラスで handle を実装する。
     """
     router_path: str
     methods: list[str]

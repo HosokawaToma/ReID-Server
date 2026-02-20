@@ -1,7 +1,8 @@
 """
 人物検出画像検索のプレゼンテーション層
 
-人物検出IDを受け取り、画像をストリーミングで返す。
+GET /person/snapshot/image/search/{id} で人物検出結果 ID を受け取り、ストレージから切り出し画像を取得して画像レスポンスで返す API を提供する。
+認証済み管理クライアントのみ利用可能。存在しない ID は 404、同一 ID で複数拡張子がある場合は 409、取得失敗時は 500。
 """
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearch
 from dto.id import DtoId
@@ -16,7 +17,9 @@ from logger import Logger
 
 class PresentationPersonSnapshotImageSearch(PresentationUtilBase):
     """
-    人物検出画像検索のAPIエンドポイントを提供するプレゼンテーションクラス。
+    人物検出画像検索の API エンドポイントを提供するプレゼンテーションクラス。
+
+    GET /person/snapshot/image/search/{id} でパスの ID に紐づく人物検出画像（切り出し画像）をストレージから取得し、画像バイナリで返す。成功時は 200 と Content-Type 付きで画像を返す。Bearer トークン必須。
     """
     router_path = "/person/snapshot/image/search/{id}"
     methods = ["GET"]
@@ -66,13 +69,15 @@ class PresentationPersonSnapshotImageSearch(PresentationUtilBase):
             ApplicationPersonSnapshotImageSearch),
     ):
         """
-        人物検出IDで画像を取得し、画像レスポンスで返す。
+        人物検出結果 ID で画像を取得し、画像レスポンスで返す。
 
-        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
-        :param PresentationUtilRequest request: リクエスト
-        :param PresentationUtilPathUUID id: 人物検出結果ID
-        :param ApplicationPersonSnapshotImageSearch application: 人物検出画像検索アプリケーション
-        :return PresentationUtilImageResponse: 画像ストリーミングレスポンス
+        パスの ID を DTO に渡し、アプリケーション層でストレージから人物検出画像を取得する。取得した画像をそのままレスポンスボディに載せて 200 で返す。画像が無い場合は NotFoundError（404）、同一 ID で複数拡張子が存在する場合は ConflictError（409）。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント（Bearer 検証で注入）
+        :param PresentationUtilRequest request: リクエスト（本処理では未使用）
+        :param PresentationUtilPathUUID id: 人物検出結果 ID（パス: /person/snapshot/image/search/{id}）
+        :param ApplicationPersonSnapshotImageSearch application: 人物検出画像検索アプリケーション（Depends で注入）
+        :return PresentationUtilImageResponse: 200 と画像バイナリ（Content-Type は画像形式に応じる）
         """
         image = application.search(
             id=DtoId(id=id),

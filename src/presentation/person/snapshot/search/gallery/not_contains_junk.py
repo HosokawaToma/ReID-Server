@@ -1,7 +1,7 @@
 """
 人物検出ギャラリー検索（ジャンク除く）のプレゼンテーション層
 
-人物検出IDを受け取り、同日・別カメラの類似度順ギャラリーID一覧（ジャンク除く）をJSONで返す。
+POST /person/snapshot/search/gallery/not_contains_junk/{person_snapshot_id} で人物検出 ID をクエリとし、同日・別カメラの類似度順ギャラリー ID 一覧（ゴミ除外）を JSON で返す API を提供する。評価用。認証済み管理クライアントのみ。成功時は 200。
 """
 from presentation.utils.base import PresentationUtilBase
 from logger import Logger
@@ -15,9 +15,9 @@ from dto.id import DtoId
 
 class PresentationPersonSnapshotSearchGalleryNotContainsJunk(PresentationUtilBase):
     """
-    人物検出をクエリとしたギャラリー（ゴミ除外・類似度順ID一覧）取得 API を担当するプレゼンテーション。
+    人物検出をクエリとしたギャラリー（ゴミ除外・類似度順 ID 一覧）取得 API を担当するプレゼンテーション。
 
-    パスで人物検出IDを受け取り、ゴミを除外したギャラリーID一覧を JSON で返す。
+    POST /person/snapshot/search/gallery/not_contains_junk/{person_snapshot_id} でパスの ID をクエリとし、同日の別カメラで類似度順に並べた人物検出 ID 一覧（ゴミ除外）を取得する。成功時は 200 と person_snapshot_gallery_ids を返す。Bearer トークン必須。
     """
     router_path = "/person/snapshot/search/gallery/not_contains_junk/{person_snapshot_id}"
     methods = ["POST"]
@@ -58,12 +58,14 @@ class PresentationPersonSnapshotSearchGalleryNotContainsJunk(PresentationUtilBas
             ApplicationPersonSnapshotSearch),
     ):
         """
-        指定した人物検出をクエリに、ギャラリーID一覧（ジャンク除く）を取得し、JSONで返す。
+        指定した人物検出をクエリに、ゴミ除外のギャラリー ID 一覧（類似度順）を取得し、JSON で返す。
 
-        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
-        :param PresentationUtilPathUUID person_snapshot_id: 人物検出結果ID（クエリ）
-        :param ApplicationPersonSnapshotSearch application: 人物検出検索アプリケーション
-        :return PresentationUtilJSONResponse: ギャラリーID一覧を含むJSONレスポンス
+        パスの person_snapshot_id をクエリとし、アプリケーション層で同日・別カメラの類似度順 ID 一覧（ゴミ除外）を取得する。正解が無い場合は ValidationError により 400 となる。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント（Bearer 検証で注入）
+        :param PresentationUtilPathUUID person_snapshot_id: クエリとする人物検出結果 ID（パス）
+        :param ApplicationPersonSnapshotSearch application: 人物検出検索アプリケーション（Depends で注入）
+        :return PresentationUtilJSONResponse: 200 と {"person_snapshot_gallery_ids": [...]}
         """
         ids = application.search_gallery_not_contains_junk(
             person_snapshot_id=DtoId(id=person_snapshot_id))

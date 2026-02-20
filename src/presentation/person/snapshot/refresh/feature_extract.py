@@ -13,13 +13,15 @@ import uuid
 """
 人物検出特徴量再抽出のプレゼンテーション層
 
-条件を受け取り、該当する人物検出を特徴量抽出キューに投入してJSONで返す。
+POST /person/snapshot/refresh/feature_extract で条件（ID・人物ID・カメラ・ビュー・ゴミフラグ・時刻範囲）を受け取り、該当する人物検出結果の ID を特徴量抽出キューに一括投入する API を提供する。認証済み管理クライアントのみ利用可能。条件未指定時は全件対象。成功時は 200。
 """
 
 
 class PresentationPersonSnapshotRefreshRequest(PresentationUtilRequestBody):
     """
-    特徴量再抽出 API のリクエストボディを保持する DTO。ID・人物ID・カメラ・ビュー・ゴミフラグ・時刻範囲を任意で指定できる。
+    特徴量再抽出 API のリクエストボディを保持する DTO。
+
+    ID 一覧（ids）、人物 ID 一覧（person_ids）、カメラ ID 一覧（camera_ids）、ビュー ID 一覧（view_ids）、ゴミフラグ（is_junk）、時刻範囲（timestamp_after, timestamp_before）を任意で指定する。すべて省略時は全件が特徴量抽出キューに投入される。
     """
     ids: list[uuid.UUID] | None = None
     person_ids: list[uuid.UUID] | None = None
@@ -32,7 +34,9 @@ class PresentationPersonSnapshotRefreshRequest(PresentationUtilRequestBody):
 
 class PresentationPersonSnapshotRefreshFeatureExtract(PresentationUtilBase):
     """
-    特徴量再抽出の API エンドポイントを担当するプレゼンテーション。条件に合う人物検出を特徴量抽出キューに投入し、結果を JSON で返す。
+    特徴量再抽出の API エンドポイントを担当するプレゼンテーション。
+
+    POST /person/snapshot/refresh/feature_extract で条件に合う人物検出結果の ID を特徴量抽出キューに一括投入する。バックグラウンドワーカーが ReID で特徴量を再抽出する。成功時は 200 と {"message": "..."} を返す。Bearer トークン必須。
     """
     router_path = "/person/snapshot/refresh/feature_extract"
     methods = ["POST"]
@@ -73,12 +77,14 @@ class PresentationPersonSnapshotRefreshFeatureExtract(PresentationUtilBase):
             ApplicationPersonSnapshotRefreshFeatureExtract),
     ):
         """
-        リクエストの条件に合う人物検出を特徴量抽出キューに投入し、成功メッセージをJSONで返す。
+        リクエストの条件に合う人物検出結果の ID を特徴量抽出キューに投入し、成功メッセージを JSON で返す。
 
-        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
-        :param PresentationPersonSnapshotRefreshRequest request: 条件（Noneの場合は全件対象）
-        :param ApplicationPersonSnapshotRefreshFeatureExtract application: 特徴量再抽出アプリケーション
-        :return PresentationUtilJSONResponse: 成功メッセージを含むJSONレスポンス
+        リクエストが None または条件未指定の場合はクエリを None にし、該当する全 ID をキューに投入する。アプリケーション層でキュー投入後に 200 を返す。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント（Bearer 検証で注入）
+        :param PresentationPersonSnapshotRefreshRequest request: 対象条件（None の場合は全件）
+        :param ApplicationPersonSnapshotRefreshFeatureExtract application: 特徴量再抽出アプリケーション（Depends で注入）
+        :return PresentationUtilJSONResponse: 200 と成功メッセージ
         """
         query = None
         if request is not None:

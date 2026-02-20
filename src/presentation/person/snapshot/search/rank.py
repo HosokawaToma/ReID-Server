@@ -1,7 +1,7 @@
 """
 人物検出ランキング検索のプレゼンテーション層
 
-人物検出IDとページを受け取り、ランキング一覧とページングをJSONで返す。
+POST /person/snapshot/search/rank/{person_snapshot_id}/{page} で人物検出 ID とページを受け取り、同日・別カメラで類似度順に並べたランキング一覧とページングを JSON で返す API を提供する。認証済み管理クライアントのみ。成功時は 200。
 """
 from presentation.utils.base import PresentationUtilBase
 from dto.id import DtoId
@@ -15,7 +15,9 @@ from applications.person.snapshot.search.rank import ApplicationPersonSnapshotSe
 
 class PresentationPersonSnapshotSearchRank(PresentationUtilBase):
     """
-    人物検出ランキング検索のAPIエンドポイントを提供するプレゼンテーションクラス。
+    人物検出ランキング検索の API エンドポイントを提供するプレゼンテーションクラス。
+
+    POST /person/snapshot/search/rank/{person_snapshot_id}/{page} でパスの ID をクエリとし、同日・別カメラの人物検出を特徴量類似度順に並べたランキングをページ単位で取得する。成功時は 200 と person_snapshots, pagination を返す。Bearer トークン必須。
     """
     router_path = "/person/snapshot/search/rank/{person_snapshot_id}/{page}"
     methods = ["POST"]
@@ -56,13 +58,15 @@ class PresentationPersonSnapshotSearchRank(PresentationUtilBase):
             ApplicationPersonSnapshotSearchRank),
     ):
         """
-        人物検出IDとページでランキングを取得し、JSONで返す。
+        人物検出 ID とページでランキングを取得し、JSON で返す。
 
-        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
-        :param PresentationUtilPathUUID person_snapshot_id: 人物検出結果ID
-        :param PresentationUtilPathInt page: ページ番号
-        :param ApplicationPersonSnapshotSearchRank application: ランキング検索アプリケーション
-        :return PresentationUtilJSONResponse: ランキング一覧とページングを含むJSONレスポンス
+        パスの person_snapshot_id をクエリ、page でページ指定し、アプリケーション層で search と search_paging を呼ぶ。レスポンスには同日・別カメラで類似度順に並べた人物検出一覧と pagination を含める。クエリに該当する人物検出が無い場合は NotFoundError（404）。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント（Bearer 検証で注入）
+        :param PresentationUtilPathUUID person_snapshot_id: クエリとする人物検出結果 ID（パス）
+        :param PresentationUtilPathInt page: ページ番号（パス）
+        :param ApplicationPersonSnapshotSearchRank application: ランキング検索アプリケーション（Depends で注入）
+        :return PresentationUtilJSONResponse: 200 と person_snapshots, pagination
         """
         items = application.search(
             person_snapshot_id=DtoId(id=person_snapshot_id),

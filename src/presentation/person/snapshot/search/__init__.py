@@ -1,7 +1,8 @@
 """
 人物検出検索のプレゼンテーション層
 
-ページとリクエストボディで条件を指定し、人物検出一覧とページングをJSONで返す。
+POST /person/snapshot/search/{page} でページ番号と検索条件（ID・カメラ・ビュー・ゴミフラグ・人物ID・時刻範囲・ソート）を受け取り、
+人物検出一覧と総件数・ページング情報を JSON で返す API を提供する。認証済み管理クライアントのみ利用可能。成功時は 200。
 """
 from applications.person.snapshot.search import ApplicationPersonSnapshotSearch
 from dto.person.snapshot.query import DtoPersonSnapshotQuery
@@ -28,7 +29,8 @@ class PresentationPersonSnapshotSearchRequestBody(PresentationUtilRequestBody):
     """
     人物検出検索 API のリクエストボディを保持する DTO。
 
-    ID・カメラ・ビュー・ゴミフラグ・人物ID・撮影時刻範囲・ソート順を任意で指定できる。
+    検索条件として ID 一覧（ids）、カメラ ID 一覧（camera_ids）、ビュー ID 一覧（view_ids）、ゴミフラグ（is_junk）、
+    人物 ID 一覧（person_ids）、撮影時刻範囲（timestamp_after, timestamp_before）、ソート順（sort_by_list）を任意で指定する。すべて省略可能。
     """
     ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
@@ -44,7 +46,8 @@ class PresentationPersonSnapshotSearch(PresentationUtilBase):
     """
     人物検出検索の API エンドポイントを担当するプレゼンテーション。
 
-    ページ番号とリクエストボディの条件に応じて人物検出一覧とページング情報を JSON で返す。
+    POST /person/snapshot/search/{page} でページ番号（パス）とボディの検索条件を送信し、
+    該当する人物検出結果の一覧と総件数・ページング情報を取得する。成功時は 200 と person_snapshots, total_count 等を返す。Bearer トークン必須。
     """
     router_path = "/person/snapshot/search/{page}"
     methods = ["POST"]
@@ -88,13 +91,16 @@ class PresentationPersonSnapshotSearch(PresentationUtilBase):
             ApplicationPersonSnapshotSearch),
     ):
         """
-        リクエストの条件で人物検出を検索し、一覧とページングをJSONで返す。
+        リクエストの条件とページ番号で人物検出を検索し、一覧とページング情報を JSON で返す。
 
-        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
-        :param PresentationUtilPathInt page: ページ番号
-        :param PresentationPersonSnapshotSearchRequestBody request: 検索条件（Noneの場合は全件）
-        :param ApplicationPersonSnapshotSearch application: 人物検出検索アプリケーション
-        :return PresentationUtilJSONResponse: 人物検出一覧とページングを含むJSONレスポンス
+        ボディが None の場合はクエリを None にし、全件対象のうち指定ページを取得する。アプリケーション層で search と search_paging を呼び、
+        person_snapshots 配列と pagination（total_items, total_pages）をレスポンスに含める。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント（Bearer 検証で注入）
+        :param PresentationUtilPathInt page: ページ番号（パス: /person/snapshot/search/{page}）
+        :param PresentationPersonSnapshotSearchRequestBody request: 検索条件（None の場合は全件）
+        :param ApplicationPersonSnapshotSearch application: 人物検出検索アプリケーション（Depends で注入）
+        :return PresentationUtilJSONResponse: 200 と person_snapshots, pagination を含む JSON
         """
         query = None
         if request is not None:

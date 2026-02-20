@@ -1,7 +1,8 @@
 """
 人物検出正解ラベル削除のプレゼンテーション層
 
-人物検出IDを受け取り、正解ラベルを削除してJSONで返す。
+POST /person/snapshot/answer/delete/{person_snapshot_id} で人物検出結果 ID を受け取り、その正解ラベル（person_id の紐付け）を削除する API を提供する。
+認証済み管理クライアントのみ利用可能。成功時は 200 とメッセージを JSON で返す。
 """
 from presentation.utils.base import PresentationUtilBase
 from logger import Logger
@@ -15,7 +16,9 @@ from presentation.utils.type import PresentationUtilPathUUID
 
 class PresentationPersonSnapshotAnswerDelete(PresentationUtilBase):
     """
-    人物検出正解ラベル削除のAPIエンドポイントを提供するプレゼンテーションクラス。
+    人物検出正解ラベル削除の API エンドポイントを提供するプレゼンテーションクラス。
+
+    POST /person/snapshot/answer/delete/{person_snapshot_id} でパスに指定した人物検出結果の正解ラベルを削除する。評価用正解データの修正に用いる。成功時は 200 と {"message": "Answer label deleted"} を返す。Bearer トークン必須。
     """
     router_path = "/person/snapshot/answer/delete/{person_snapshot_id}"
     methods = ["POST"]
@@ -53,12 +56,14 @@ class PresentationPersonSnapshotAnswerDelete(PresentationUtilBase):
             ApplicationPersonSnapshotAnswerDelete),
     ):
         """
-        指定した人物検出IDの正解ラベルを削除し、成功メッセージをJSONで返す。
+        指定した人物検出結果 ID の正解ラベルを削除し、成功メッセージを JSON で返す。
 
-        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
-        :param PresentationUtilPathUUID person_snapshot_id: 人物検出結果ID
-        :param ApplicationPersonSnapshotAnswerDelete application: 正解ラベル削除アプリケーション
-        :return PresentationUtilJSONResponse: 成功メッセージを含むJSONレスポンス
+        パスの person_snapshot_id を DTO に渡し、アプリケーション層で該当する正解ラベルを削除する。存在しない ID の場合は NotFoundError により 404 となる。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント（Bearer 検証で注入）
+        :param PresentationUtilPathUUID person_snapshot_id: 正解ラベルを削除する人物検出結果 ID（パス）
+        :param ApplicationPersonSnapshotAnswerDelete application: 正解ラベル削除アプリケーション（Depends で注入）
+        :return PresentationUtilJSONResponse: 200 と {"message": "Answer label deleted"}
         """
         application.delete(person_snapshot_id=DtoId(id=person_snapshot_id))
         return PresentationUtilJSONResponse(status=200, content={"message": "Answer label deleted"})

@@ -1,7 +1,8 @@
 """
 カメラフレーム検索のプレゼンテーション層
 
-ページとリクエストボディで条件を指定し、カメラフレーム一覧とページングをJSONで返す。
+POST /frame/search/{page} でページ番号と検索条件（ID・カメラ・ビュー・時刻範囲・ソート）を受け取り、
+カメラフレーム一覧と総件数・ページング情報を JSON で返す API を提供する。認証済み管理クライアントのみ利用可能。成功時は 200。
 """
 from applications.camera_frame.search import ApplicationCameraFrameSearch
 from presentation.utils.base import PresentationUtilBase
@@ -29,7 +30,7 @@ class PresentationCameraFrameSearchRequestBody(PresentationUtilRequestBody):
     """
     カメラフレーム検索 API のリクエストボディを保持する DTO。
 
-    ID・カメラ・ビュー・撮影時刻範囲・ソート順を任意で指定できる。
+    ID 一覧（ids）、カメラ ID 一覧（camera_ids）、ビュー ID 一覧（view_ids）、撮影時刻範囲（timestamp_after, timestamp_before）、ソート順（sort_by_list）を任意で指定する。すべて省略可能。
     """
     ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
@@ -43,7 +44,7 @@ class PresentationCameraFrameSearch(PresentationUtilBase):
     """
     カメラフレーム検索の API エンドポイントを担当するプレゼンテーション。
 
-    ページ番号とリクエストボディの条件に応じてカメラフレーム一覧とページング情報を JSON で返す。
+    POST /frame/search/{page} でページ番号（パス）とボディの検索条件を送信し、該当するカメラフレームの一覧と総件数・ページング情報を取得する。成功時は 200 と camera_frames, pagination を返す。Bearer トークン必須。
     """
     router_path = "/frame/search/{page}"
     methods = ["POST"]
@@ -84,13 +85,15 @@ class PresentationCameraFrameSearch(PresentationUtilBase):
             ApplicationCameraFrameSearch),
     ) -> PresentationUtilJSONResponse:
         """
-        リクエストの条件でカメラフレームを検索し、一覧とページングをJSONで返す。
+        リクエストの条件とページ番号でカメラフレームを検索し、一覧とページング情報を JSON で返す。
 
-        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
-        :param PresentationUtilPathInt page: ページ番号
-        :param PresentationCameraFrameSearchRequestBody body: 検索条件（Noneの場合は全件）
-        :param ApplicationCameraFrameSearch application: カメラフレーム検索アプリケーション
-        :return PresentationUtilJSONResponse: カメラフレーム一覧とページングを含むJSONレスポンス
+        ボディが None の場合はクエリを None にし、全件対象のうち指定ページを取得する。アプリケーション層で search と search_paging を呼び、camera_frames 配列と pagination をレスポンスに含める。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント（Bearer 検証で注入）
+        :param PresentationUtilPathInt page: ページ番号（パス: /frame/search/{page}）
+        :param PresentationCameraFrameSearchRequestBody body: 検索条件（None の場合は全件）
+        :param ApplicationCameraFrameSearch application: カメラフレーム検索アプリケーション（Depends で注入）
+        :return PresentationUtilJSONResponse: 200 と camera_frames, pagination を含む JSON
         """
         query = None
         if body is not None:

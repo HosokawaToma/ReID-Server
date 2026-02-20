@@ -1,7 +1,8 @@
 """
 管理認証ログインのプレゼンテーション層
 
-ID・パスワードを受け取り、トークンとリフレッシュトークンをJSONとCookieで返す。
+管理クライアントのログイン API を提供する。POST で ID とパスワードを受け取り、認証成功時はアクセストークンを JSON、
+リフレッシュトークンを Cookie に設定して 200 を返す。認証失敗時は 401 を返す。認証は不要。
 """
 from presentation.utils.base import PresentationUtilBase
 from presentation.utils.factory import get_application
@@ -17,7 +18,7 @@ class PresentationAdminAuthLoginRequestBody(PresentationUtilRequestBody):
     """
     管理認証ログイン API のリクエストボディを保持する DTO。
 
-    管理クライアントID（文字列）とパスワードを必須で保持する。
+    管理クライアントを識別する ID（文字列）とパスワードを必須で保持する。POST ボディで送信する。
     """
     id: str
     password: str
@@ -27,7 +28,9 @@ class PresentationAdminAuthLogin(PresentationUtilBase):
     """
     管理認証ログインの API エンドポイントを担当するプレゼンテーション。
 
-    ID・パスワードを受け取り、認証成功時はアクセストークンを JSON、リフレッシュトークンを Cookie で返す。失敗時は 401。
+    POST /admin/auth/login でリクエストボディの ID・パスワードを検証し、成功時は 200 とともに
+    アクセストークンを JSON に、リフレッシュトークンを Cookie（refresh_token）に設定して返す。
+    資格情報が不正または期限切れの場合は 401 を返す。
     """
     router_path = "/admin/auth/login"
     methods = ["POST"]
@@ -66,12 +69,16 @@ class PresentationAdminAuthLogin(PresentationUtilBase):
             ApplicationAdminClientAuthLogin),
     ):
         """
-        認証情報でログインし、トークンをJSON、リフレッシュトークンをCookieで返す。
+        リクエストボディの ID・パスワードでログインし、成功時はトークンを返す。
 
-        :param PresentationUtilRequest request: リクエスト
-        :param PresentationAdminAuthLoginRequestBody body: ID・パスワード
-        :param ApplicationAdminClientAuthLogin application: ログインアプリケーション
-        :return PresentationUtilJSONResponse: トークンを含むJSONレスポンス（Cookieにリフレッシュトークン設定）
+        アプリケーション層で資格情報を検証し、有効な場合はアクセストークンとリフレッシュトークンを生成する。
+        レスポンスにはアクセストークンを JSON に含め、リフレッシュトークンは Set-Cookie で送る。不正時は AuthenticationError により 401 となる。
+
+        :param PresentationUtilRequest request: FastAPI のリクエスト（本処理では未使用だが Depends の都合で受け取る）
+        :param PresentationAdminAuthLoginRequestBody body: 管理クライアント ID とパスワード
+        :param ApplicationAdminClientAuthLogin application: ログイン処理を行うアプリケーション（Depends で注入）
+        :return PresentationUtilJSONResponse: 200 時は {"token": "..."}、Cookie に refresh_token を設定
+        :raises AuthenticationError: 資格情報が不正な場合（HTTP 401）
         """
         result = application.login(
             DtoAdminClientAuthCredentials(
