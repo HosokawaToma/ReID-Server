@@ -17,4 +17,5 @@ class DomainUtilsBase(ABC):
 
     def __repr__(self) -> str:
         """クラス名と全フィールドの値を含む文字列表現を返す。"""
-        return f"{self.__class__.__name__}({fields(self)})"
+        parts = [f"{f.name}={getattr(self, f.name)!r}" for f in fields(self)]
+        return f"{self.__class__.__name__}({', '.join(parts)})"
