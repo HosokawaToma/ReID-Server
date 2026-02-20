@@ -36,10 +36,10 @@ class DomainPagination(DomainUtilsBase):
         """
         if search_limit <= 0:
             raise ValidationError(
-                "search_limit must be greater than 0: {search_limit}")
+                f"search_limit must be greater than 0: {search_limit}")
         if total_items < 0:
             raise ValidationError(
-                "total_items must be greater than 0: {total_items}")
+                f"total_items must be greater than 0: {total_items}")
         return cls(
             total_items=total_items,
             total_pages=math.ceil(total_items / search_limit),
