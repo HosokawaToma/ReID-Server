@@ -1,3 +1,8 @@
+"""
+人物検出特徴量再抽出のプレゼンテーション層
+
+POST /person/snapshot/refresh/feature_extract で条件（ID・人物ID・カメラ・ビュー・ゴミフラグ・時刻範囲）を受け取り、該当する人物検出結果の ID を特徴量抽出キューに一括投入する API を提供する。認証済み管理クライアントのみ利用可能。条件未指定時は全件対象。成功時は 200。
+"""
 from presentation.utils.base import PresentationUtilBase
 from presentation.utils.authenticated import PresentationUtilAdminClientAuthenticated
 from presentation.utils.factory import get_application
@@ -8,13 +13,6 @@ from presentation.utils.request import PresentationUtilRequestBody
 from dto.person.snapshot.query import DtoPersonSnapshotQuery
 from datetime import datetime
 import uuid
-
-
-"""
-人物検出特徴量再抽出のプレゼンテーション層
-
-POST /person/snapshot/refresh/feature_extract で条件（ID・人物ID・カメラ・ビュー・ゴミフラグ・時刻範囲）を受け取り、該当する人物検出結果の ID を特徴量抽出キューに一括投入する API を提供する。認証済み管理クライアントのみ利用可能。条件未指定時は全件対象。成功時は 200。
-"""
 
 
 class PresentationPersonSnapshotRefreshRequest(PresentationUtilRequestBody):
