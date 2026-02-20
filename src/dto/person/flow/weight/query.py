@@ -1,5 +1,11 @@
+"""
+人物フロー重み検索クエリ DTO
+
+タイムスタンプ範囲を保持する。
+"""
 from dataclasses import dataclass
 from datetime import datetime
+
 
 @dataclass
 class DtoPersonFlowWeightQuery:

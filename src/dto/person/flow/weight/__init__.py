@@ -1,4 +1,10 @@
+"""
+人物フロー重み DTO
+
+地点間の移動人数（重み）を保持する。
+"""
 from dataclasses import dataclass
+
 
 @dataclass(frozen=True)
 class DtoPersonFlowWeight:

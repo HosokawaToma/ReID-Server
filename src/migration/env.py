@@ -1,3 +1,8 @@
+"""
+Alembic 環境設定
+
+データベース URL の取得と upgrade/downgrade の実行を定義する。src から読み込むことを想定。
+"""
 import os
 from logging.config import fileConfig
 
