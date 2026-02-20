@@ -3,6 +3,7 @@ from domain.yolo.key_point import DomainYoloKeyPoint
 from typing import ClassVar
 from domain.utils.base import DomainUtilsBase
 
+
 @dataclass(frozen=True)
 class DomainYoloKeyPoints(DomainUtilsBase):
     """
@@ -29,6 +30,12 @@ class DomainYoloKeyPoints(DomainUtilsBase):
     CONFIDENCE_THRESHOLD: ClassVar[float] = 0.65
 
     def is_full_length(self) -> bool:
+        """
+        全キーポイントの平均信頼度が閾値以上かどうかを返す。
+        全身が十分に検出されているとみなすかどうかの判定に用いる。
+
+        :return bool: 閾値以上ならTrue
+        """
         key_points = [
             self.nose,
             self.left_eye,

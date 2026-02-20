@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from domain.id import DomainId
 from domain.utils.base import DomainUtilsBase
 
+
 @dataclass(frozen=True)
 class DomainPersonId(DomainUtilsBase):
     """
@@ -36,9 +37,20 @@ class DomainPersonId(DomainUtilsBase):
         return DomainPersonId(id=self.id, is_junk=self.is_junk)
 
     def __eq__(self, other: object) -> bool:
+        """
+        同一の人物ID（id と is_junk が等しい）かどうかを返す。
+
+        :param object other: 比較対象
+        :return bool: 等しければTrue
+        """
         if not isinstance(other, DomainPersonId):
             return False
         return self.id == other.id and self.is_junk == other.is_junk
 
     def __hash__(self) -> int:
+        """
+        ハッシュ値を返す。セットや辞書のキーに用いる。
+
+        :return int: ハッシュ値
+        """
         return hash((self.id, self.is_junk))

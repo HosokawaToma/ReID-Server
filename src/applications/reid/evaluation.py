@@ -1,3 +1,8 @@
+"""
+再識別評価アプリケーション
+
+指定日のクエリ・ギャラリーを用いてCMC曲線とmAPを計算する。
+"""
 from applications import ApplicationBase
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from environment import Environment
@@ -16,13 +21,30 @@ from itertools import chain
 
 
 class ApplicationReidEvaluation(ApplicationBase):
+    """
+    再識別評価を行うアプリケーションクラス。
+
+    クエリ・ギャラリーのランキングからCMCとmAPを算出する。
+    """
+
     def __init__(self,
                  repository_person_snapshot: RepositoryPersonSnapshot,
                  ):
+        """
+        アプリケーションを初期化する。
+
+        :param RepositoryPersonSnapshot repository_person_snapshot: 人物検出結果リポジトリ
+        """
         self.repository_person_snapshot = repository_person_snapshot
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationReidEvaluation":
+        """
+        環境からアプリケーションインスタンスを生成する。
+
+        :param Environment environment: 環境設定
+        :return ApplicationReidEvaluation: アプリケーションインスタンス
+        """
         return cls(
             repository_person_snapshot=RepositoryPersonSnapshot.create(
                 environment),

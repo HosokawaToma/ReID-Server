@@ -1,3 +1,8 @@
+"""
+人物検出結果の正解ラベル割当アプリケーション
+
+ソース人物検出結果の正解ラベルをターゲットにコピーする。
+"""
 from applications import ApplicationBase
 from environment import Environment
 from repositories.person.snapshot import RepositoryPersonSnapshot
@@ -8,14 +13,31 @@ from domain.person.snapshot.person_id import DomainPersonSnapshotPersonId
 from domain.person.snapshot.person_id_sequence import DomainPersonSnapshotPersonIdSequence
 from error import NotFoundError
 
+
 class ApplicationPersonSnapshotAnswerAssign(ApplicationBase):
+    """
+    人物検出結果の正解ラベルを割り当てるアプリケーションクラス。
+    """
+
     def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot):
+        """
+        アプリケーションを初期化する。
+
+        :param RepositoryPersonSnapshot repository_person_snapshot: 人物検出結果リポジトリ
+        """
         self.repository_person_snapshot = repository_person_snapshot
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationPersonSnapshotAnswerAssign":
+        """
+        環境からアプリケーションインスタンスを生成する。
+
+        :param Environment environment: 環境設定
+        :return ApplicationPersonSnapshotAnswerAssign: アプリケーションインスタンス
+        """
         return cls(
-            repository_person_snapshot=RepositoryPersonSnapshot.create(environment=environment),
+            repository_person_snapshot=RepositoryPersonSnapshot.create(
+                environment=environment),
         )
 
     def assign_person_id(
@@ -38,7 +60,8 @@ class ApplicationPersonSnapshotAnswerAssign(ApplicationBase):
                 id=DomainId(id=source_person_snapshot_id.id),
                 person_id=DomainPersonId.new_id(),
             )
-            self.repository_person_snapshot.add_answer_label(source_answer_label)
+            self.repository_person_snapshot.add_answer_label(
+                source_answer_label)
         self.repository_person_snapshot.save_answer_labels(
             DomainPersonSnapshotPersonIdSequence(
                 items=[
