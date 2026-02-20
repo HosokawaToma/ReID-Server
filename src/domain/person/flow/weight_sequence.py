@@ -1,6 +1,12 @@
+"""
+人物フロー重みシーケンスのドメインモデル
+
+地点間の重みのリストを保持する。
+"""
 from dataclasses import dataclass
 from domain.person.flow.weight import DomainPersonFlowWeight
 from domain.utils.sequence_base import DomainUtilsSequenceBase
+
 
 @dataclass(frozen=True)
 class DomainPersonFlowWeightSequence(DomainUtilsSequenceBase[DomainPersonFlowWeight]):

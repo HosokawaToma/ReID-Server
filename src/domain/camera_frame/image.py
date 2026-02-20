@@ -1,3 +1,8 @@
+"""
+カメラフレーム画像のドメインモデル
+
+フレーム画像から人物検出・ゴミ判定・特徴量抽出を行い、人物スナップショット画像列を生成する。
+"""
 from dataclasses import dataclass
 from domain.id import DomainId
 from domain.location import DomainLocation
@@ -11,6 +16,7 @@ from domain.person.snapshot.image import DomainPersonSnapshotImage
 from domain.person.id import DomainPersonId
 from domain.utils.base import DomainUtilsBase
 from domain.reid.model import DomainReIDModel
+
 
 @dataclass(frozen=True)
 class DomainCameraFrameImage(DomainUtilsBase):
@@ -28,7 +34,7 @@ class DomainCameraFrameImage(DomainUtilsBase):
         yolo_instance_segmenter: DomainYoloInstanceSegmenter,
         yolo_pose_estimator: DomainYoloPoseEstimator,
         reid_model: DomainReIDModel,
-        ) -> DomainPersonSnapshotImageSequence:
+    ) -> DomainPersonSnapshotImageSequence:
         """
         カメラフレーム画像から人物検出結果の画像を生成する
         同時に人物検出画像のゴミデータ判定を行う
@@ -58,6 +64,7 @@ class DomainCameraFrameImage(DomainUtilsBase):
                 feature=feature,
                 person_id=DomainPersonId(),
             )
-            person_snapshot_image = person_snapshot_image.detect_junk(yolo_instance_segmenter, yolo_pose_estimator)
+            person_snapshot_image = person_snapshot_image.detect_junk(
+                yolo_instance_segmenter, yolo_pose_estimator)
             person_snapshot_images.append(person_snapshot_image)
         return DomainPersonSnapshotImageSequence(items=person_snapshot_images)

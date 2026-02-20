@@ -1,3 +1,8 @@
+"""
+人物フローのドメインモデル
+
+人物のカメラ間移動（ソース・ターゲットの位置・タイムスタンプ）を保持する。
+"""
 from dataclasses import dataclass
 from domain.location import DomainLocation
 from domain.timestamp import DomainTimestamp

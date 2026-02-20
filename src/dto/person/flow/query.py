@@ -1,6 +1,12 @@
+"""
+人物フロー検索クエリ DTO
+
+人物ID とタイムスタンプ範囲を保持する。
+"""
 from dataclasses import dataclass
 from datetime import datetime
 import uuid
+
 
 @dataclass(frozen=True)
 class DtoPersonFlowQuery:

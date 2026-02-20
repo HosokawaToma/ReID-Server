@@ -1,3 +1,8 @@
+"""
+人物スナップショット画像のドメインモデル
+
+検出結果の画像・特徴量・人物ID を保持し、ゴミ判定・特徴量抽出を提供する。
+"""
 from dataclasses import dataclass
 from domain.id import DomainId
 from domain.location import DomainLocation
@@ -10,6 +15,7 @@ from domain.utils.base import DomainUtilsBase
 from domain.reid.model import DomainReIDModel
 from domain.person.snapshot.feature import DomainPersonSnapshotFeature
 from domain.person.feature import DomainPersonFeature
+
 
 @dataclass(frozen=True)
 class DomainPersonSnapshotImage(DomainUtilsBase):
@@ -143,7 +149,8 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
             id=self.id,
             location=self.location,
             timestamp=self.timestamp,
-            feature=reid_model.extract(image=self.image, location=self.location),
+            feature=reid_model.extract(
+                image=self.image, location=self.location),
             person_id=DomainPersonId.new_id(),
         )
 
@@ -157,6 +164,7 @@ class DomainPersonSnapshotImage(DomainUtilsBase):
             id=self.id,
             location=self.location,
             timestamp=self.timestamp,
-            feature=reid_model.extract(image=self.image, location=self.location),
+            feature=reid_model.extract(
+                image=self.image, location=self.location),
             person_id=self.person_id.copy(),
         )

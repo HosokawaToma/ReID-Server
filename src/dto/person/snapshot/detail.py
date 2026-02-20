@@ -1,6 +1,12 @@
+"""
+人物スナップショット詳細 DTO
+
+ID・位置・タイムスタンプ・ゴミフラグ・人物ID を保持する。
+"""
 from dataclasses import dataclass
 from datetime import datetime
 import uuid
+
 
 @dataclass(frozen=True)
 class DtoPersonSnapshotDetail:

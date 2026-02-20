@@ -1,3 +1,8 @@
+"""
+ReID CMC（Cumulative Matching Characteristics）のドメインモデル
+
+ギャラリーランキングから CMC ベクトルを算出する。
+"""
 from dataclasses import dataclass
 from domain.utils.base import DomainUtilsBase
 from domain.reid.rank_sequence import DomainReidRankSequence

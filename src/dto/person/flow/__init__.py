@@ -1,6 +1,12 @@
+"""
+人物フロー DTO
+
+人物のカメラ間移動（ソース・ターゲットのカメラ・タイムスタンプ）を保持する。
+"""
 from dataclasses import dataclass
 from datetime import datetime
 import uuid
+
 
 @dataclass(frozen=True)
 class DtoPersonFlow:

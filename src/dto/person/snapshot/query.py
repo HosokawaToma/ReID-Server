@@ -1,8 +1,15 @@
+"""
+人物スナップショット検索クエリ DTO
+
+検索条件とソートキーを保持する。
+"""
 from dataclasses import dataclass
 import uuid
 from datetime import datetime
 
 from enum import Enum
+
+
 class DtoPersonSnapshotQuerySortByKey(str, Enum):
     """
     人物写真クエリソートキーを表すDTO
@@ -10,6 +17,7 @@ class DtoPersonSnapshotQuerySortByKey(str, Enum):
     """
     TIMESTAMP_ASC = "timestamp_asc"
     TIMESTAMP_DESC = "timestamp_desc"
+
 
 @dataclass(frozen=True)
 class DtoPersonSnapshotQuery:
