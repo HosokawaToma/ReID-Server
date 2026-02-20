@@ -11,7 +11,9 @@ from logger import Logger
 
 class BackgroundPersonSnapshotFeatureExtract(BackgroundPresentationUtilsBase):
     """
-    人物検出特徴量抽出タスクを実行するバックグラウンドプレゼンテーションクラス。
+    人物検出特徴量抽出のバックグラウンドタスクを担当するプレゼンテーション。
+
+    キューから1件取り出して特徴量抽出を1件実行し、処理したIDをログに記録する。
     """
 
     def __init__(

@@ -15,7 +15,9 @@ from dto.date import DtoDate
 
 class PresentationPersonSnapshotSearchQueryIsNotJunk(PresentationUtilBase):
     """
-    人物検出クエリ検索（非ジャンク）のAPIエンドポイントを提供するプレゼンテーションクラス。
+    指定日に「ゴミでない」とマークされた人物検出のクエリID一覧取得 API を担当するプレゼンテーション。
+
+    パスで日付・ページを受け取り、該当ID一覧とページング情報を JSON で返す。
     """
     router_path = "/person/snapshot/search/query/is_not_junk/{date}/{page}"
     methods = ["POST"]

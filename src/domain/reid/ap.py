@@ -11,7 +11,9 @@ from domain.utils.base import DomainUtilsBase
 @dataclass(frozen=True)
 class DomainReidAp(DomainUtilsBase):
     """
-    APのドメインモデル
+    ReID の平均精度（AP）のドメインモデル。
+
+    1 クエリについて、類似度順に並んだランキングから算出した AP を保持する。0 以上 1 以下の浮動小数点。
     """
     ap: float
 
@@ -21,9 +23,12 @@ class DomainReidAp(DomainUtilsBase):
         ranking_sequence: DomainReidRankSequence,
     ) -> "DomainReidAp":
         """
-        APを計算する
-        :param DomainReidRankSequence ranking_sequence: ランキングシーケンス（クエリデータに対する類似度順に並んでいることが前提）
-        :return DomainReidAp: AP
+        類似度順に並んだランキングシーケンスから AP を算出し、その値を保持するインスタンスを返す。
+
+        ランキングが空の場合は 0 とする。正解のランクの逆数和の平均で計算する。
+
+        :param DomainReidRankSequence ranking_sequence: クエリに対する類似度順のランキング
+        :return DomainReidAp: 算出した AP
         """
         ap = 0.0
         if len(ranking_sequence) == 0:

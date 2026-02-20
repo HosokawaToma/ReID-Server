@@ -23,7 +23,9 @@ class PresentationPersonSnapshotAnswerSearchSortByKey(str, Enum):
 
 
 class PresentationPersonSnapshotAnswerSearchRequestBody(PresentationUtilRequestBody):
-    """正解ラベル検索APIのリクエストボディ。"""
+    """
+    正解ラベル検索 API のリクエストボディを保持する DTO。人物検出ID・人物ID・ゴミフラグ・ソート順を任意で指定できる。
+    """
     person_snapshot_ids: list[uuid.UUID] | None = None
     person_ids: list[uuid.UUID] | None = None
     is_junk: bool | None = None
@@ -32,7 +34,7 @@ class PresentationPersonSnapshotAnswerSearchRequestBody(PresentationUtilRequestB
 
 class PresentationPersonSnapshotAnswerSearch(PresentationUtilBase):
     """
-    人物検出結果の正解ラベル検索のAPIエンドポイントを提供するプレゼンテーションクラス。
+    正解ラベル検索の API エンドポイントを担当するプレゼンテーション。リクエストボディの条件に応じて正解ラベル一覧を JSON で返す。
     """
     router_path = "/person/snapshot/answer/search"
     methods = ["POST"]

@@ -9,9 +9,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class DtoAdminClientAuthCredentials:
     """
-    アドミンクライアント認証資格情報を表すDTO
-    :param str id: ログインID
-    :param str password: パスワード
+    管理クライアント認証用の資格情報（ログインID・パスワード）を保持する DTO。
     """
     id: str
     password: str

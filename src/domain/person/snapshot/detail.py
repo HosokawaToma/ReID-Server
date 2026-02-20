@@ -14,7 +14,7 @@ from domain.utils.base import DomainUtilsBase
 @dataclass(frozen=True)
 class DomainPersonSnapshotDetail(DomainUtilsBase):
     """
-    人物スナップショットの詳細（メタデータのみ）を表す。
+    人物検出結果の詳細（メタデータのみ）を保持するドメインモデル。識別子・位置・タイムスタンプ・ゴミフラグ・人物ID を含む。
     """
     id: DomainId
     location: DomainLocation

@@ -15,7 +15,9 @@ from dto.id import DtoId
 
 class PresentationPersonSnapshotSearchGalleryContainsJunk(PresentationUtilBase):
     """
-    人物検出ギャラリー検索（ジャンク含む）のAPIエンドポイントを提供するプレゼンテーションクラス。
+    人物検出をクエリとしたギャラリー（正解含む類似ID一覧）取得 API を担当するプレゼンテーション。
+
+    パスで人物検出IDを受け取り、正解データを含むギャラリーID一覧を JSON で返す。
     """
     router_path = "/person/snapshot/search/gallery/contains_junk/{person_snapshot_id}"
     methods = ["POST"]

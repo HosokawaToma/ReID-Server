@@ -11,7 +11,7 @@ from domain.utils.sequence_base import DomainUtilsSequenceBase
 @dataclass(frozen=True)
 class DomainYoloKeyPointsSequence(DomainUtilsSequenceBase[DomainYoloKeyPoints]):
     """
-    YOLOのキーポイントのシーケンスのドメインモデル
+    YOLO のキーポイントのシーケンスを保持するドメインモデル。
     """
 
     def one_person(self) -> DomainYoloKeyPoints:

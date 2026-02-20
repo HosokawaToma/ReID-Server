@@ -1,7 +1,7 @@
 """
 ドメイン用シーケンス基底クラス
 
-要素のリストを保持するシーケンス型の基底。add/index/len/getitem/iter/add を提供する。
+ドメインオブジェクトのリストを保持するシーケンス型の基底。末尾への追加・インデックス参照・長さ取得・イテレーション・同型シーケンスとの結合を提供する。
 """
 from abc import ABC
 from typing import TypeVar, Generic
@@ -26,13 +26,13 @@ class DomainUtilsSequenceBase(ABC, Generic[T]):
     """
     ドメインオブジェクトのシーケンスの基底クラス。
 
-    要素のリストを保持し、追加・参照・結合などの操作を提供する。
+    要素のリストを保持する。末尾への 1 件追加・要素のインデックス取得・インデックスによる要素取得・長さ・イテレーション・同型のシーケンスとの結合が可能。
     """
     items: list[T]
 
     def add(self, item: T) -> None:
         """
-        末尾に要素を1件追加する。
+        末尾に要素を 1 件追加する。破壊的にリストを更新する。
 
         :param T item: 追加する要素
         """
@@ -70,9 +70,9 @@ class DomainUtilsSequenceBase(ABC, Generic[T]):
 
     def __add__(self, other: Self) -> Self:
         """
-        別のシーケンスと結合した新しいシーケンスを返す。
+        同じ型のシーケンスを末尾に連結した新しいシーケンスを返す。元のインスタンスは変更しない。
 
-        :param Self other: 結合するシーケンス
-        :return Self: 結合後の新しいシーケンス
+        :param Self other: 連結するシーケンス
+        :return Self: 連結後の新しいシーケンス
         """
         return self.__class__(items=self.items + other.items)

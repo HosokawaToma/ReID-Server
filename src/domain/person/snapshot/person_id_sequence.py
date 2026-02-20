@@ -11,6 +11,6 @@ from domain.utils.sequence_base import DomainUtilsSequenceBase
 @dataclass(frozen=True)
 class DomainPersonSnapshotPersonIdSequence(DomainUtilsSequenceBase[DomainPersonSnapshotPersonId]):
     """
-    人物検出結果の人物IDのシーケンスのドメインモデル
+    人物検出結果と人物IDの対応（正解ラベル）のシーケンスを保持するドメインモデル。
     """
     pass

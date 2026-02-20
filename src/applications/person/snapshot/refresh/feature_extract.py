@@ -13,9 +13,9 @@ from repositories.utils.database.query.person_snapshot import RepositoryUtilData
 
 class ApplicationPersonSnapshotRefreshFeatureExtract(ApplicationBase):
     """
-    人物検出結果の特徴量を再抽出するアプリケーションクラス。
+    人物検出の特徴量再抽出を担当するアプリケーション。
 
-    条件に合うIDを特徴量抽出キューに push する。
+    クエリ条件に合う人物検出結果のIDを特徴量抽出キューに一括投入する。
     """
 
     def __init__(
@@ -49,9 +49,10 @@ class ApplicationPersonSnapshotRefreshFeatureExtract(ApplicationBase):
 
     def refresh(self, query: DtoPersonSnapshotQuery | None = None) -> None:
         """
-        人物検出結果の特徴量を再抽出する
-        :param DtoPersonSnapshotQuery query: 人物検出結果の特徴量を再抽出する条件
-        :raises InternalServerError: 人物検出結果の特徴量を再抽出に失敗した場合に発生するエラー
+        クエリ条件に合う人物検出結果のIDを特徴量抽出キューに投入する。条件が None の場合は該当する全IDを投入する。
+
+        :param DtoPersonSnapshotQuery | None query: 対象とする人物検出の条件（省略時は全件）
+        :raises InternalServerError: キュー投入などに失敗した場合
         """
         database_query = None
         if query is not None:

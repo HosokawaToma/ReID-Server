@@ -14,7 +14,9 @@ from repositories.utils.database.query.person_snapshot_answer_label import Repos
 
 class ApplicationPersonSnapshotAnswerSearch(ApplicationBase):
     """
-    人物検出結果の正解ラベルを検索するアプリケーションクラス。
+    人物検出結果の正解ラベル検索を担当するアプリケーション。
+
+    クエリ条件（人物検出ID・人物ID・ゴミフラグ・ソート）に応じて正解ラベル（人物検出ID・人物ID・ゴミフラグ）のリストを返す。
     """
 
     def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot):
@@ -40,10 +42,11 @@ class ApplicationPersonSnapshotAnswerSearch(ApplicationBase):
 
     def search(self, query: DtoPersonSnapshotAnswerQuery | None = None) -> list[DtoPersonSnapshotPersonId]:
         """
-        人物検出結果の正解ラベルを検索する
-        :param DtoPersonSnapshotAnswerQuery query: クエリ
-        :return list[DtoPersonSnapshotPersonId]: 人物検出結果の正解ラベルリスト
-        :raises ApplicationPersonSnapshotAnswerSearchError: 人物検出結果の正解ラベル検索に失敗した場合に発生するエラー
+        クエリ条件に合う正解ラベル（人物検出ID・人物ID・ゴミフラグ）のリストを返す。条件が None の場合は全件を対象とする。
+
+        :param DtoPersonSnapshotAnswerQuery | None query: 検索条件（省略時は全件）
+        :return list[DtoPersonSnapshotPersonId]: 正解ラベルDTOのリスト
+        :raises ApplicationPersonSnapshotAnswerSearchError: 検索に失敗した場合
         """
         database_query = None
         if query is not None:

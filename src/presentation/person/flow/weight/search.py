@@ -17,14 +17,16 @@ from datetime import datetime
 
 @dataclass
 class PresentationPersonFlowWeightSearchRequestBody(PresentationUtilRequestBody):
-    """人物フロー重み検索APIのリクエストボディ。"""
+    """
+    人物フロー重み検索 API のリクエストボディを保持する DTO。タイムスタンプ範囲を任意で指定できる。
+    """
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
 
 
 class PresentationPersonFlowWeightSearch(PresentationUtilBase):
     """
-    人物フロー重み検索のAPIエンドポイントを提供するプレゼンテーションクラス。
+    人物フロー重み検索の API エンドポイントを担当するプレゼンテーション。時刻範囲でカメラ間の重み一覧を JSON で返す。
     """
     router_path = "/person/flow/weight/search"
     methods = ["POST"]

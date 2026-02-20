@@ -1,7 +1,8 @@
 """
 タイムスタンプのドメインモデル
 
-日時を保持し、日付変換・加減算・比較を提供する。
+日時を保持し、その日の 0 時 0 分 0 秒・前日・翌日の 0 時 0 分 0 秒の取得、
+秒数との加減算、Unix 秒・日付との相互変換、大小比較を提供する。
 """
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -14,29 +15,35 @@ from error import Error
 
 
 class DomainTimestampAddError(Error):
-    """時刻の加算で発生するエラー。"""
+    """時刻の加算処理で発生するエラー（現状は未使用）。"""
     pass
 
 
 class DomainTimestampSubError(Error):
-    """時刻の減算で発生するエラー。"""
+    """時刻の減算処理で発生するエラー（現状は未使用）。"""
     pass
 
 
 @dataclass(frozen=True)
 class DomainTimestamp(DomainUtilsBase):
     """
-    時刻のドメインモデル
+    時刻のドメインモデル。
+
+    日時を保持する。指定がなければ現在日時となる。
+    Unix 秒（浮動小数点）から、または日付（その日の 0 時 0 分 0 秒）からも生成できる。
+    秒数との加算・減算、別のタイムスタンプとの減算（結果は秒数）をサポートする。
     """
     timestamp: datetime = field(default_factory=datetime.now)
 
     @classmethod
     def from_float(cls, timestamp: float) -> "DomainTimestamp":
         """
-        Unix タイムスタンプから DomainTimestamp を生成する。
+        Unix タイムスタンプ（秒、浮動小数点）から日時を生成する。
 
-        :param float timestamp: Unix 秒
-        :return DomainTimestamp: タイムスタンプ
+        ローカルタイムゾーンで解釈される。
+
+        :param float timestamp: Unix 秒（UTC からの経過秒数）
+        :return DomainTimestamp: 対応する日時を保持するインスタンス
         """
         return DomainTimestamp(
             timestamp=datetime.fromtimestamp(timestamp),
@@ -45,10 +52,12 @@ class DomainTimestamp(DomainUtilsBase):
     @classmethod
     def from_date(cls, date: DomainDate) -> "DomainTimestamp":
         """
-        日付の 0 時 0 分 0 秒の DomainTimestamp を生成する。
+        日付の 0 時 0 分 0 秒を表すタイムスタンプを生成する。
 
-        :param DomainDate date: 日付
-        :return DomainTimestamp: タイムスタンプ
+        時刻部分は 00:00:00 に固定される。
+
+        :param DomainDate date: 年・月・日を表すドメイン日付
+        :return DomainTimestamp: その日の 0 時 0 分 0 秒のインスタンス
         """
         return DomainTimestamp(
             timestamp=datetime.combine(
@@ -77,7 +86,7 @@ class DomainTimestamp(DomainUtilsBase):
         )
 
     def __add__(self, other: "DomainTime") -> "DomainTimestamp":
-        """秒数を加算した新しい DomainTimestamp を返す。"""
+        """秒数を加算した新しいタイムスタンプを返す。"""
         return DomainTimestamp(
             timestamp=self.timestamp + timedelta(seconds=other.seconds),
         )
@@ -92,7 +101,7 @@ class DomainTimestamp(DomainUtilsBase):
 
     def __sub__(self, other: "DomainTime | DomainTimestamp") -> "DomainTimestamp | DomainTime":
         """
-        DomainTime の場合は秒を減算した DomainTimestamp、DomainTimestamp の場合は差の DomainTime を返す。
+        秒数を引いた場合は秒を減算したタイムスタンプを、別のタイムスタンプを引いた場合はその秒数差を返す。
         """
         if isinstance(other, DomainTime):
             return DomainTimestamp(
@@ -106,7 +115,7 @@ class DomainTimestamp(DomainUtilsBase):
             raise ValueError("other must be DomainTime or DomainTimestamp")
 
     def __eq__(self, other: object) -> bool:
-        """DomainTimestamp または DomainDate と日時が等しいかどうかを返す。"""
+        """比較対象がタイムスタンプまたは日付であり、日時が等しい場合に True を返す。"""
         if not isinstance(other, (DomainTimestamp, DomainDate)):
             return False
         if isinstance(other, DomainTimestamp):

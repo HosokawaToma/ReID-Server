@@ -15,7 +15,7 @@ from modules.yolo.pose_estimator import ModuleYoloPoseEstimator
 @dataclass(frozen=True)
 class DomainYoloPoseEstimator(DomainUtilsBase):
     """
-    YOLOの姿勢推定器のドメインモデル
+    YOLO の姿勢推定結果（キーポイント等）を保持するドメインモデル。
     """
     model: ModuleYoloPoseEstimator
 

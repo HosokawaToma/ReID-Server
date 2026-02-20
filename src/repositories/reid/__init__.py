@@ -10,9 +10,9 @@ from domain.reid.model import DomainReIDModel
 
 class RepositoryReID:
     """
-    ReID モデルを提供するリポジトリクラス。
+    ReID モデルを提供するリポジトリ。
 
-    モデルはクラス変数でキャッシュし、find で DomainReIDModel として返す。
+    モデルはクラス変数でキャッシュし、取得時はドメイン用にラップした DomainReIDModel を返す。
     """
     CACHE: ClassVar[ModuleReIDModel | None] = None
 

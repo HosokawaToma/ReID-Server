@@ -16,7 +16,7 @@ class PresentationUtilBase(ABC):
     """
     プレゼンテーション層の抽象基底クラス。
 
-    router_path / methods 等でルートを定義し、setup で FastAPI に登録する。handle はサブクラスで実装する。
+    ルートパス・HTTP メソッド・タグ等でルートを定義し、FastAPI アプリに 1 ルートとして登録する。リクエスト処理の内容はサブクラスで実装する。
     """
     router_path: str
     methods: list[str]

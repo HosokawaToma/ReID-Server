@@ -20,9 +20,10 @@ class RepositoryUtilBase(ABC):
 
     def _apply_paging(self, query: Query[T], paging: DomainPaging) -> Query[T]:
         """
-        ページングを適用する。
-        :param Query[Any] query: クエリ
-        :param DomainPaging paging: ページング
-        :return Query[Any]: ページングが適用されたクエリ
+        1 ページあたり件数とオフセットをクエリに適用し、LIMIT / OFFSET 付きのクエリを返す。
+
+        :param Query[T] query: ベースとなるクエリ
+        :param DomainPaging paging: ページ番号と1ページあたり件数
+        :return Query[T]: LIMIT と OFFSET が設定されたクエリ
         """
         return query.limit(paging.search_limit).offset(paging.offset())

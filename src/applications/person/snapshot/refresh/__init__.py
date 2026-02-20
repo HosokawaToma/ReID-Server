@@ -13,7 +13,9 @@ from repositories.person.snapshot.reid_queue import RepositoryPersonSnapshotReid
 
 class ApplicationPersonSnapshotRefresh(ApplicationBase):
     """
-    人物検出を更新（再識別キュー投入）するアプリケーションクラス。
+    人物検出の更新（再識別キュー投入）を担当するアプリケーション。
+
+    クエリ条件に合う人物検出結果の ID を再識別キューに一括投入する。
     """
 
     def __init__(
@@ -47,9 +49,10 @@ class ApplicationPersonSnapshotRefresh(ApplicationBase):
 
     def refresh(self, query: DtoPersonSnapshotQuery | None = None) -> None:
         """
-        人物検出を更新する
-        :param DtoPersonSnapshotQuery query: 人物検出更新条件
-        :raises InternalServerError: 人物検出更新に失敗した場合に発生するエラー
+        クエリ条件に合う人物検出結果の ID を再識別キューに投入する。条件が None の場合は該当する全 ID を投入する。
+
+        :param DtoPersonSnapshotQuery | None query: 対象とする人物検出の条件（省略時は全件）
+        :raises InternalServerError: キュー投入などに失敗した場合
         """
         database_query = None
         if query is not None:

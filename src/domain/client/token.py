@@ -14,7 +14,7 @@ from error import AuthenticationError
 @dataclass(frozen=True)
 class DomainClientToken(DomainUtilsBase):
     """
-    クライアントトークンを表すドメインモデル
+    JWT から復元したクライアントIDと有効期限を保持するドメインモデル。期限切れ判定を提供する。
     """
     client_id: DomainClientId
     expires_at: DomainTimestamp

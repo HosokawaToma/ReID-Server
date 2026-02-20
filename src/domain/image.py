@@ -1,7 +1,8 @@
 """
 画像のドメインモデル
 
-バイト列とフォーマットを保持し、PIL 画像への変換・クロップを提供する。
+画像データをバイト列とフォーマット（拡張子）で保持し、PIL 画像への変換と矩形クロップを提供する。
+許可するフォーマットは jpg / jpeg / png に限定され、それ以外は受け付けない。
 """
 from dataclasses import dataclass
 from PIL import Image
@@ -15,7 +16,9 @@ class DomainImage(DomainUtilsBase):
     """
     画像のドメインモデル。
 
-    バイト列とフォーマットを保持し、許可フォーマット以外は __post_init__ で拒否する。
+    画像の実体をバイト列で、形式を小文字の拡張子文字列で保持する。
+    許可形式は jpg / jpeg / png のみ。それ以外は ValueError となる。
+    バイト列から PIL 画像を取得する仕組みは読み取り専用の利用を想定している。
     """
     bytes: bytes
     format: str
@@ -23,7 +26,7 @@ class DomainImage(DomainUtilsBase):
 
     def __post_init__(self) -> None:
         """
-        フォーマットが許可リストに含まれるか検証する。
+        フォーマットが jpg / jpeg / png のいずれかであることを検証する。違う場合は ValueError。
         """
         if self.format not in self.EXTENSIONS:
             raise ValueError(f"不正なフォーマットです: {self.format}")
@@ -33,8 +36,11 @@ class DomainImage(DomainUtilsBase):
         """
         PIL 画像からドメイン画像を生成する。
 
-        :param Image.Image image: PIL 画像
-        :return DomainImage: ドメイン画像
+        画像をメモリ上でバイト列にシリアライズし、形式は元画像のフォーマットを小文字にした値とする。
+        元画像のフォーマットが不明な場合は ValueError となる。
+
+        :param Image.Image image: 元となる PIL 画像
+        :return DomainImage: 同一内容をバイト列で保持したドメイン画像
         :raises ValueError: 画像のフォーマットが不明な場合
         """
         if image.format is None:
@@ -46,21 +52,26 @@ class DomainImage(DomainUtilsBase):
     @property
     def image(self) -> Image.Image:
         """
-        バイト列から PIL 画像を生成して返す。
+        保持しているバイト列から PIL 画像を生成して返す。
 
-        :return Image.Image: PIL 画像
+        返却された画像を変更しても、このドメイン画像が保持するバイト列には反映されない。
+
+        :return Image.Image: このドメイン画像の内容を表す PIL 画像
         """
         return Image.open(io.BytesIO(self.bytes))
 
     def crop(self, x1: float, y1: float, x2: float, y2: float) -> "DomainImage":
         """
-        指定矩形で画像をクロップした新しい DomainImage を返す。
+        指定した矩形領域で画像をクロップした新しいドメイン画像を返す。
 
-        :param float x1: 左端
-        :param float y1: 上端
-        :param float x2: 右端
-        :param float y2: 下端
-        :return DomainImage: クロップ後の画像
+        矩形は左上 (x1, y1) から右下 (x2, y2) まで。左端・上端は含み、右端・下端は含まない半開区間とする。
+        元のインスタンスは変更されず、クロップ結果だけが新規インスタンスとして返る。
+
+        :param float x1: クロップ領域の左端（X 座標）
+        :param float y1: クロップ領域の上端（Y 座標）
+        :param float x2: クロップ領域の右端（X 座標）
+        :param float y2: クロップ領域の下端（Y 座標）
+        :return DomainImage: クロップ後の画像を保持する新しいドメイン画像
         """
         image = self.image.crop((x1, y1, x2, y2))
         image.format = self.format

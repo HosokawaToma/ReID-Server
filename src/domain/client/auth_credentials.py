@@ -15,7 +15,7 @@ from domain.time import DomainTime
 @dataclass(frozen=True)
 class DomainClientAuthCredentials(DomainUtilsBase):
     """
-    クライアント認証資格情報を表すドメインモデル
+    クライアント認証用の資格情報（ID・パスワード）を保持するドメインモデル。照合と JWT 発行を提供する。
     """
     id: DomainClientId
     password: DomainClientPassword

@@ -11,7 +11,9 @@ from environment import Environment
 
 class BackgroundPersonSnapshotCreate(BackgroundPresentationUtilsBase):
     """
-    人物検出作成タスクを実行するバックグラウンドプレゼンテーションクラス。
+    人物検出作成のバックグラウンドタスクを担当するプレゼンテーション。
+
+    キューから1件取り出して人物検出を1件作成し、作成件数をログに記録する。
     """
 
     def __init__(

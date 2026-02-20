@@ -12,14 +12,9 @@ from PIL import Image
 @dataclass(frozen=True)
 class DtoCameraFrameImage:
     """
-    カメラフレーム画像を表す DTO。
+    カメラフレーム画像を保持する DTO。
 
-    :param uuid.UUID id: フレームID
-    :param int camera_id: カメラID
-    :param int view_id: ビューID
-    :param datetime timestamp: タイムスタンプ
-    :param Image.Image image: PIL 画像
-    :param str format: 画像フォーマット
+    フレームのメタデータ（ID・カメラ・ビュー・タイムスタンプ）と PIL 画像・フォーマットを API で受け渡す際に用いる。
     """
     id: uuid.UUID
     camera_id: int

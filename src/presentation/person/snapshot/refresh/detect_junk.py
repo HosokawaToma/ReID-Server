@@ -16,7 +16,9 @@ import uuid
 
 
 class PresentationPersonSnapshotRefreshDetectJunkRequest(PresentationUtilRequestBody):
-    """ジャンク再判定APIのリクエストボディ。"""
+    """
+    ジャンク再判定 API のリクエストボディを保持する DTO。ID・人物ID・カメラ・ビュー・ゴミフラグ・時刻範囲を任意で指定できる。
+    """
     ids: list[uuid.UUID] | None = None
     person_ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
@@ -28,7 +30,7 @@ class PresentationPersonSnapshotRefreshDetectJunkRequest(PresentationUtilRequest
 
 class PresentationPersonSnapshotRefreshDetectJunk(PresentationUtilBase):
     """
-    人物検出ジャンク再判定のAPIエンドポイントを提供するプレゼンテーションクラス。
+    ジャンク再判定の API エンドポイントを担当するプレゼンテーション。条件に合う人物検出をジャンク判定キューに投入し、結果を JSON で返す。
     """
     router_path = "/person/snapshot/refresh/detect_junk"
     methods = ["POST"]

@@ -11,7 +11,9 @@ from logger import Logger
 
 class BackgroundPersonSnapshotDetectJunk(BackgroundPresentationUtilsBase):
     """
-    人物検出ジャンク判定タスクを実行するバックグラウンドプレゼンテーションクラス。
+    人物検出ジャンク判定のバックグラウンドタスクを担当するプレゼンテーション。
+
+    キューから1件取り出してジャンク判定を1件実行し、処理結果をログに記録する。
     """
 
     def __init__(

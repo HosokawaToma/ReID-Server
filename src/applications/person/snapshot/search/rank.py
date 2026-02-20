@@ -16,7 +16,9 @@ from domain.paging import DomainPaging
 
 class ApplicationPersonSnapshotSearchRank(ApplicationBase):
     """
-    人物検出結果のランキング（別カメラ・同日・類似度順）を検索するアプリケーションクラス。
+    人物検出の「ランキング」検索を担当するアプリケーション。
+
+    指定した人物検出結果をクエリに、別カメラ・同日のフレームから類似度順の詳細リストとページング情報を返す。
     """
 
     def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot, search_limit: int):
@@ -45,11 +47,12 @@ class ApplicationPersonSnapshotSearchRank(ApplicationBase):
 
     def search(self, person_snapshot_id: DtoId, page: int) -> list[DtoPersonSnapshotDetail]:
         """
-        人物検出結果のランキングを検索する
-        :param DtoId person_snapshot_id: 人物検出結果のID
-        :param int page: ページ番号
-        :return list[DtoPersonSnapshotDetail]: 人物検出結果のランキングリスト
-        :raises ApplicationPersonSnapshotSearchRankError: 人物検出結果のランキング検索に失敗した場合に発生するエラー
+        指定した人物検出結果をクエリに、別カメラ・同日の類似度順（ランキング）で人物検出詳細のリストを返す。
+
+        :param DtoId person_snapshot_id: クエリとする人物検出結果のID
+        :param int page: ページ番号（1 始まり）
+        :return list[DtoPersonSnapshotDetail]: ランキング順の人物検出詳細リスト
+        :raises ApplicationPersonSnapshotSearchRankError: 検索に失敗した場合
         """
         person_snapshot_feature = self.repository_person_snapshot.find_feature_by_id(
             DomainId(id=person_snapshot_id.id))
@@ -68,10 +71,11 @@ class ApplicationPersonSnapshotSearchRank(ApplicationBase):
 
     def search_paging(self, person_snapshot_id: DtoId) -> DtoPagination:
         """
-        人物検出結果のランキングの数を取得する
-        :param DtoId person_snapshot_id: 人物検出結果のID
-        :return DtoPagination: 人物検出結果のランキングのページング
-        :raises ApplicationPersonSnapshotSearchRankError: 人物検出結果のランキングの数取得に失敗した場合に発生するエラー
+        指定した人物検出結果のランキング検索結果の総件数と総ページ数を返す。
+
+        :param DtoId person_snapshot_id: クエリとする人物検出結果のID
+        :return DtoPagination: 総件数と総ページ数
+        :raises ApplicationPersonSnapshotSearchRankError: 件数取得に失敗した場合
         """
         person_snapshot = self.repository_person_snapshot.find_detail_by_id(
             DomainId(id=person_snapshot_id.id))

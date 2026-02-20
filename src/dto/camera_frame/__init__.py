@@ -11,12 +11,9 @@ import uuid
 @dataclass(frozen=True)
 class DtoCameraFrame:
     """
-    カメラフレームを表す DTO。
+    カメラフレームを保持する DTO。
 
-    :param uuid.UUID id: フレームID
-    :param int camera_id: カメラID
-    :param int view_id: ビューID
-    :param datetime timestamp: タイムスタンプ
+    フレームの識別子・カメラID・ビューID・タイムスタンプを API で受け渡す際に用いる。
     """
     id: uuid.UUID
     camera_id: int

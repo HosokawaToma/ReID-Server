@@ -18,7 +18,9 @@ import uuid
 
 
 class PresentationPersonSnapshotRefreshRequest(PresentationUtilRequestBody):
-    """特徴量再抽出APIのリクエストボディ。"""
+    """
+    特徴量再抽出 API のリクエストボディを保持する DTO。ID・人物ID・カメラ・ビュー・ゴミフラグ・時刻範囲を任意で指定できる。
+    """
     ids: list[uuid.UUID] | None = None
     person_ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
@@ -30,7 +32,7 @@ class PresentationPersonSnapshotRefreshRequest(PresentationUtilRequestBody):
 
 class PresentationPersonSnapshotRefreshFeatureExtract(PresentationUtilBase):
     """
-    人物検出特徴量再抽出のAPIエンドポイントを提供するプレゼンテーションクラス。
+    特徴量再抽出の API エンドポイントを担当するプレゼンテーション。条件に合う人物検出を特徴量抽出キューに投入し、結果を JSON で返す。
     """
     router_path = "/person/snapshot/refresh/feature_extract"
     methods = ["POST"]

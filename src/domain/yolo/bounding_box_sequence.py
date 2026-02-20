@@ -11,5 +11,5 @@ from domain.utils.sequence_base import DomainUtilsSequenceBase
 @dataclass(frozen=True)
 class DomainYoloBoundingBoxSequence(DomainUtilsSequenceBase[DomainYoloBoundingBox]):
     """
-    YOLOのバウンディングボックスのシーケンスのドメインモデル
+    YOLO のバウンディングボックスのシーケンスを保持するドメインモデル。
     """

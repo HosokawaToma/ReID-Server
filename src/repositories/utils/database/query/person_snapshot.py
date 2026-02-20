@@ -26,7 +26,7 @@ class RepositoryUtilDatabaseQueryPersonSnapshot:
     """
     人物検出結果テーブル用のクエリ条件を保持するデータクラス。
 
-    build で SQLAlchemy の Query にフィルタ・ソートを適用する。
+    ID・カメラ・ビュー・時刻範囲・ゴミフラグ・人物ID・ソート順を保持し、SQLAlchemy の Query にフィルタと ORDER BY を適用した結果を返す。
     """
     ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
@@ -39,9 +39,10 @@ class RepositoryUtilDatabaseQueryPersonSnapshot:
 
     def build(self, query: Query[MigrationModelPersonSnapshot]) -> Query[MigrationModelPersonSnapshot]:
         """
-        クエリをビルドする。
-        :param Query[MigrationModelPersonSnapshot] query: クエリ
-        :return Query[MigrationModelPersonSnapshot]: ビルドされたクエリ
+        保持する条件をベースクエリに適用し、フィルタ・ソートを付けたクエリを返す。条件が None の項目は適用しない。
+
+        :param Query[MigrationModelPersonSnapshot] query: ベースとなるクエリ
+        :return Query[MigrationModelPersonSnapshot]: 条件を適用したクエリ
         """
         if self.ids is not None:
             query = query.filter(MigrationModelPersonSnapshot.id.in_(self.ids))

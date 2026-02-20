@@ -15,14 +15,16 @@ import uuid
 
 
 class PresentationPersonSnapshotAnswerAssignRequest(PresentationUtilRequestBody):
-    """正解ラベル割当APIのリクエストボディ。"""
+    """
+    正解ラベル割当 API のリクエストボディを保持する DTO。ソース1件とターゲット複数件の人物検出IDを必須で指定する。
+    """
     source_person_snapshot_id: uuid.UUID
     target_person_snapshot_ids: list[uuid.UUID]
 
 
 class PresentationPersonSnapshotAnswerAssign(PresentationUtilBase):
     """
-    人物検出正解ラベル割当のAPIエンドポイントを提供するプレゼンテーションクラス。
+    正解ラベル割当の API エンドポイントを担当するプレゼンテーション。ソースの正解ラベルをターゲットにコピーし、結果を JSON で返す。
     """
     router_path = "/person/snapshot/answer/assign"
     methods = ["POST"]

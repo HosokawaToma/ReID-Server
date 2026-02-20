@@ -16,7 +16,9 @@ from error import NotFoundError
 
 class ApplicationPersonSnapshotAnswerAssign(ApplicationBase):
     """
-    人物検出結果の正解ラベルを割り当てるアプリケーションクラス。
+    人物検出結果の正解ラベル割当を担当するアプリケーション。
+
+    ソース人物検出結果の正解ラベル（人物ID）をターゲット複数件にコピーする。ソースに正解が無い場合は新規作成してからコピーする。
     """
 
     def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot):
@@ -46,10 +48,10 @@ class ApplicationPersonSnapshotAnswerAssign(ApplicationBase):
         target_person_snapshot_ids: list[DtoId],
     ) -> None:
         """
-        ソース人物検出結果の正解ラベルをターゲット人物検出結果に割り当てる
-        ソース人物検出結果に正解ラベルが存在しない場合，新たに正解ラベルを作成する
-        :param DtoId source_person_snapshot_id: ソース人物検出結果ID
-        :param list[DtoId] target_person_snapshot_ids: ターゲット人物検出結果IDリスト
+        ソース1件の正解ラベルをターゲット複数件に割り当てる。ソースに正解が無い場合は新規の人物IDで正解を作成してから割り当てる。
+
+        :param DtoId source_person_snapshot_id: 正解の参照元となる人物検出結果のID
+        :param list[DtoId] target_person_snapshot_ids: 正解を付与する人物検出結果のIDリスト
         """
         try:
             source_answer_label = self.repository_person_snapshot.find_answer_label_by_id(

@@ -13,9 +13,9 @@ from repositories.person.snapshot import RepositoryPersonSnapshot
 
 class ApplicationPersonSnapshotRefreshDetectJunk(ApplicationBase):
     """
-    人物検出結果のジャンクを再判定するアプリケーションクラス。
+    人物検出のジャンク再判定を担当するアプリケーション。
 
-    条件に合うIDをジャンク判定キューに push する。
+    クエリ条件に合う人物検出結果のIDをジャンク判定キューに一括投入する。
     """
 
     def __init__(
@@ -49,9 +49,10 @@ class ApplicationPersonSnapshotRefreshDetectJunk(ApplicationBase):
 
     def refresh(self, query: DtoPersonSnapshotQuery | None = None) -> None:
         """
-        人物検出結果のゴミデータを再判定する
-        :param DtoPersonSnapshotQuery query: 人物検出結果のゴミデータを再判定する条件
-        :raises InternalServerError: 人物検出結果のゴミデータを再判定に失敗した場合に発生するエラー
+        クエリ条件に合う人物検出結果のIDをジャンク判定キューに投入する。条件が None の場合は該当する全IDを投入する。
+
+        :param DtoPersonSnapshotQuery | None query: 対象とする人物検出の条件（省略時は全件）
+        :raises InternalServerError: キュー投入などに失敗した場合
         """
         database_query = None
         if query is not None:

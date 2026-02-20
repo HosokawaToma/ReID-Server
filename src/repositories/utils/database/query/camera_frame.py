@@ -25,7 +25,7 @@ class RepositoryUtilDatabaseQueryCameraFrame:
     """
     カメラフレームテーブル用のクエリ条件を保持するデータクラス。
 
-    build で SQLAlchemy の Query にフィルタ・ソートを適用する。
+    ID・カメラ・ビュー・時刻範囲・ソート順を保持し、SQLAlchemy の Query にフィルタと ORDER BY を適用した結果を返す。
     """
     ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
@@ -36,7 +36,7 @@ class RepositoryUtilDatabaseQueryCameraFrame:
 
     def build(self, query: Query[MigrationModelCameraFrame]) -> Query[MigrationModelCameraFrame]:
         """
-        保持している条件でクエリにフィルタ・ソートを適用する。
+        保持する条件をベースクエリに適用し、フィルタ・ソートを付けたクエリを返す。条件が None の項目は適用しない。
 
         :param Query[MigrationModelCameraFrame] query: ベースとなるクエリ
         :return Query[MigrationModelCameraFrame]: 条件を適用したクエリ

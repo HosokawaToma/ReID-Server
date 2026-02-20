@@ -11,7 +11,7 @@ from domain.utils.sequence_base import DomainUtilsSequenceBase
 @dataclass(frozen=True)
 class DomainYoloMaskSequence(DomainUtilsSequenceBase[DomainYoloMask]):
     """
-    YOLOのマスクのシーケンスのドメインモデル
+    YOLO のマスクのシーケンスを保持するドメインモデル。
     """
 
     def is_one_person(self) -> bool:

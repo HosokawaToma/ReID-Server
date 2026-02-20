@@ -16,7 +16,9 @@ from presentation.utils.factory import get_application
 
 class PresentationPersonSnapshotCreate(PresentationUtilBase):
     """
-    人物検出作成のAPIエンドポイントを提供するプレゼンテーションクラス。
+    人物検出作成の API エンドポイントを担当するプレゼンテーション。
+
+    認証済みクライアントから画像・時刻・カメラID・ビューIDを受け取り、人物検出キューに投入して成功時は 200 と JSON を返す。
     """
     router_path = "/person/snapshot/create"
     methods = ["POST"]

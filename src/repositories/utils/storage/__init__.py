@@ -1,7 +1,8 @@
 """
 ストレージユーティリティ
 
-画像の検索・保存をストレージディレクトリに対して行う。
+ファイルシステム上のストレージルートを基準に、画像の検索・保存を行う。
+パスは「ディレクトリ名 + ファイル名（拡張子なし）」で表現し、対応する拡張子（jpg / jpeg / png）の有無で検索する。
 """
 from pathlib import Path
 from environment import Environment
@@ -15,23 +16,25 @@ from repositories.utils.storage.paths.base import RepositoryUtilStoragePathBase
 
 class RepositoryUtilStorage:
     """
-    ストレージ操作を扱うユーティリティクラス。
+    ストレージ操作を担当するユーティリティ。
 
-    画像の検索（search_image）と保存（save_image）を提供する。
+    ルート直下に「ディレクトリ名 / ファイル名.拡張子」で画像を配置する想定。
+    検索時は jpg / jpeg / png の順で存在する拡張子を探し、0 件なら NotFoundError、2 種類以上なら ConflictError となる。
+    保存時は画像のフォーマットを拡張子として用いる。
     """
 
     def __init__(self, path: Path):
         """
-        ストレージを初期化する。
+        ストレージのルートディレクトリを設定する。
 
-        :param Path path: ストレージのルートディレクトリ
+        :param Path path: 画像を格納するルート（絶対パス推奨）
         """
         self.path = path
 
     @classmethod
     def create(cls, environment: Environment) -> "RepositoryUtilStorage":
         """
-        環境からストレージユーティリティインスタンスを生成する。
+        環境に定義されたストレージディレクトリからインスタンスを生成する。
 
         :param Environment environment: 環境設定
         :return RepositoryUtilStorage: ストレージユーティリティインスタンス
@@ -42,11 +45,17 @@ class RepositoryUtilStorage:
 
     def search_image(self, path: RepositoryUtilStoragePathBase) -> DomainImage:
         """
-        ストレージ内の画像を検索する
-        :param RepositoryUtilStoragePathBase path: 画像パス
-        :return DomainImage: 画像
-        :raise RepositoryUtilStorageNotFoundError: 画像が見つからない場合
-        :raise RepositoryUtilStorageMultipleError: 画像が複数見つかった場合
+        指定した論理パスに該当する画像を 1 件読み込み、ドメイン画像として返す。
+
+        ファイル名に jpg / jpeg / png を付けたもののうち存在するものを探す。1 種類だけ存在する場合にそのファイルを開いて返す。
+        0 件の場合は NotFoundError、複数拡張子が存在する場合は ConflictError。
+        読み込みに失敗した場合（ファイルなし・権限・形式不正・圧縮爆弾・その他 I/O エラー）は NotFoundError または InternalServerError となる。
+
+        :param RepositoryUtilStoragePathBase path: 画像の論理パス（ディレクトリ名とファイル名）
+        :return DomainImage: 読み込んだ画像
+        :raises NotFoundError: 該当ファイルが 1 件もない、または開けない場合
+        :raises ConflictError: 同一ファイル名で複数拡張子のファイルが存在する場合
+        :raises InternalServerError: アクセス・形式・圧縮爆弾・その他 I/O エラーの場合
         """
         extension_list: list[str] = []
         for extension in DomainImage.EXTENSIONS:
@@ -80,10 +89,13 @@ class RepositoryUtilStorage:
         path: RepositoryUtilStoragePathBase,
     ) -> None:
         """
-        画像をストレージに保存する。
+        画像を指定した論理パスに 1 ファイルとして保存する。
 
-        :param DomainImage image: 保存する画像
-        :param RepositoryUtilStoragePathBase path: 保存先パス
+        保存先の拡張子は画像のフォーマットに従う。既存ファイルは上書きする。
+        保存に失敗した場合（PIL のエラーや I/O エラー）は InternalServerError となる。
+
+        :param DomainImage image: 保存するドメイン画像
+        :param RepositoryUtilStoragePathBase path: 保存先の論理パス（拡張子は画像フォーマット）
         :raises InternalServerError: 保存に失敗した場合
         """
         try:

@@ -25,7 +25,11 @@ class PresentationPersonSnapshotSearchSortByKey(str, Enum):
 
 
 class PresentationPersonSnapshotSearchRequestBody(PresentationUtilRequestBody):
-    """人物検出検索APIのリクエストボディ。"""
+    """
+    人物検出検索 API のリクエストボディを保持する DTO。
+
+    ID・カメラ・ビュー・ゴミフラグ・人物ID・撮影時刻範囲・ソート順を任意で指定できる。
+    """
     ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
@@ -38,7 +42,9 @@ class PresentationPersonSnapshotSearchRequestBody(PresentationUtilRequestBody):
 
 class PresentationPersonSnapshotSearch(PresentationUtilBase):
     """
-    人物検出検索のAPIエンドポイントを提供するプレゼンテーションクラス。
+    人物検出検索の API エンドポイントを担当するプレゼンテーション。
+
+    ページ番号とリクエストボディの条件に応じて人物検出一覧とページング情報を JSON で返す。
     """
     router_path = "/person/snapshot/search/{page}"
     methods = ["POST"]

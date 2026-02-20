@@ -19,7 +19,7 @@ class Environment:
     """
     環境変数から読み込んだ設定を保持するデータクラス。
 
-    __post_init__ で環境変数を読み、各フィールドに代入する。
+    初期化時に環境変数を読み、アプリのホスト・ポート、DB・Redis・ストレージ・JWT・管理クライアント認証など各項目に代入する。必須の変数が未設定の場合は例外となる。
     """
     app_host: str = field(init=False)
     app_port: int = field(init=False)
@@ -53,7 +53,7 @@ class Environment:
 
     def __post_init__(self) -> None:
         """
-        環境変数を読み、各フィールドに代入する。
+        環境変数を読み、各フィールドに代入する。必須の環境変数が無い場合は ValueError となる。
         """
         self.app_host = self._get_string("APP_HOST")
         self.app_port = self._get_int("APP_PORT")

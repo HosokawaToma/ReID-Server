@@ -16,7 +16,9 @@ import uuid
 
 
 class PresentationPersonFlowSearchRequestBody(PresentationUtilRequestBody):
-    """人物フロー検索APIのリクエストボディ。"""
+    """
+    人物フロー検索 API のリクエストボディを保持する DTO。人物ID・タイムスタンプ範囲を任意で指定できる。
+    """
     person_id: uuid.UUID
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
@@ -24,7 +26,7 @@ class PresentationPersonFlowSearchRequestBody(PresentationUtilRequestBody):
 
 class PresentationPersonFlowSearch(PresentationUtilBase):
     """
-    人物フロー検索のAPIエンドポイントを提供するプレゼンテーションクラス。
+    人物フロー検索の API エンドポイントを担当するプレゼンテーション。人物ID・時刻範囲でフロー一覧を JSON で返す。
     """
     router_path = "/person/flow/search"
     methods = ["POST"]

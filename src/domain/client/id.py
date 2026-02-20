@@ -10,7 +10,7 @@ from domain.utils.base import DomainUtilsBase
 @dataclass(frozen=True)
 class DomainClientId(DomainUtilsBase):
     """
-    クライアントIDを表すドメインモデル
+    認証用のクライアント識別子（文字列）を保持するドメインモデル。
     """
     id: str
 

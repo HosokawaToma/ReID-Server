@@ -10,11 +10,9 @@ import uuid
 @dataclass(frozen=True)
 class DtoPersonSnapshotPersonId:
     """
-    人物スナップショットと人物IDの対応を表す DTO。
+    人物検出結果と人物IDの対応（正解ラベル）を保持する DTO。
 
-    :param uuid.UUID id: スナップショットID
-    :param uuid.UUID | None person_id: 人物ID（ゴミの場合は None）
-    :param bool is_junk: ゴミデータかどうか
+    検出結果ID・人物ID・ゴミフラグを API で受け渡す際に用いる。
     """
     id: uuid.UUID
     person_id: uuid.UUID | None

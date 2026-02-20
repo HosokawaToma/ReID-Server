@@ -11,9 +11,9 @@ from typing import ClassVar
 @dataclass
 class RepositoryUtilStoragePathBase(ABC):
     """
-    ストレージ内の画像パスの抽象基底クラス。
+    ストレージ内の画像パスの抽象基底。
 
-    サブクラスは directory と name を定義する。
+    サブクラスはディレクトリ名（クラス定数）と、拡張子なしのファイル名を返す仕様を実装する。
     """
     directory: ClassVar[str]
 

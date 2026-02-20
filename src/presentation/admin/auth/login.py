@@ -14,14 +14,20 @@ from dto.admin_client.auth.credentials import DtoAdminClientAuthCredentials
 
 
 class PresentationAdminAuthLoginRequestBody(PresentationUtilRequestBody):
-    """管理認証ログインAPIのリクエストボディ。"""
+    """
+    管理認証ログイン API のリクエストボディを保持する DTO。
+
+    管理クライアントID（文字列）とパスワードを必須で保持する。
+    """
     id: str
     password: str
 
 
 class PresentationAdminAuthLogin(PresentationUtilBase):
     """
-    管理認証ログインのAPIエンドポイントを提供するプレゼンテーションクラス。
+    管理認証ログインの API エンドポイントを担当するプレゼンテーション。
+
+    ID・パスワードを受け取り、認証成功時はアクセストークンを JSON、リフレッシュトークンを Cookie で返す。失敗時は 401。
     """
     router_path = "/admin/auth/login"
     methods = ["POST"]

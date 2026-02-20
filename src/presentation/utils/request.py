@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 class PresentationUtilRequest(Request):
     """
-    FastAPI の Request を拡張したクラス。リクエストIDとリフレッシュトークン取得を追加する。
+    FastAPI の Request を拡張し、リクエストIDとリフレッシュトークンの取得を提供する。
     """
     UNKNOWN_REQUEST_ID = "unknown"
 
@@ -26,7 +26,7 @@ class PresentationUtilRequest(Request):
 
     def get_request_id(self) -> str:
         """
-        state に設定されたリクエストIDを取得する。
+        ミドルウェアで付与されたリクエストIDを取得する。未設定の場合は "unknown" を返す。
 
         :return str: リクエストID
         """
@@ -38,6 +38,6 @@ class PresentationUtilRequest(Request):
 
 class PresentationUtilRequestBody(BaseModel):
     """
-    プレゼンテーション層のリクエストボディの基底クラス。Pydantic の BaseModel を継承する。
+    プレゼンテーション層のリクエストボディの基底。Pydantic の BaseModel を継承する。
     """
     pass

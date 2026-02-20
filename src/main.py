@@ -1,7 +1,7 @@
 """
 アプリケーションエントリポイント
 
-FastAPIアプリの構築・ルーティング登録・サーバ起動を行う。
+FastAPI アプリを組み立て、管理認証・人物検出・カメラフレーム・ReID 評価等のルートを登録し、指定ホスト・ポートで HTTP サーバを起動する。
 """
 import fastapi
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,9 +34,9 @@ from presentation.reid.evaluation import PresentationReidEvaluation
 
 class ServerApp:
     """
-    HTTPサーバアプリケーションクラス
+    HTTP サーバのエントリポイントを担当するクラス。
 
-    各プレゼンテーション層をルーティングに登録し、uvicornでサーバを起動する。
+    認証・人物スナップショット・カメラフレーム・人物フロー・ReID 評価など各エンドポイントを 1 ルートずつ登録し、uvicorn で指定ホスト・ポートに HTTP サーバを起動する。
     """
 
     def __init__(
@@ -166,7 +166,7 @@ class ServerApp:
 
     def run(self) -> None:
         """
-        CORSミドルウェアを追加し、各ルートを登録したうえでuvicornでサーバを起動する。
+        CORS を許可するミドルウェアを追加し、全エンドポイントをルート登録したのち、指定ホスト・ポートで HTTP サーバを起動する。ブロッキングで動作する。
         """
         self.fastapi_app.add_middleware(
             CORSMiddleware,

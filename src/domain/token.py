@@ -1,7 +1,7 @@
 """
 トークンのドメインモデル
 
-JWT のエンコード・デコードを提供する。
+JWT 文字列を保持し、ペイロードのエンコード・デコードを提供する。認証トークンやリフレッシュトークンの表現に用いる。
 """
 from dataclasses import dataclass
 from domain.utils.base import DomainUtilsBase
@@ -14,14 +14,14 @@ class DomainToken(DomainUtilsBase):
     """
     トークンのドメインモデル。
 
-    JWT 文字列を保持する。
+    JWT 文字列を保持する。ペイロードを秘密鍵とアルゴリズムでエンコードした結果、またはデコードしてペイロードを取り出す。
     """
     token: str
 
     @classmethod
     def encode(cls, payload: dict[str, Any], secret_key: str, algorithm: str) -> "DomainToken":
         """
-        ペイロードを JWT にエンコードして DomainToken を生成する。
+        ペイロードを秘密鍵とアルゴリズムで JWT にエンコードし、その文字列を保持するインスタンスを返す。
 
         :param dict[str, Any] payload: ペイロード
         :param str secret_key: 秘密鍵
@@ -34,7 +34,7 @@ class DomainToken(DomainUtilsBase):
 
     def decode(self, secret_key: str, algorithm: str) -> dict[str, Any]:
         """
-        JWT をデコードしてペイロードを返す。
+        保持している JWT を秘密鍵とアルゴリズムでデコードし、ペイロードを返す。
 
         :param str secret_key: 秘密鍵
         :param str algorithm: アルゴリズム

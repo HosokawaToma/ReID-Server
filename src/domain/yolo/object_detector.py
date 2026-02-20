@@ -15,7 +15,7 @@ from modules.yolo.object_detector import ModuleYoloObjectDetector
 @dataclass(frozen=True)
 class DomainYoloObjectDetector(DomainUtilsBase):
     """
-    YOLOの物体検出器のドメインモデル
+    YOLO の物体検出結果（バウンディングボックス等）を保持するドメインモデル。
     """
     model: ModuleYoloObjectDetector
 

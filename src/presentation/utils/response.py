@@ -13,7 +13,7 @@ from datetime import timedelta
 
 class PresentationUtilJSONResponse(JSONResponse):
     """
-    JSONレスポンスクラス。リフレッシュトークンをCookieに設定するメソッドを追加する。
+    JSON レスポンスに加え、Cookie へリフレッシュトークンを設定する機能を提供する。
     """
     REFRESH_TOKEN_MAX_AGE = int(timedelta(days=1).total_seconds())
 
@@ -45,7 +45,9 @@ class PresentationUtilJSONResponse(JSONResponse):
 
 class PresentationUtilImageResponse(StreamingResponse):
     """
-    画像をストリーミングで返すレスポンスクラス。DTOの bytes と format から Content-Type を設定する。
+    画像をストリーミングで返すレスポンス。
+
+    画像のバイト列とフォーマットから Content-Type（image/xxx）を設定する。
     """
 
     def __init__(self, status: int, image: DtoImage):

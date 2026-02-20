@@ -15,7 +15,9 @@ from fastapi import Depends
 
 class PresentationUtilFactoryFromImage:
     """
-    UploadFile を DtoImage に変換するファクトリ。拡張子から format を決定する。
+    アップロードされた画像ファイルを画像 DTO に変換するファクトリ。
+
+    ファイル名の拡張子から画像フォーマットを決定する。FastAPI の Depends で利用する。
     """
 
     async def __call__(self, image: UploadFile) -> DtoImage:
@@ -49,7 +51,7 @@ def get_environment() -> Environment:
 
 class PresentationUtilApplicationFactory(Generic[T]):
     """
-    環境に応じてアプリケーションインスタンスを生成するファクトリ。Depends で利用する。
+    環境設定からアプリケーションインスタンスを生成するファクトリ。FastAPI の Depends で利用する。
     """
 
     def __init__(self, app_type: Type[T]):

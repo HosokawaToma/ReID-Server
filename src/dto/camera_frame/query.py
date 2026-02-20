@@ -21,7 +21,9 @@ class DtoCameraFrameQuerySortByKey(str, Enum):
 @dataclass(frozen=True)
 class DtoCameraFrameQuery:
     """
-    カメラフレーム検索条件を表す DTO。
+    カメラフレーム検索のクエリ条件を保持する DTO。
+
+    ID・カメラ・ビュー・撮影時刻範囲・ソート順を任意で指定できる。未指定の項目は検索条件に含めない。
     """
     ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None

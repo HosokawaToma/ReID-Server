@@ -14,10 +14,9 @@ import signal
 
 class BackgroundMain:
     """
-    バックグラウンドタスクの統合クラス。
+    バックグラウンドタスクの統合。
 
-    各プレゼンテーション（create / reid / feature_extract / detect_junk）を保持し、
-    一括で start / stop する。
+    人物検出作成・再識別・特徴量抽出・ジャンク判定の各タスクを保持し、一括で起動・停止できる。
     """
 
     def __init__(

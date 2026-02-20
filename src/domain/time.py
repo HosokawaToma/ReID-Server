@@ -17,19 +17,19 @@ class DomainTime(DomainUtilsBase):
     seconds: float
 
     def __add__(self, other: "DomainTime") -> "DomainTime":
-        """秒を加算した新しい DomainTime を返す。"""
+        """秒数を加算した新しい時刻を返す。"""
         return DomainTime(
             seconds=self.seconds + other.seconds,
         )
 
     def __sub__(self, other: "DomainTime") -> "DomainTime":
-        """秒を減算した新しい DomainTime を返す。"""
+        """秒数を減算した新しい時刻を返す。"""
         return DomainTime(
             seconds=self.seconds - other.seconds,
         )
 
     def __eq__(self, other: object) -> bool:
-        """秒が一致する場合に等しいとみなす。"""
+        """比較対象が同じ型かつ保持する秒数が一致する場合に True を返す。"""
         if not isinstance(other, DomainTime):
             return False
         return self.seconds == other.seconds

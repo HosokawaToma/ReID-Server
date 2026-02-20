@@ -11,7 +11,9 @@ from logger import Logger
 
 class BackgroundPersonSnapshotReid(BackgroundPresentationUtilsBase):
     """
-    人物検出再識別タスクを実行するバックグラウンドプレゼンテーションクラス。
+    人物検出再識別のバックグラウンドタスクを担当するプレゼンテーション。
+
+    キューから1件取り出して再識別を1件実行し、処理したIDをログに記録する。
     """
 
     def __init__(

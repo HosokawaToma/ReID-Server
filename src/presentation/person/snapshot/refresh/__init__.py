@@ -15,7 +15,9 @@ from presentation.utils.factory import get_application
 
 
 class PresentationPersonSnapshotRefreshRequest(PresentationUtilRequestBody):
-    """人物検出更新APIのリクエストボディ。"""
+    """
+    人物検出更新（再識別キュー投入）API のリクエストボディを保持する DTO。時刻範囲・カメラ・ビューを任意で指定できる。
+    """
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
     camera_ids: list[int] | None = None
@@ -24,7 +26,7 @@ class PresentationPersonSnapshotRefreshRequest(PresentationUtilRequestBody):
 
 class PresentationPersonSnapshotRefresh(PresentationUtilBase):
     """
-    人物検出更新のAPIエンドポイントを提供するプレゼンテーションクラス。
+    人物検出更新の API エンドポイントを担当するプレゼンテーション。条件に合う人物検出を再識別キューに投入し、結果を JSON で返す。
     """
     router_path = "/person/snapshot/refresh"
     methods = ["POST"]

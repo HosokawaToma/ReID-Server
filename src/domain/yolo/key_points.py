@@ -12,7 +12,7 @@ from domain.utils.base import DomainUtilsBase
 @dataclass(frozen=True)
 class DomainYoloKeyPoints(DomainUtilsBase):
     """
-    YOLOのキーポイントのドメインモデル
+    YOLO のキーポイント集合（17 点の姿勢キーポイント）を保持するドメインモデル。
     """
     nose: DomainYoloKeyPoint
     left_eye: DomainYoloKeyPoint

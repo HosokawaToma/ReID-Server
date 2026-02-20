@@ -21,7 +21,7 @@ class RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabel:
     """
     正解ラベルテーブル用のクエリ条件を保持するデータクラス。
 
-    build で SQLAlchemy の Query にフィルタ・ソートを適用する。
+    人物検出ID・人物ID・ゴミフラグ・ソート順を保持し、SQLAlchemy の Query にフィルタと ORDER BY を適用した結果を返す。
     """
     person_snapshot_ids: list[uuid.UUID] | None = None
     person_ids: list[uuid.UUID] | None = None
@@ -33,9 +33,10 @@ class RepositoryUtilDatabaseQueryPersonSnapshotAnswerLabel:
         session_query: Query[MigrationModelPersonSnapshotsAnswerLabels],
     ) -> Query[MigrationModelPersonSnapshotsAnswerLabels]:
         """
-        クエリをビルドする。
-        :param Query[MigrationModelPersonSnapshotsAnswerLabels] session_query: クエリ
-        :return Query[MigrationModelPersonSnapshotsAnswerLabels]: ビルドされたクエリ
+        保持する条件をベースクエリに適用し、フィルタ・ソートを付けたクエリを返す。条件が None の項目は適用しない。
+
+        :param Query[MigrationModelPersonSnapshotsAnswerLabels] session_query: ベースとなるクエリ
+        :return Query[MigrationModelPersonSnapshotsAnswerLabels]: 条件を適用したクエリ
         """
         if self.person_snapshot_ids is not None:
             session_query = session_query.filter(

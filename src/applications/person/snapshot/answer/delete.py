@@ -12,7 +12,9 @@ from domain.id import DomainId
 
 class ApplicationPersonSnapshotAnswerDelete(ApplicationBase):
     """
-    人物検出結果の正解ラベルを削除するアプリケーションクラス。
+    人物検出結果の正解ラベル削除を担当するアプリケーション。
+
+    指定した人物検出結果IDに紐づく正解ラベルを削除する。
     """
 
     def __init__(self, repository_person_snapshot: RepositoryPersonSnapshot):
@@ -38,8 +40,9 @@ class ApplicationPersonSnapshotAnswerDelete(ApplicationBase):
 
     def delete(self, person_snapshot_id: DtoId) -> None:
         """
-        人物検出結果の正解ラベルを削除する
-        :param DtoId person_snapshot_id: 人物検出結果のID
+        指定した人物検出結果に紐づく正解ラベルを削除する。
+
+        :param DtoId person_snapshot_id: 対象の人物検出結果のID
         """
         self.repository_person_snapshot.delete_answer_label_by_id(
             person_snapshot_id=DomainId(id=person_snapshot_id.id))

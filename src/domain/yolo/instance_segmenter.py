@@ -14,7 +14,7 @@ from modules.yolo.instance_segmenter import ModuleYoloInstanceSegmenter
 @dataclass(frozen=True)
 class DomainYoloInstanceSegmenter(DomainUtilsBase):
     """
-    YOLOの個体推定のドメインモデル
+    YOLO の個体（インスタンス）セグメンテーション結果を保持するドメインモデル。
     """
     model: ModuleYoloInstanceSegmenter
 

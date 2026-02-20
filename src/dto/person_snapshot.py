@@ -12,15 +12,9 @@ import torch
 @dataclass(frozen=True)
 class DtoPersonSnapshot:
     """
-    人物スナップショットを表す DTO。
+    人物検出結果（スナップショット）を保持する DTO。
 
-    :param uuid.UUID id: スナップショットID
-    :param int camera_id: カメラID
-    :param int view_id: ビューID
-    :param datetime timestamp: タイムスタンプ
-    :param bool is_junk: ゴミデータかどうか
-    :param uuid.UUID | None person_id: 人物ID（ゴミの場合は None）
-    :param torch.Tensor | None feature: 特徴量（未抽出の場合は None）
+    識別子・カメラID・ビューID・タイムスタンプ・ゴミフラグ・人物ID・特徴量（未抽出時は None）を API で受け渡す際に用いる。
     """
     id: uuid.UUID
     camera_id: int

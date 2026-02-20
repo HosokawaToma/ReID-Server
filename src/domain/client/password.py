@@ -11,7 +11,7 @@ import hashlib
 @dataclass(frozen=True)
 class DomainClientPassword(DomainUtilsBase):
     """
-    クライアントパスワードを表すドメインモデル
+    SHA-256 ハッシュ化したパスワードを保持するドメインモデル。
     """
     hashed_password: str = field(init=False)
     password: InitVar[str]

@@ -12,7 +12,7 @@ from typing import ClassVar
 @dataclass
 class RepositoryUtilStoragePathPersonSnapshot(RepositoryUtilStoragePathBase):
     """
-    人物スナップショット画像のパスを表す。
+    人物スナップショット画像のストレージパスを保持する。person_snapshots ディレクトリ内で ID をファイル名とする。
     """
     directory: ClassVar[str] = "person_snapshots"
     id: DomainId

@@ -26,7 +26,11 @@ class PresentationCameraFrameSearchSortByKey(str, Enum):
 
 @dataclass
 class PresentationCameraFrameSearchRequestBody(PresentationUtilRequestBody):
-    """カメラフレーム検索APIのリクエストボディ。"""
+    """
+    カメラフレーム検索 API のリクエストボディを保持する DTO。
+
+    ID・カメラ・ビュー・撮影時刻範囲・ソート順を任意で指定できる。
+    """
     ids: list[uuid.UUID] | None = None
     camera_ids: list[int] | None = None
     view_ids: list[int] | None = None
@@ -37,7 +41,9 @@ class PresentationCameraFrameSearchRequestBody(PresentationUtilRequestBody):
 
 class PresentationCameraFrameSearch(PresentationUtilBase):
     """
-    カメラフレーム検索のAPIエンドポイントを提供するプレゼンテーションクラス。
+    カメラフレーム検索の API エンドポイントを担当するプレゼンテーション。
+
+    ページ番号とリクエストボディの条件に応じてカメラフレーム一覧とページング情報を JSON で返す。
     """
     router_path = "/frame/search/{page}"
     methods = ["POST"]

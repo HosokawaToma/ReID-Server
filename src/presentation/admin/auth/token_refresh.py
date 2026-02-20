@@ -14,7 +14,9 @@ from dto.admin_client.auth.token import DtoAdminClientAuthToken
 
 class PresentationAdminAuthTokenRefresh(PresentationUtilBase):
     """
-    管理認証トークンリフレッシュのAPIエンドポイントを提供するプレゼンテーションクラス。
+    管理認証トークンリフレッシュの API エンドポイントを担当するプレゼンテーション。
+
+    Cookie のリフレッシュトークンを受け取り、有効な場合は新しいアクセストークンを JSON、新しいリフレッシュトークンを Cookie で返す。失敗時は 401。
     """
     router_path = "/admin/auth/token/refresh"
     methods = ["POST"]

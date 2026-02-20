@@ -17,15 +17,17 @@ from domain.pagination import DomainPagination
 
 class ApplicationCameraFrameSearch(ApplicationBase):
     """
-    カメラフレームを検索するアプリケーションクラス。
+    カメラフレーム検索を担当するアプリケーション。
+
+    ページ番号と検索条件（ID・カメラ・ビュー・時刻範囲・ソート）を受け取り、該当するカメラフレームのリストと総件数・総ページ数を返す。
     """
 
     def __init__(self, repository_camera_frame: RepositoryCameraFrame, search_limit: int):
         """
-        アプリケーションを初期化する。
+        カメラフレームリポジトリと 1 ページあたり件数を設定する。
 
         :param RepositoryCameraFrame repository_camera_frame: カメラフレームリポジトリ
-        :param int search_limit: 1ページあたりの件数
+        :param int search_limit: 1 ページあたりの最大件数
         """
         self.repository_camera_frame = repository_camera_frame
         self.search_limit = search_limit
@@ -49,11 +51,14 @@ class ApplicationCameraFrameSearch(ApplicationBase):
         query: DtoCameraFrameQuery | None = None,
     ) -> list[DtoCameraFrame]:
         """
-        カメラフレームを検索する
-        :param int page: ページ番号
-        :param DtoCameraFrameQuery query: カメラフレーム検索条件
-        :return list[DtoCameraFrame]: カメラフレームリスト
-        :raises ApplicationCameraFrameSearchError: カメラフレーム検索に失敗した場合に発生するエラー
+        ページ番号と検索条件に応じてカメラフレームの一覧を返す。
+
+        条件が None の場合は全件対象。ページングは 1 始まりで、1 ページあたりの件数は初期化時に指定した値を使用する。検索失敗時は ApplicationCameraFrameSearchError。
+
+        :param int page: ページ番号（1 以上）
+        :param DtoCameraFrameQuery query: 検索条件（None の場合は条件なし）
+        :return list[DtoCameraFrame]: 該当するカメラフレームのリスト
+        :raises ApplicationCameraFrameSearchError: 検索に失敗した場合
         """
         database_query = None
         if query is not None:
@@ -85,10 +90,13 @@ class ApplicationCameraFrameSearch(ApplicationBase):
         query: DtoCameraFrameQuery | None = None,
     ) -> DtoPagination:
         """
-        カメラフレームの数を取得する
-        :param DtoCameraFrameQuery query: カメラフレーム検索条件
-        :return DtoPagination: カメラフレームのページング
-        :raises ApplicationCameraFrameSearchError: カメラフレームの数取得に失敗した場合に発生するエラー
+        検索条件に一致するカメラフレームの総件数と、1 ページあたり件数から求めた総ページ数を返す。
+
+        条件が None の場合は全件数。検索失敗時は ApplicationCameraFrameSearchError。
+
+        :param DtoCameraFrameQuery query: 検索条件（None の場合は条件なし）
+        :return DtoPagination: 総件数と総ページ数
+        :raises ApplicationCameraFrameSearchError: 件数取得に失敗した場合
         """
         database_query = None
         if query is not None:
