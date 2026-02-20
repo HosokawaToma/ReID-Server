@@ -1,4 +1,10 @@
+"""
+アドミンクライアント ID DTO
+
+クライアント識別子を保持する。
+"""
 from dataclasses import dataclass
+
 
 @dataclass(frozen=True)
 class DtoAdminClientId:

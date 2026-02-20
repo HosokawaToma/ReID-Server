@@ -1,6 +1,12 @@
+"""
+YOLO マスクのドメインモデル
+
+セグメンテーション用の numpy 配列を保持する（不変化）。
+"""
 from dataclasses import dataclass, InitVar, field
 import numpy as np
 from domain.utils.base import DomainUtilsBase
+
 
 @dataclass(frozen=True)
 class DomainYoloMask(DomainUtilsBase):

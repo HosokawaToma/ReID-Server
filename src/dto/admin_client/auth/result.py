@@ -1,4 +1,10 @@
+"""
+アドミンクライアント認証結果 DTO
+
+アクセストークン・リフレッシュトークンを保持する。
+"""
 from dataclasses import dataclass
+
 
 @dataclass(frozen=True)
 class DtoAdminClientAuthResult:

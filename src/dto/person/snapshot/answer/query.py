@@ -1,10 +1,19 @@
+"""
+人物スナップショット正解ラベル検索クエリ DTO
+
+正解ラベル検索条件とソートキーを保持する。
+"""
 from dataclasses import dataclass
 import uuid
 
 from enum import Enum
+
+
 class DtoPersonSnapshotAnswerQuerySortByKey(str, Enum):
+    """正解ラベル検索のソートキー。"""
     CREATED_AT_ASC = "created_at_asc"
     CREATED_AT_DESC = "created_at_desc"
+
 
 @dataclass(frozen=True)
 class DtoPersonSnapshotAnswerQuery:

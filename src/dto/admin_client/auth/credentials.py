@@ -1,4 +1,10 @@
+"""
+アドミンクライアント認証資格情報 DTO
+
+ログインID・パスワードを保持する。
+"""
 from dataclasses import dataclass
+
 
 @dataclass(frozen=True)
 class DtoAdminClientAuthCredentials:
