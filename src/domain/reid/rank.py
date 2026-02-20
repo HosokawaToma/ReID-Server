@@ -1,6 +1,12 @@
+"""
+ReID ランクのドメインモデル
+
+検出結果 ID とランク順位を保持する。
+"""
 from dataclasses import dataclass
 from domain.utils.base import DomainUtilsBase
 from domain.id import DomainId
+
 
 @dataclass(frozen=True)
 class DomainReidRank(DomainUtilsBase):

@@ -1,6 +1,12 @@
+"""
+ReID 平均精度（AP）のドメインモデル
+
+ランキングシーケンスから AP を算出する。
+"""
 from dataclasses import dataclass
 from domain.reid.rank_sequence import DomainReidRankSequence
 from domain.utils.base import DomainUtilsBase
+
 
 @dataclass(frozen=True)
 class DomainReidAp(DomainUtilsBase):

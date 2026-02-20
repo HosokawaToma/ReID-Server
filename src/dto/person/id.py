@@ -1,3 +1,8 @@
+"""
+人物 ID DTO
+
+人物の UUID とゴミフラグを保持する。
+"""
 from dataclasses import dataclass
 import uuid
 

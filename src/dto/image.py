@@ -1,4 +1,10 @@
+"""
+画像 DTO
+
+画像バイト列とフォーマットを保持する。
+"""
 from dataclasses import dataclass
+
 
 @dataclass(frozen=True)
 class DtoImage:

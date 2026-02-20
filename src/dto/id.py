@@ -1,5 +1,11 @@
+"""
+汎用 ID DTO
+
+UUID を保持する。
+"""
 from dataclasses import dataclass
 import uuid
+
 
 @dataclass(frozen=True)
 class DtoId:

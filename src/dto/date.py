@@ -1,4 +1,10 @@
+"""
+日付 DTO
+
+年・月・日を保持する。
+"""
 from dataclasses import dataclass
+
 
 @dataclass(frozen=True)
 class DtoDate:
