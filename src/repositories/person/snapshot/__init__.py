@@ -567,10 +567,7 @@ class RepositoryPersonSnapshot(RepositoryUtilBase):
                     [query_snapshot_id.id for query_snapshot_id in query_snapshot_ids]),
                 gallery_snapshot.is_junk.is_(False),
                 query_snapshot.id != gallery_snapshot.id,
-                ~and_(
-                    query_snapshot.camera_id == gallery_snapshot.camera_id,
-                    query_answer_label.person_id == gallery_answer_label.person_id
-                )
+                query_snapshot.camera_id == gallery_snapshot.camera_id
             ).subquery()
 
             rows = session.query(
