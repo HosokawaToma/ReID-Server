@@ -12,7 +12,7 @@
 
 ## 2. カスタムエラー
 
-### 2.1. システムエラー（`SystemError`）
+### 2.1. システムエラー（`CustomSystemError`）
 
 - アプリケーションのバグやインフラの問題など、想定外の事態に発生するエラー
 
@@ -60,26 +60,26 @@
 - 不正なデータアクセスに対して投げるエラー
 - HTTPステータス: `404 Not Found`
 
-#### 2.2.4 ビジネスロジックエラー（`BusinessError`）
+#### 2.2.5. ビジネスロジックエラー（`BusinessError`）
 
 - 仕様上不正な処理に対して投げるエラー
 
-##### 2.2.4.1. 競合エラー（`ConflictError`）
+##### 2.2.5.1. 競合エラー（`ConflictError`）
 
 - 不正なデータ重複に対して投げるエラー
 - HTTPステータス: `409 Conflict`
 
-##### 2.2.4.2. 処理不要エラー（`UnprocessableError`）
+##### 2.2.5.2. 処理不要エラー（`UnprocessableError`）
 
 - 不正な業務ルール違反に対して投げるエラー
 - HTTPステータス: `422 Unprocessable Entity`
 
-#### 2.2.5. レートリミットエラー（`TooManyRequestsError`）
+#### 2.2.6. レートリミットエラー（`TooManyRequestsError`）
 
 - 不正なリクエスト数に対して投げるエラー
 - HTTPステータス: `429 Too Many Requests`
 
-#### 2.2.6. ペイロード過大エラー（`PayloadTooLargeError`）
+#### 2.2.7. ペイロード過大エラー（`PayloadTooLargeError`）
 
 - 不正なデータ量に対して投げるエラー
 - HTTPステータス: `413 Payload Too Large`
