@@ -27,10 +27,10 @@ class DomainPaging(DomainUtilsBase):
         どちらかが 0 以下の場合は ValidationError。
         """
         if self.page <= 0:
-            raise ValidationError("page must be greater than 0: {self.page}")
+            raise ValidationError(f"page must be greater than 0: {self.page}")
         if self.search_limit <= 0:
             raise ValidationError(
-                "search_limit must be greater than 0: {self.search_limit}")
+                f"search_limit must be greater than 0: {self.search_limit}")
 
     def offset(self) -> int:
         """
