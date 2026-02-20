@@ -1,3 +1,8 @@
+"""
+人物検出画像検索のプレゼンテーション層
+
+人物検出IDを受け取り、画像をストリーミングで返す。
+"""
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearch
 from dto.id import DtoId
 from presentation.utils.base import PresentationUtilBase
@@ -10,6 +15,9 @@ from logger import Logger
 
 
 class PresentationPersonSnapshotImageSearch(PresentationUtilBase):
+    """
+    人物検出画像検索のAPIエンドポイントを提供するプレゼンテーションクラス。
+    """
     router_path = "/person/snapshot/image/search/{id}"
     methods = ["GET"]
     tags = ["Person Snapshot Image"]
@@ -31,10 +39,20 @@ class PresentationPersonSnapshotImageSearch(PresentationUtilBase):
         self,
         logger: Logger,
     ):
+        """
+        プレゼンテーションを初期化する。
+
+        :param Logger logger: ロガー
+        """
         super().__init__(logger=logger)
 
     @classmethod
     def create(cls) -> "PresentationPersonSnapshotImageSearch":
+        """
+        プレゼンテーションインスタンスを生成する。
+
+        :return PresentationPersonSnapshotImageSearch: プレゼンテーションインスタンス
+        """
         return cls(
             logger=Logger("presentation_person_snapshot_image_search"),
         )
@@ -44,8 +62,18 @@ class PresentationPersonSnapshotImageSearch(PresentationUtilBase):
         admin_client_id: PresentationUtilAdminClientAuthenticated,
         request: PresentationUtilRequest,
         id: PresentationUtilPathUUID,
-        application: ApplicationPersonSnapshotImageSearch = get_application(ApplicationPersonSnapshotImageSearch),
+        application: ApplicationPersonSnapshotImageSearch = get_application(
+            ApplicationPersonSnapshotImageSearch),
     ):
+        """
+        人物検出IDで画像を取得し、画像レスポンスで返す。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
+        :param PresentationUtilRequest request: リクエスト
+        :param PresentationUtilPathUUID id: 人物検出結果ID
+        :param ApplicationPersonSnapshotImageSearch application: 人物検出画像検索アプリケーション
+        :return PresentationUtilImageResponse: 画像ストリーミングレスポンス
+        """
         image = application.search(
             id=DtoId(id=id),
         )

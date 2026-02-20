@@ -1,3 +1,8 @@
+"""
+管理認証トークンリフレッシュのプレゼンテーション層
+
+Cookieのリフレッシュトークンを受け取り、新しいトークンとリフレッシュトークンを返す。
+"""
 from presentation.utils.base import PresentationUtilBase
 from presentation.utils.factory import get_application
 from logger import Logger
@@ -8,6 +13,9 @@ from dto.admin_client.auth.token import DtoAdminClientAuthToken
 
 
 class PresentationAdminAuthTokenRefresh(PresentationUtilBase):
+    """
+    管理認証トークンリフレッシュのAPIエンドポイントを提供するプレゼンテーションクラス。
+    """
     router_path = "/admin/auth/token/refresh"
     methods = ["POST"]
     tags = ["Admin Auth"]
@@ -19,10 +27,20 @@ class PresentationAdminAuthTokenRefresh(PresentationUtilBase):
     }
 
     def __init__(self, logger: Logger):
+        """
+        プレゼンテーションを初期化する。
+
+        :param Logger logger: ロガー
+        """
         super().__init__(logger=logger)
 
     @classmethod
     def create(cls) -> "PresentationAdminAuthTokenRefresh":
+        """
+        プレゼンテーションインスタンスを生成する。
+
+        :return PresentationAdminAuthTokenRefresh: プレゼンテーションインスタンス
+        """
         return cls(
             logger=Logger("presentation_admin_auth_token_refresh"),
         )
@@ -33,6 +51,13 @@ class PresentationAdminAuthTokenRefresh(PresentationUtilBase):
         application: ApplicationAdminClientAuthTokenRefresh = get_application(
             ApplicationAdminClientAuthTokenRefresh),
     ):
+        """
+        Cookieのリフレッシュトークンでトークンを更新し、新しいトークンとリフレッシュトークンを返す。
+
+        :param PresentationUtilRequest request: リクエスト（Cookieからリフレッシュトークン取得）
+        :param ApplicationAdminClientAuthTokenRefresh application: トークンリフレッシュアプリケーション
+        :return PresentationUtilJSONResponse: トークンを含むJSONレスポンス（Cookieにリフレッシュトークン設定）
+        """
         result = application.refresh(
             DtoAdminClientAuthToken(
                 token=request.cookies.get("refresh_token", ""),

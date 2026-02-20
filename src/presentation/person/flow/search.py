@@ -1,3 +1,8 @@
+"""
+人物フロー検索のプレゼンテーション層
+
+人物ID・時刻範囲でフローを検索し、一覧をJSONで返す。
+"""
 from presentation.utils.base import PresentationUtilBase
 from presentation.utils.factory import get_application
 from presentation.utils.request import PresentationUtilRequestBody
@@ -11,12 +16,16 @@ import uuid
 
 
 class PresentationPersonFlowSearchRequestBody(PresentationUtilRequestBody):
+    """人物フロー検索APIのリクエストボディ。"""
     person_id: uuid.UUID
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
 
 
 class PresentationPersonFlowSearch(PresentationUtilBase):
+    """
+    人物フロー検索のAPIエンドポイントを提供するプレゼンテーションクラス。
+    """
     router_path = "/person/flow/search"
     methods = ["POST"]
     tags = ["Person Flow"]
@@ -33,10 +42,20 @@ class PresentationPersonFlowSearch(PresentationUtilBase):
         self,
         logger: Logger,
     ):
+        """
+        プレゼンテーションを初期化する。
+
+        :param Logger logger: ロガー
+        """
         super().__init__(logger=logger)
 
     @classmethod
     def create(cls) -> "PresentationPersonFlowSearch":
+        """
+        プレゼンテーションインスタンスを生成する。
+
+        :return PresentationPersonFlowSearch: プレゼンテーションインスタンス
+        """
         return cls(
             logger=Logger("presentation_person_flow_search"),
         )
@@ -45,8 +64,17 @@ class PresentationPersonFlowSearch(PresentationUtilBase):
         self,
         admin_client_id: PresentationUtilAdminClientAuthenticated,
         body: PresentationPersonFlowSearchRequestBody,
-        application: ApplicationPersonFlowSearch = get_application(ApplicationPersonFlowSearch),
+        application: ApplicationPersonFlowSearch = get_application(
+            ApplicationPersonFlowSearch),
     ):
+        """
+        リクエストの条件で人物フローを検索し、一覧をJSONで返す。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
+        :param PresentationPersonFlowSearchRequestBody body: 検索条件
+        :param ApplicationPersonFlowSearch application: 人物フロー検索アプリケーション
+        :return PresentationUtilJSONResponse: 人物フロー一覧を含むJSONレスポンス
+        """
         query = DtoPersonFlowQuery(
             person_id=body.person_id,
             timestamp_after=body.timestamp_after,

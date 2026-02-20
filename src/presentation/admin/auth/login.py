@@ -1,3 +1,8 @@
+"""
+管理認証ログインのプレゼンテーション層
+
+ID・パスワードを受け取り、トークンとリフレッシュトークンをJSONとCookieで返す。
+"""
 from presentation.utils.base import PresentationUtilBase
 from presentation.utils.factory import get_application
 from logger import Logger
@@ -9,11 +14,15 @@ from dto.admin_client.auth.credentials import DtoAdminClientAuthCredentials
 
 
 class PresentationAdminAuthLoginRequestBody(PresentationUtilRequestBody):
+    """管理認証ログインAPIのリクエストボディ。"""
     id: str
     password: str
 
 
 class PresentationAdminAuthLogin(PresentationUtilBase):
+    """
+    管理認証ログインのAPIエンドポイントを提供するプレゼンテーションクラス。
+    """
     router_path = "/admin/auth/login"
     methods = ["POST"]
     tags = ["Admin Auth"]
@@ -25,10 +34,20 @@ class PresentationAdminAuthLogin(PresentationUtilBase):
     }
 
     def __init__(self, logger: Logger):
+        """
+        プレゼンテーションを初期化する。
+
+        :param Logger logger: ロガー
+        """
         super().__init__(logger=logger)
 
     @classmethod
     def create(cls) -> "PresentationAdminAuthLogin":
+        """
+        プレゼンテーションインスタンスを生成する。
+
+        :return PresentationAdminAuthLogin: プレゼンテーションインスタンス
+        """
         return cls(
             logger=Logger("presentation_admin_auth_login"),
         )
@@ -37,8 +56,17 @@ class PresentationAdminAuthLogin(PresentationUtilBase):
         self,
         request: PresentationUtilRequest,
         body: PresentationAdminAuthLoginRequestBody,
-        application: ApplicationAdminClientAuthLogin = get_application(ApplicationAdminClientAuthLogin),
+        application: ApplicationAdminClientAuthLogin = get_application(
+            ApplicationAdminClientAuthLogin),
     ):
+        """
+        認証情報でログインし、トークンをJSON、リフレッシュトークンをCookieで返す。
+
+        :param PresentationUtilRequest request: リクエスト
+        :param PresentationAdminAuthLoginRequestBody body: ID・パスワード
+        :param ApplicationAdminClientAuthLogin application: ログインアプリケーション
+        :return PresentationUtilJSONResponse: トークンを含むJSONレスポンス（Cookieにリフレッシュトークン設定）
+        """
         result = application.login(
             DtoAdminClientAuthCredentials(
                 id=body.id,

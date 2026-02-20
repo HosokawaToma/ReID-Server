@@ -1,3 +1,8 @@
+"""
+人物フロー重み検索のプレゼンテーション層
+
+時刻範囲でカメラ間の重み一覧を検索し、JSONで返す。
+"""
 from applications.person.flow.weight.search import ApplicationPersonFlowWeightSearch
 from dto.person.flow.weight.query import DtoPersonFlowWeightQuery
 from presentation.utils.base import PresentationUtilBase
@@ -12,11 +17,15 @@ from datetime import datetime
 
 @dataclass
 class PresentationPersonFlowWeightSearchRequestBody(PresentationUtilRequestBody):
+    """人物フロー重み検索APIのリクエストボディ。"""
     timestamp_after: datetime | None = None
     timestamp_before: datetime | None = None
 
 
 class PresentationPersonFlowWeightSearch(PresentationUtilBase):
+    """
+    人物フロー重み検索のAPIエンドポイントを提供するプレゼンテーションクラス。
+    """
     router_path = "/person/flow/weight/search"
     methods = ["POST"]
     tags = ["Person Flow"]
@@ -32,10 +41,20 @@ class PresentationPersonFlowWeightSearch(PresentationUtilBase):
         self,
         logger: Logger,
     ):
+        """
+        プレゼンテーションを初期化する。
+
+        :param Logger logger: ロガー
+        """
         super().__init__(logger=logger)
 
     @classmethod
     def create(cls) -> "PresentationPersonFlowWeightSearch":
+        """
+        プレゼンテーションインスタンスを生成する。
+
+        :return PresentationPersonFlowWeightSearch: プレゼンテーションインスタンス
+        """
         return cls(
             logger=Logger("presentation_person_flow_weight_search"),
         )
@@ -44,8 +63,17 @@ class PresentationPersonFlowWeightSearch(PresentationUtilBase):
         self,
         admin_client_id: PresentationUtilAdminClientAuthenticated,
         body: PresentationPersonFlowWeightSearchRequestBody | None = None,
-        application: ApplicationPersonFlowWeightSearch = get_application(ApplicationPersonFlowWeightSearch),
+        application: ApplicationPersonFlowWeightSearch = get_application(
+            ApplicationPersonFlowWeightSearch),
     ):
+        """
+        リクエストの条件でフロー重みを検索し、一覧をJSONで返す。
+
+        :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント
+        :param PresentationPersonFlowWeightSearchRequestBody body: 検索条件（Noneの場合は全件）
+        :param ApplicationPersonFlowWeightSearch application: フロー重み検索アプリケーション
+        :return PresentationUtilJSONResponse: 重み一覧を含むJSONレスポンス
+        """
         query = None
         if body is not None:
             query = DtoPersonFlowWeightQuery(

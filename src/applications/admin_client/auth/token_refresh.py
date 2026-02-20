@@ -1,3 +1,8 @@
+"""
+管理クライアント認証トークンリフレッシュアプリケーション
+
+リフレッシュトークンを検証し、新しいJWTとリフレッシュトークンを発行する。
+"""
 from domain.client.auth_credentials import DomainClientAuthCredentials
 from domain.client.id import DomainClientId
 from domain.client.password import DomainClientPassword
@@ -11,6 +16,10 @@ from error import AuthenticationError
 
 
 class ApplicationAdminClientAuthTokenRefresh(ApplicationBase):
+    """
+    管理クライアントのトークンリフレッシュを行うアプリケーションクラス。
+    """
+
     def __init__(
         self,
         client_auth_credentials: DomainClientAuthCredentials,
@@ -21,6 +30,17 @@ class ApplicationAdminClientAuthTokenRefresh(ApplicationBase):
         refresh_algorithm: str,
         refresh_expire_minutes: int,
     ):
+        """
+        アプリケーションを初期化する。
+
+        :param DomainClientAuthCredentials client_auth_credentials: 認証資格情報
+        :param str secret_key: JWT署名鍵
+        :param str algorithm: JWTアルゴリズム
+        :param int expire_minutes: トークン有効分数
+        :param str refresh_secret_key: リフレッシュトークン署名鍵
+        :param str refresh_algorithm: リフレッシュトークンアルゴリズム
+        :param int refresh_expire_minutes: リフレッシュトークン有効分数
+        """
         self.client_auth_credentials = client_auth_credentials
         self.secret_key = secret_key
         self.algorithm = algorithm
@@ -31,10 +51,17 @@ class ApplicationAdminClientAuthTokenRefresh(ApplicationBase):
 
     @classmethod
     def create(cls, environment: Environment) -> "ApplicationAdminClientAuthTokenRefresh":
+        """
+        環境からアプリケーションインスタンスを生成する。
+
+        :param Environment environment: 環境設定
+        :return ApplicationAdminClientAuthTokenRefresh: アプリケーションインスタンス
+        """
         return cls(
             client_auth_credentials=DomainClientAuthCredentials(
                 id=DomainClientId(id=environment.admin_client_id),
-                password=DomainClientPassword(password=environment.admin_client_password),
+                password=DomainClientPassword(
+                    password=environment.admin_client_password),
             ),
             secret_key=environment.jwt_secret_key,
             algorithm=environment.jwt_algorithm,
