@@ -1,7 +1,7 @@
 """
-人物検出の特徴量再抽出アプリケーション
+人物検出の特徴量再抽出アプリケーション。
 
-クエリ条件に合う人物検出結果IDを特徴量抽出キューに投入する。
+クエリ条件に合う人物検出結果の ID を、特徴量再抽出の対象として登録する。
 """
 from applications import ApplicationBase
 from repositories.person.snapshot.feature_extract_queue import RepositoryPersonSnapshotFeatureExtractQueue
@@ -15,7 +15,7 @@ class ApplicationPersonSnapshotRefreshFeatureExtract(ApplicationBase):
     """
     人物検出の特徴量再抽出を担当するアプリケーション。
 
-    クエリ条件に合う人物検出結果のIDを特徴量抽出キューに一括投入する。
+    クエリ条件に合う人物検出結果の ID を取得し、特徴量再抽出の対象として一括登録する。
     """
 
     def __init__(
@@ -49,10 +49,12 @@ class ApplicationPersonSnapshotRefreshFeatureExtract(ApplicationBase):
 
     def refresh(self, query: DtoPersonSnapshotQuery | None = None) -> None:
         """
-        クエリ条件に合う人物検出結果のIDを特徴量抽出キューに投入する。条件が None の場合は該当する全IDを投入する。
+        クエリ条件に合う人物検出結果の ID を特徴量再抽出の対象として登録する。
+
+        条件が None の場合は、該当する全 ID を対象とする。
 
         :param DtoPersonSnapshotQuery | None query: 対象とする人物検出の条件（省略時は全件）
-        :raises InternalServerError: キュー投入などに失敗した場合
+        :raises InternalServerError: 特徴量再抽出対象の登録に失敗した場合
         """
         database_query = None
         if query is not None:

@@ -1,8 +1,9 @@
 """
-人物検出作成のプレゼンテーション層
+人物検出作成のプレゼンテーション層。
 
-POST /person/snapshot/create で画像・撮影時刻・カメラID・ビューIDを受け取り、人物検出キューに 1 件投入する API を提供する。
-認証済み管理クライアントのみ利用可能。成功時は 200 とメッセージを JSON で返す。不正リクエスト時は 400。
+POST /person/snapshot/create で画像・撮影時刻・カメラID・ビューIDを受け取り、
+人物検出作成ジョブを登録する API を提供する。認証済み管理クライアントのみ利用可能。
+成功時は 200 とメッセージを JSON で返し、不正リクエスト時は 400 を返す。
 """
 from applications.person.snapshot.create import ApplicationPersonSnapshotCreate
 from dto.location import DtoLocation
@@ -20,7 +21,7 @@ class PresentationPersonSnapshotCreate(PresentationUtilBase):
     人物検出作成の API エンドポイントを担当するプレゼンテーション。
 
     POST /person/snapshot/create で multipart または JSON から画像・撮影時刻・カメラID・ビューIDを受け取り、
-    アプリケーション層で人物検出キューに 1 件投入する。バックグラウンドで YOLO・ReID による検出・再同定が行われる。
+    アプリケーション層で人物検出作成ジョブを登録する。実際の検出・再同定はバックグラウンドで行われる。
     成功時は 200 と {"message": "Person snapshot created"} を返す。Bearer トークン必須。
     """
     router_path = "/person/snapshot/create"
@@ -66,10 +67,10 @@ class PresentationPersonSnapshotCreate(PresentationUtilBase):
             ApplicationPersonSnapshotCreate),
     ):
         """
-        画像・撮影位置・時刻で人物検出を 1 件キューに投入し、成功メッセージを JSON で返す。
+        画像・撮影位置・時刻から人物検出作成ジョブを 1 件登録し、成功メッセージを JSON で返す。
 
-        受け取った画像と位置（camera_id, view_id）・時刻を DTO にまとめ、アプリケーション層の save でキューに投入する。
-        実際の人物検出・再同定はバックグラウンドワーカーが非同期で実行する。投入成功時は 200 を返す。
+        受け取った画像と位置（camera_id, view_id）・時刻を DTO にまとめ、アプリケーション層の save でジョブを登録する。
+        実際の人物検出・再同定はバックグラウンドワーカーが非同期で実行され、登録成功時は 200 を返す。
 
         :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント（Bearer 検証で注入）
         :param PresentationUtilFromImage image: アップロードされた画像（multipart または JSON 由来）

@@ -32,12 +32,13 @@ class DomainPersonFeature(DomainUtilsBase):
 
     def is_same(self, other: "DomainPersonFeature") -> bool:
         """
-        もう一方の特徴量とのコサイン類似度が 0.895 以上なら同一人物とみなす。
+        渡された特徴量と同一人物の特徴量か確認する．
 
-        比較対象が別デバイス上にある場合は、このインスタンスのデバイスに転送してから比較する。
+        渡された特徴ベクトルと本特徴ベクトルのコサイン類似度が閾値以上の場合は同一人物の特徴量とする．
+        比較対象が別デバイス上にある場合はエラーとなるため、このインスタンスのデバイスに転送してからコサイン類似度を計算する．
 
         :param DomainPersonFeature other: 比較するもう一方の特徴量
-        :return bool: 同一人物とみなす場合 True、そうでなければ False
+        :return bool: 同一人物の場合は True、そうでなければ False
         """
         if self._feature.device != other._feature.device:
             feature = other._feature.to(self._feature.device)

@@ -1,7 +1,7 @@
 """
-人物検出のジャンク再判定アプリケーション
+人物検出のジャンク再判定アプリケーション。
 
-クエリ条件に合う人物検出結果IDをジャンク判定キューに投入する。
+クエリ条件に合う人物検出結果の ID を、ジャンク再判定の対象として登録する。
 """
 from applications import ApplicationBase
 from repositories.person.snapshot.detect_junk_queue import RepositoryPersonSnapshotDetectJunkQueue
@@ -15,7 +15,7 @@ class ApplicationPersonSnapshotRefreshDetectJunk(ApplicationBase):
     """
     人物検出のジャンク再判定を担当するアプリケーション。
 
-    クエリ条件に合う人物検出結果のIDをジャンク判定キューに一括投入する。
+    クエリ条件に合う人物検出結果の ID を取得し、ジャンク再判定の対象として一括登録する。
     """
 
     def __init__(
@@ -49,10 +49,12 @@ class ApplicationPersonSnapshotRefreshDetectJunk(ApplicationBase):
 
     def refresh(self, query: DtoPersonSnapshotQuery | None = None) -> None:
         """
-        クエリ条件に合う人物検出結果のIDをジャンク判定キューに投入する。条件が None の場合は該当する全IDを投入する。
+        クエリ条件に合う人物検出結果の ID をジャンク再判定の対象として登録する。
+
+        条件が None の場合は、該当する全 ID を対象とする。
 
         :param DtoPersonSnapshotQuery | None query: 対象とする人物検出の条件（省略時は全件）
-        :raises InternalServerError: キュー投入などに失敗した場合
+        :raises InternalServerError: 再判定対象の登録に失敗した場合
         """
         database_query = None
         if query is not None:

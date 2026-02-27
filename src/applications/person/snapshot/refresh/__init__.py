@@ -1,7 +1,7 @@
 """
-人物検出更新アプリケーション
+人物検出更新アプリケーション。
 
-クエリ条件に合う人物検出結果IDを再同定キューに投入する。
+クエリ条件に合う人物検出結果の ID を、再同定処理の対象として登録する。
 """
 from repositories.person.snapshot import RepositoryPersonSnapshot
 from environment import Environment
@@ -13,9 +13,9 @@ from repositories.person.snapshot.reid_queue import RepositoryPersonSnapshotReid
 
 class ApplicationPersonSnapshotRefresh(ApplicationBase):
     """
-    人物検出の更新（再同定キュー投入）を担当するアプリケーション。
+    人物検出の更新（再同定対象の登録）を担当するアプリケーション。
 
-    クエリ条件に合う人物検出結果の ID を再同定キューに一括投入する。
+    クエリ条件に合う人物検出結果の ID を取得し、再同定処理の対象として一括登録する。
     """
 
     def __init__(
@@ -49,10 +49,12 @@ class ApplicationPersonSnapshotRefresh(ApplicationBase):
 
     def refresh(self, query: DtoPersonSnapshotQuery | None = None) -> None:
         """
-        クエリ条件に合う人物検出結果の ID を再同定キューに投入する。条件が None の場合は該当する全 ID を投入する。
+        クエリ条件に合う人物検出結果の ID を再同定対象として登録する。
+
+        条件が None の場合は、該当する全 ID を対象とする。
 
         :param DtoPersonSnapshotQuery | None query: 対象とする人物検出の条件（省略時は全件）
-        :raises InternalServerError: キュー投入などに失敗した場合
+        :raises InternalServerError: 再同定対象の登録に失敗した場合
         """
         database_query = None
         if query is not None:
