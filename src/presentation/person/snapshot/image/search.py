@@ -1,8 +1,10 @@
 """
-人物検出画像検索のプレゼンテーション層
+人物検出画像検索のプレゼンテーション層。
 
-GET /person/snapshot/image/search/{id} で人物検出結果 ID を受け取り、ストレージから切り出し画像を取得して画像レスポンスで返す API を提供する。
-認証済み管理クライアントのみ利用可能。存在しない ID は 404、同一 ID で複数拡張子がある場合は 409、取得失敗時は 500。
+GET /person/snapshot/image/search/{id} で人物検出結果 ID を受け取り、
+対応する人物検出画像（切り出し画像）を画像レスポンスで返す API を提供する。
+認証済み管理クライアントのみ利用可能。存在しない ID は 404、同一 ID で複数拡張子がある場合は 409、
+取得失敗時は 500 を返す。
 """
 from applications.person.snapshot.image.search import ApplicationPersonSnapshotImageSearch
 from dto.id import DtoId
@@ -19,7 +21,8 @@ class PresentationPersonSnapshotImageSearch(PresentationUtilBase):
     """
     人物検出画像検索の API エンドポイントを提供するプレゼンテーションクラス。
 
-    GET /person/snapshot/image/search/{id} でパスの ID に紐づく人物検出画像（切り出し画像）をストレージから取得し、画像バイナリで返す。成功時は 200 と Content-Type 付きで画像を返す。Bearer トークン必須。
+    GET /person/snapshot/image/search/{id} でパスの ID に紐づく人物検出画像（切り出し画像）を検索し、画像バイナリで返す。
+    成功時は 200 と Content-Type 付きで画像を返す。Bearer トークン必須。
     """
     router_path = "/person/snapshot/image/search/{id}"
     methods = ["GET"]
@@ -71,7 +74,9 @@ class PresentationPersonSnapshotImageSearch(PresentationUtilBase):
         """
         人物検出結果 ID で画像を取得し、画像レスポンスで返す。
 
-        パスの ID を DTO に渡し、アプリケーション層でストレージから人物検出画像を取得する。取得した画像をそのままレスポンスボディに載せて 200 で返す。画像が無い場合は NotFoundError（404）、同一 ID で複数拡張子が存在する場合は ConflictError（409）。
+        パスの ID を DTO に渡し、アプリケーション層で人物検出画像を検索して取得する。
+        取得した画像をレスポンスボディに載せて 200 で返す。画像が無い場合は NotFoundError（404）、
+        同一 ID で複数拡張子が存在する場合は ConflictError（409）となる。
 
         :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント（Bearer 検証で注入）
         :param PresentationUtilRequest request: リクエスト（本処理では未使用）

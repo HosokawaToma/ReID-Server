@@ -72,7 +72,7 @@ class PresentationPersonSnapshotAnswerAssign(PresentationUtilBase):
         ソースの正解ラベルをターゲットに一括割り当てし、成功メッセージを JSON で返す。
 
         リクエストの source_person_snapshot_id に紐づく person_id を、target_person_snapshot_ids の各 ID にコピーする。
-        アプリケーション層で DB 更新を行う。ソースまたはターゲットが存在しない場合は NotFoundError により 404 となる。
+        ソースまたはターゲットが存在しない場合は NotFoundError により 404 となる。
 
         :param PresentationUtilAdminClientAuthenticated admin_client_id: 認証済み管理クライアント（Bearer 検証で注入）
         :param PresentationPersonSnapshotAnswerAssignRequest request: ソース 1 件・ターゲット複数件の人物検出 ID
