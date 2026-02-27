@@ -195,3 +195,12 @@ docker compose run --rm app python -m alembic upgrade head
 
 このエンドポイントは，指定日の人物検出データと付与済みの正解ラベルに基づき，Market1501 と同一の考え方でクエリ・ギャラリを定義して CMC 曲線および mAP を自動計算する．
 利用者は，評価対象の日付と試行番号を指定して `/reid/evaluation/{date}/{attempt}` を呼び出すだけで，ジャンク込み・ジャンク除外の両方の指標を取得できる．
+
+# ドキュメント
+
+- `docs/specification.md`: システム全体の仕様書（目的・要件・評価指標など）
+- `docs/develop/rules.md`: 開発ルール（機能要件・非機能要件・保守性など）
+- `docs/develop/coding_rule.md`: コーディング規約
+- `docs/develop/design_rule.md`: 設計ルール（ここを見るとコードが読みやすくなるよ思うよ）
+- `docs/develop/unit_test.md`: ユニットテストに関するルール
+- `docs/hack.md`: よく使うコマンドや開発メモ
